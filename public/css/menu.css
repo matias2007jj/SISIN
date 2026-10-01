@@ -89,3 +89,121 @@
             border-color: var(--accent-green);
             color: var(--text-light);
         }
+/*-----------------------------------------------------------------------------------------------------------------------------*/
+        /* --- Estilos del Menú Lateral (Offcanvas) --- */
+.offcanvas-custom {
+    background-color: var(--bg-card);
+    border-right: 1px solid var(--border-card);
+    color: var(--text-light);
+}
+
+.offcanvas-custom .offcanvas-header {
+    border-bottom: 1px solid var(--border-card);
+}
+
+.offcanvas-custom .btn-close-white {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.sidebar-nav .nav-link {
+    color: var(--text-muted);
+    font-weight: 500;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sidebar-nav .nav-link:hover,
+.sidebar-nav .nav-link.active {
+    background-color: var(--btn-secondary-bg);
+    color: var(--accent-green);
+    border: 1px solid var(--btn-secondary-border);
+}
+
+.btn-toggle-sidebar {
+    background: transparent;
+    border: 1px solid var(--border-card);
+    color: var(--text-light);
+    border-radius: 8px;
+    padding: 0.4rem 0.8rem;
+    transition: all 0.2s ease;
+}
+
+.btn-toggle-sidebar:hover {
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+}
+
+/* --- Categorías / Encabezados del Menú --- */
+.sidebar-category {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 0.5rem 1rem 0.25rem 1rem;
+}
+
+/* --- Enlaces y Submenús --- */
+.sidebar-nav .nav-link {
+    color: var(--text-light);
+    font-size: 0.95rem;
+    font-weight: 500;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+}
+
+.sidebar-nav .nav-link i {
+    width: 20px;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.sidebar-nav .nav-link:hover,
+.sidebar-nav .nav-link.active {
+    background-color: var(--btn-secondary-bg);
+    color: var(--accent-green);
+}
+
+.sidebar-nav .nav-link:hover i,
+.sidebar-nav .nav-link.active i {
+    color: var(--accent-green);
+}
+
+/* --- Flecha desplegable --- */
+.arrow-icon {
+    font-size: 0.75rem !important;
+    transition: transform 0.2s ease;
+}
+
+.nav-link[aria-expanded="true"] .arrow-icon {
+    transform: rotate(180deg);
+    color: var(--accent-green) !important;
+}
+
+/* --- Links del Acordeón Desplegable --- */
+.submenu {
+    padding-left: 2.2rem;
+}
+
+.submenu-link {
+    display: block;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.88rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.submenu-link:hover {
+    color: var(--accent-green);
+    background-color: rgba(255, 255, 255, 0.03);
+}
