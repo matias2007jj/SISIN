@@ -1,0 +1,138 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #050B09;
+}
+
+
+.mi-modal {
+    width: 480px;
+    background: #0B1713;
+    border: 1px solid #142821;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    background: #0D1B16;
+    border-bottom: 1px solid #162E25;
+}
+
+.titulo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.punto {
+    width: 9px;
+    height: 9px;
+    background: #00E59B;
+    border-radius: 50%;
+}
+
+.titulo h2 {
+    color: #FFFFFF;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.cerrar {
+    background: none;
+    border: none;
+    color: #6C7D76;
+    font-size: 24px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.cerrar:hover {
+    color: #00E59B;
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.campo {
+    margin-bottom: 18px;
+}
+
+.campo label {
+    display: block;
+    margin-bottom: 8px;
+    color: #9BB0A7;
+    font-size: 14px;
+}
+
+.campo input,
+.campo textarea,
+.campo select {
+    width: 100%;
+    padding: 12px 14px;
+    background: #060E0C;
+    border: 1px solid #162E25;
+    border-radius: 8px;
+    color: #E2ECE8;
+    font-size: 14px;
+    outline: none;
+}
+
+.campo input:focus,
+.campo textarea:focus,
+.campo select:focus {
+    border-color: #00E59B;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 18px 24px;
+    background: #0A1411;
+    border-top: 1px solid #162E25;
+}
+
+.btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.2s ease;
+}
+
+.btn-cancelar {
+    background: #11221B;
+    border: 1px solid #1B382D;
+    color: #FFFFFF;
+}
+
+.btn-cancelar:hover {
+    background: #162C23;
+}
+
+.btn-guardar {
+    background: #00E59B;
+    border: none;
+    color: #040A08;
+}
+
+.btn-guardar:hover {
+    background: #00FFAD;
+}
