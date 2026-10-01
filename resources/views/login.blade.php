@@ -1,20 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
     <meta charset="utf-8" />
     <title>Sisventas | Sistema de inventario</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <!-- App favicon -->
-    <link rel="shortcut icon" href="../assets/images/logo-p.png" />
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}" />
 
-    <!-- Bootstrap Css -->
-    <link href="../assets/css/bootstrap.min.css" id="bootstrap-style" rel="stylesheet" type="text/css" />
-    <!-- Icons Css -->
-    <link href="../assets/css/icons.min.css" rel="stylesheet" type="text/css" />
-    <!-- App Css-->
-    <link href="../assets/css/app.min.css" id="app-style" rel="stylesheet" type="text/css" />
+    <!-- Bootstrap CSS (CDN para asegurar que cargue correctamente) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Remind / Icons CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    
+    <!-- Tus estilos personalizados -->
+    <link href="{{ asset('css/login.css') }}" rel="stylesheet" type="text/css" />
 </head>
 
 <body class="auth-body-bg">
@@ -28,13 +30,6 @@
                                 <div class="col-lg-9">
                                     <div>
                                         <div class="text-center">
-                                            <div>
-                                                <a href="index.html" class="">
-                                                    <img src="../assets/images/LOGODSI2.png" alt=""
-                                                        height="200" class="auth-logo logo-dark mx-auto" />
-                                                </a>
-                                            </div>
-
                                             <h4 class="font-size-18 mt-4">
                                                 Bienvenidos al Sistema de Control de Ventas
                                             </h4>
@@ -43,7 +38,7 @@
                                         <div class="p-2 mt-5">
                                             <div class="auth-form-group-custom mb-4">
                                                 <i class="ri-user-2-line auti-custom-input-icon"></i>
-                                                <label for="username" class="fw-semibold">Usuario</label>
+                                                <label for="usu" class="fw-semibold">Usuario</label>
                                                 <input type="text" class="form-control" id="usu"
                                                     placeholder="Ingrese Usuario"
                                                     onkeyup="javascript:this.value=this.value.toUpperCase()" />
@@ -51,10 +46,9 @@
 
                                             <div class="auth-form-group-custom mb-4">
                                                 <i class="ri-lock-2-line auti-custom-input-icon"></i>
-                                                <label for="userpassword">Password</label>
+                                                <label for="pass">Password</label>
                                                 <input type="password" class="form-control" id="pass"
-                                                    placeholder="Ingrese Password"
-                                                    onkeyup="javascript:this.value=this.value.toUpperCase()" />
+                                                    placeholder="Ingrese Password" />
                                             </div>
 
                                             <div class="mt-4 text-center">
@@ -78,16 +72,14 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT -->
-    <script src="../assets/libs/jquery/jquery.min.js"></script>
-    <script src="../assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="../assets/libs/metismenu/metisMenu.min.js"></script>
-    <script src="../assets/libs/simplebar/simplebar.min.js"></script>
-    <script src="../assets/libs/node-waves/waves.min.js"></script>
-    <script src="../assets/js/app.js"></script>
+    <!-- JAVASCRIPT (jQuery por CDN para evitar errores 404) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Tus scripts locales ubicados en public/js/ -->
     <script src="{{ asset('js/mensaje.js') }}"></script>
-    <script src="{{asset('js/acceso.js')}}"></script>
+    <script src="{{ asset('js/acceso.js') }}"></script>
 
 </body>
 
