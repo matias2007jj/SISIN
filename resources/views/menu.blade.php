@@ -8,125 +8,160 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome Íconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Tipografía -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Estilos personalizados -->
     <link href="{{ asset('css/menu.css') }}" rel="stylesheet">
 </head>
 <body>
 
-    <!-- NAVBAR -->
-    <nav class="navbar navbar-custom px-4 py-3 mb-5">
-        <div class="d-flex align-items-center gap-3">
-            <button class="btn btn-toggle-sidebar" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu">
+@php
+    // Resumen: pásalo desde el controlador con view('menu', compact('stats')).
+    // Si no lo pasas, se muestran ceros.
+    $stats = $stats ?? [];
+    $summary = [
+        ['label' => 'Productos',        'value' => $stats['productos'] ?? 0,  'icon' => 'fa-cart-shopping'],
+        ['label' => 'Clientes',         'value' => $stats['clientes'] ?? 0,   'icon' => 'fa-user-group'],
+        ['label' => 'Facturas del mes', 'value' => $stats['facturas'] ?? 0,   'icon' => 'fa-receipt'],
+        ['label' => 'Con stock bajo',   'value' => $stats['stock_bajo'] ?? 0, 'icon' => 'fa-triangle-exclamation', 'warn' => true],
+    ];
+@endphp
+
+    <!-- NAVBAR SUPERIOR -->
+    <nav class="navbar navbar-expand-xl navbar-custom mb-4">
+        <div class="container">
+          <div class="nav-pill d-flex flex-wrap align-items-center justify-content-between">
+            <a class="navbar-brand fw-bold m-0" href="#">
+                <span class="brand-mark"><i class="fa-solid fa-boxes-stacked"></i></span>
+                Sistema SISIN
+            </a>
+
+            <button class="btn btn-toggle-menu d-xl-none" type="button" data-bs-toggle="collapse" data-bs-target="#topMenu" aria-controls="topMenu" aria-expanded="false" aria-label="Abrir menú">
                 <i class="fa-solid fa-bars"></i>
             </button>
-            <a class="navbar-brand fw-bold m-0" href="#">
-                <span>•</span> Sistema SISIN
-            </a>
+
+            <div class="collapse navbar-collapse" id="topMenu">
+                <ul class="navbar-nav top-nav me-auto ms-xl-4">
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('menu') ? 'active' : '' }}" href="#" @if(request()->is('menu')) aria-current="page" @endif>
+                            <i class="fa-solid fa-house"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="fa-solid fa-user-group"></i> Clientes</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="fa-solid fa-cart-shopping"></i> Productos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="fa-solid fa-tags"></i> Categorías</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="fa-solid fa-receipt"></i> Facturas</a></li>
+
+                    <li class="nav-divider d-none d-xl-block" aria-hidden="true"></li>
+
+                    <!-- Reportes -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa-solid fa-file-lines"></i> Reportes
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-custom">
+                            <li><h6 class="dropdown-header">Generales</h6></li>
+                            <li><a class="dropdown-item" href="#">Reporte Ventas</a></li>
+                            <li><a class="dropdown-item" href="#">Reporte Inventario</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">Específicos</h6></li>
+                            <li><a class="dropdown-item" href="#">Por Cliente</a></li>
+                            <li><a class="dropdown-item" href="#">Por Producto</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Usuarios -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa-regular fa-user"></i> Usuarios
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-custom">
+                            <li><h6 class="dropdown-header">Mantenimiento</h6></li>
+                            <li><a class="dropdown-item" href="#">Gestionar Usuarios</a></li>
+                            <li><a class="dropdown-item" href="#">Perfiles y Permisos</a></li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <!-- Usuario -->
+                <div class="dropdown user-menu mt-3 mt-xl-0">
+                    <a class="user-chip d-flex align-items-center gap-2 text-decoration-none" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="avatar">{{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}</span>
+                        <span>{{ auth()->user()->name ?? 'Usuario' }}</span>
+                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-custom">
+                        @if (Route::has('logout'))
+                            <li>
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="fa-solid fa-right-from-bracket me-2"></i> Cerrar sesión
+                                    </button>
+                                </form>
+                            </li>
+                        @else
+                            <li><span class="dropdown-item-text text-muted">Sesión activa</span></li>
+                        @endif
+                    </ul>
+                </div>
+            </div>
+          </div>
         </div>
-        <span class="badge-title">Menú Principal</span>
     </nav>
-
-    <!-- MENÚ LATERAL DESPLEGABLE (OFFCANVAS) -->
-    <div class="offcanvas offcanvas-start offcanvas-custom" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel">
-        <div class="offcanvas-header">
-            <h5 class="offcanvas-title fw-bold" id="sidebarMenuLabel">
-                <span style="color: var(--accent-green);">•</span> Sistema SISIN
-            </h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-        </div>
-        <div class="offcanvas-body">
-            <nav class="sidebar-nav">
-                
-                <!-- SECCIÓN: MENU -->
-                <div class="sidebar-category">MENU</div>
-                <a class="nav-link active" href="#"><i class="fa-solid fa-house"></i> Home</a>
-                <a class="nav-link" href="#"><i class="fa-solid fa-user-group"></i> Clientes</a>
-                <a class="nav-link" href="#"><i class="fa-solid fa-cart-shopping"></i> Productos</a>
-                <a class="nav-link" href="#"><i class="fa-solid fa-tags"></i> Categorías</a>
-                <a class="nav-link" href="#"><i class="fa-solid fa-receipt"></i> Facturas</a>
-
-                <!-- SECCIÓN: REPORTES -->
-                <div class="sidebar-category mt-4">REPORTES</div>
-                
-                <!-- Submenú Generales -->
-                <div class="nav-item-dropdown">
-                    <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#menuGenerales" role="button" aria-expanded="false">
-                        <span><i class="fa-solid fa-file-lines"></i> Generales</span>
-                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
-                    </a>
-                    <div class="collapse submenu" id="menuGenerales">
-                        <a href="#" class="submenu-link">Reporte Ventas</a>
-                        <a href="#" class="submenu-link">Reporte Inventario</a>
-                    </div>
-                </div>
-
-                <!-- Submenú Específicos -->
-                <div class="nav-item-dropdown">
-                    <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#menuEspecificos" role="button" aria-expanded="false">
-                        <span><i class="fa-solid fa-file-lines"></i> Específicos</span>
-                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
-                    </a>
-                    <div class="collapse submenu" id="menuEspecificos">
-                        <a href="#" class="submenu-link">Por Cliente</a>
-                        <a href="#" class="submenu-link">Por Producto</a>
-                    </div>
-                </div>
-
-                <!-- SECCIÓN: USUARIOS -->
-                <div class="sidebar-category mt-4">USUARIOS</div>
-                
-                <!-- Submenú Mantenimiento -->
-                <div class="nav-item-dropdown">
-                    <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#menuMantenimiento" role="button" aria-expanded="false">
-                        <span><i class="fa-regular fa-user"></i> Mantenimiento</span>
-                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
-                    </a>
-                    <div class="collapse submenu" id="menuMantenimiento">
-                        <a href="#" class="submenu-link">Gestionar Usuarios</a>
-                        <a href="#" class="submenu-link">Perfiles y Permisos</a>
-                    </div>
-                </div>
-
-            </nav>
-        </div>
-    </div>
 
     <!-- CONTENIDO PRINCIPAL -->
     <div class="container py-3">
-        <h2 class="mb-5 text-center fw-bold" style="letter-spacing: -0.5px;">Panel de Control</h2>
+        <div class="page-head mb-4">
+            <h2>Panel de Control</h2>
+            <p>Resumen del inventario y accesos a los módulos del sistema.</p>
+        </div>
 
-        <div class="row g-4 justify-content-center">
+        <!-- Resumen -->
+        <section class="summary mb-4" aria-label="Resumen">
+            @foreach ($summary as $s)
+                <div class="summary-item {{ !empty($s['warn']) && $s['value'] > 0 ? 'is-warn' : '' }}">
+                    <i class="fa-solid {{ $s['icon'] }}"></i>
+                    <div>
+                        <strong>{{ number_format($s['value']) }}</strong>
+                        <span>{{ $s['label'] }}</span>
+                    </div>
+                </div>
+            @endforeach
+        </section>
+
+        <!-- Módulos -->
+        <div class="row g-4">
             <div class="col-md-4">
-                <div class="card menu-card h-100 shadow-sm text-center p-4">
-                    <div class="card-body d-flex flex-column justify-content-between">
-                        <div>
-                            <h5 class="card-title fw-semibold mb-2">Módulo 1</h5>
-                            <p class="card-text mb-4">Gestión y registro de datos.</p>
-                        </div>
+                <div class="card menu-card h-100 p-3">
+                    <div class="card-body d-flex flex-column">
+                        <span class="module-icon"><i class="fa-solid fa-database"></i></span>
+                        <h5 class="card-title fw-semibold mb-1">Módulo 1</h5>
+                        <p class="card-text mb-4 flex-grow-1">Gestión y registro de datos.</p>
                         <a href="#" class="btn btn-green w-100">Ingresar</a>
                     </div>
                 </div>
             </div>
 
             <div class="col-md-4">
-                <div class="card menu-card h-100 shadow-sm text-center p-4">
-                    <div class="card-body d-flex flex-column justify-content-between">
-                        <div>
-                            <h5 class="card-title fw-semibold mb-2">Reportes</h5>
-                            <p class="card-text mb-4">Consulta y exportación de reportes.</p>
-                        </div>
+                <div class="card menu-card h-100 p-3">
+                    <div class="card-body d-flex flex-column">
+                        <span class="module-icon"><i class="fa-solid fa-chart-column"></i></span>
+                        <h5 class="card-title fw-semibold mb-1">Reportes</h5>
+                        <p class="card-text mb-4 flex-grow-1">Consulta y exportación de reportes.</p>
                         <a href="#" class="btn btn-green w-100">Ver reportes</a>
                     </div>
                 </div>
             </div>
 
             <div class="col-md-4">
-                <div class="card menu-card h-100 shadow-sm text-center p-4">
-                    <div class="card-body d-flex flex-column justify-content-between">
-                        <div>
-                            <h5 class="card-title fw-semibold mb-2">Configuración</h5>
-                            <p class="card-text mb-4">Ajustes generales del sistema.</p>
-                        </div>
+                <div class="card menu-card h-100 p-3">
+                    <div class="card-body d-flex flex-column">
+                        <span class="module-icon"><i class="fa-solid fa-gear"></i></span>
+                        <h5 class="card-title fw-semibold mb-1">Configuración</h5>
+                        <p class="card-text mb-4 flex-grow-1">Ajustes generales del sistema.</p>
                         <a href="#" class="btn btn-secondary-custom w-100">Configurar</a>
                     </div>
                 </div>

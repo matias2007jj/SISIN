@@ -1,162 +1,182 @@
-/* --- Variables de diseño --- */
 :root {
     --bg-body: #030705;
-    --bg-card: rgba(10, 20, 15, 0.9);
+    --bg-card: rgba(10, 20, 15, 0.95);
     --text-main: #ffffff;
     --text-muted: #94a3b8;
     --accent-color: #00e676;
     --border-glow: rgba(0, 230, 118, 0.4);
 }
 
-body.auth-body-bg {
-    background-color: var(--bg-body) !important;
-    color: var(--text-main);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    height: 100vh;
-    margin: 0;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
+html,
+body,
+html.swal2-shown,
+body.swal2-shown,
+html.swal2-height-auto,
+body.swal2-height-auto {
+    height: 100vh !important;
+    min-height: 100vh !important;
+    max-height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    padding-right: 0 !important;
+    overflow: hidden !important;
 }
 
-/* --- Fondo con resplandor ambiental animado --- */
+body.auth-body-bg {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: relative !important;
+    width: 100vw !important;
+    box-sizing: border-box !important;
+    background-color: var(--bg-body) !important;
+    color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
 body.auth-body-bg::before {
     content: '';
     position: absolute;
-    width: 650px;
-    height: 650px;
-    background: radial-gradient(circle, rgba(0, 230, 118, 0.22) 0%, rgba(0, 0, 0, 0) 70%);
+    width: 550px;
+    height: 550px;
+    background: radial-gradient(circle, rgba(0, 230, 118, 0.25) 0%, rgba(0, 0, 0, 0) 70%);
     border-radius: 50%;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 0;
-    animation: pulseGlow 6s ease-in-out infinite alternate;
     pointer-events: none;
 }
 
-@keyframes pulseGlow {
-    0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.5; }
-    100% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.9; }
-}
-
-/* --- Animación de entrada de la tarjeta --- */
-@keyframes cardEntrance {
-    0% {
-        opacity: 0;
-        transform: translateY(30px) scale(0.95);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-/* --- Tarjeta Central Flotante --- */
 .login-card-container {
     position: relative;
     z-index: 10;
     width: 100%;
     max-width: 420px;
-    margin: 0 auto;
     padding: 40px 35px;
     background: var(--bg-card) !important;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--border-glow);
     border-radius: 20px;
-    box-shadow: 0 0 40px rgba(0, 230, 118, 0.15), 
-                0 25px 50px rgba(0, 0, 0, 0.8),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    animation: cardEntrance 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    box-shadow: 0 0 40px rgba(0, 230, 118, 0.2), 0 25px 50px rgba(0, 0, 0, 0.9);
+    margin: 20px;
 }
 
 .login-card-container h4 {
     color: var(--text-main) !important;
     font-weight: 700;
-    font-size: 1.25rem;
-    text-shadow: 0 0 15px rgba(0, 230, 118, 0.3);
+    font-size: 1.3rem;
+    text-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
 }
 
-.login-card-container label {
+.auth-form-group-custom {
+    position: relative;
+    margin-bottom: 22px;
+    text-align: left;
+}
+
+.auth-form-group-custom label {
     display: block;
     color: var(--text-main) !important;
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     font-weight: 600;
     margin-bottom: 8px;
 }
 
-.login-card-container p.text-muted {
-    color: var(--text-muted) !important;
-    font-size: 0.85rem;
-}
-
-/* --- Estructura limpia y espaciada para los campos --- */
-.login-field-group {
-    width: 100%;
-    text-align: left;
-    margin-bottom: 22px; /* Espacio controlado entre Usuario y Password */
-}
-
-/* --- Cajas de texto estilizadas y oscuras --- */
-.login-card-container .form-control {
-    display: block;
+.auth-form-group-custom .form-control {
     width: 100% !important;
-    max-width: 100% !important;
     background-color: rgba(4, 10, 7, 0.95) !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
-    color: var(--text-main) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
     border-radius: 10px !important;
-    padding: 12px 16px !important;
+    padding: 12px 16px 12px 40px !important;
     height: 48px !important;
     box-sizing: border-box !important;
-    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Color del texto placeholder */
-.login-card-container .form-control::placeholder {
-    color: #6c757d !important;
-    opacity: 1;
+.auth-form-group-custom .auti-custom-input-icon {
+    position: absolute;
+    left: 12px;
+    top: 38px;
+    color: var(--accent-color);
+    font-size: 1.1rem;
+    z-index: 5;
 }
 
-.login-card-container .form-control:focus {
-    background-color: rgba(8, 18, 12, 1) !important;
+.auth-form-group-custom .form-control:focus {
     border-color: var(--accent-color) !important;
-    box-shadow: 0 0 20px rgba(0, 230, 118, 0.4) !important;
-    transform: translateY(-2px);
+    box-shadow: 0 0 15px rgba(0, 230, 118, 0.5) !important;
     outline: none;
-    color: #ffffff !important;
 }
 
-/* --- Botón de Acceso Neón --- */
-.login-btn-container {
-    margin-top: 30px;
-    text-align: center;
-}
-
-.login-card-container .btn-primary {
-    display: block;
+.btn-primary-custom {
     width: 100% !important;
     background-color: var(--accent-color) !important;
-    border-color: var(--accent-color) !important;
+    border: none !important;
     color: #030705 !important;
     font-weight: 800;
     padding: 12px !important;
     border-radius: 10px !important;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     box-shadow: 0 4px 20px rgba(0, 230, 118, 0.35);
-    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s ease;
 }
 
-.login-card-container .btn-primary:hover {
+.btn-primary-custom:hover {
     background-color: #00ff80 !important;
-    border-color: #00ff80 !important;
-    box-shadow: 0 6px 30px rgba(0, 230, 118, 0.7);
-    transform: translateY(-3px);
+    box-shadow: 0 0 25px rgba(0, 230, 118, 0.7);
+    transform: translateY(-2px);
 }
 
-.login-card-container .btn-primary:active {
-    transform: translateY(-1px);
+.swal2-container {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: rgba(0, 0, 0, 0.65) !important;
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+    z-index: 99999 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.swal2-container .swal2-popup {
+    background: rgba(10, 20, 15, 0.98) !important;
+    border: 1px solid rgba(0, 230, 118, 0.4) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 0 35px rgba(0, 230, 118, 0.25), 0 20px 50px rgba(0, 0, 0, 0.9) !important;
+}
+
+.swal2-container .swal2-title,
+.swal2-container .swal2-html-container,
+.swal2-container .swal2-content {
+    color: #ffffff !important;
+}
+
+.swal2-container .swal2-confirm {
+    background-color: #00e676 !important;
+    color: #030705 !important;
+    font-weight: 800 !important;
+    border-radius: 10px !important;
+    padding: 10px 28px !important;
+    box-shadow: 0 4px 15px rgba(0, 230, 118, 0.4) !important;
+    border: none !important;
+    outline: none !important;
+}
+
+.swal2-container .swal2-confirm:hover {
+    background-color: #00ff80 !important;
+    box-shadow: 0 0 25px rgba(0, 230, 118, 0.8) !important;
+}
+
+.swal2-container .swal2-icon.swal2-error {
+    border-color: #ff4d4d !important;
+}
+
+.swal2-container .swal2-icon.swal2-error [class^='swal2-x-mark-line'] {
+    background-color: #ff4d4d !important;
 }

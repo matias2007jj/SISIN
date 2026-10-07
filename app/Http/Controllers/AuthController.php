@@ -15,11 +15,11 @@ class AuthController extends Controller
         ]);
 
         $credentials = [
-            'username' => $request->input('usu'),
-            'password' => $request->input('pass'),
-        ];
+        'username' => $request->input('usu'),
+        'password' => $request->input('pass'),
+        'activo'   => true, // <-- Permite el acceso únicamente si el usuario está activo
+    ];
 
-        // Intentamos autenticar
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
