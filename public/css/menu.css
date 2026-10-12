@@ -162,6 +162,42 @@ body {
 .dropdown-menu-custom form { margin: 0; }
 .dropdown-menu-custom button.dropdown-item { background: transparent; border: 0; width: 100%; text-align: left; }
 
+/* ==========================================
+   SUBMENÚ ANIDADO (Almacén > Tablas Generales)
+   ========================================== */
+.dropdown-submenu { position: relative; }
+
+.dropdown-submenu > .submenu {
+    display: none;
+    top: 0;
+    left: 100%;
+    margin-top: -.4rem !important;   /* alinea con el ítem padre (anula el margin-top global de .dropdown-menu-custom) */
+    margin-left: .35rem;
+}
+
+.dropdown-submenu.open > .submenu { display: block; }
+
+.submenu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.submenu-arrow {
+    font-size: .6rem;
+    color: var(--text-muted);
+    transition: transform .2s ease, color .15s ease;
+}
+
+.dropdown-submenu:hover > .submenu-toggle .submenu-arrow,
+.dropdown-submenu.open > .submenu-toggle .submenu-arrow { color: var(--accent-green); }
+
+/* En escritorio con mouse, el submenú también se abre al pasar el cursor */
+@media (min-width: 1200px) and (hover: hover) {
+    .dropdown-submenu:hover > .submenu { display: block; }
+}
+
 .user-chip {
     color: #fff;
     font-size: .88rem;
@@ -190,6 +226,41 @@ body {
     box-shadow: 0 0 8px rgba(0, 214, 143, .45);
 }
 
+/* ==========================================
+   NAVBAR EN UNA SOLA FILA (escritorio)
+   ========================================== */
+@media (min-width: 1200px) {
+    /* La barra puede ocupar más ancho que el contenido de abajo */
+    .navbar-custom > .container {
+        max-width: 1480px;
+    }
+
+    /* Logo + menú + usuario siempre en la misma línea */
+    .nav-pill { flex-wrap: nowrap; }
+    .navbar-custom .navbar-collapse { flex-wrap: nowrap; min-width: 0; }
+    .navbar-custom .top-nav { flex-wrap: nowrap; }
+    .navbar-custom .top-nav .nav-link { white-space: nowrap; }
+}
+
+/* Laptops (1200px a 1399px): botones un poco más compactos para que todo quepa */
+@media (min-width: 1200px) and (max-width: 1399.98px) {
+    .top-nav { gap: .1rem; }
+    .navbar-custom .top-nav .nav-link {
+        padding: .5rem .65rem;
+        font-size: .85rem;
+        gap: 6px;
+    }
+    .nav-divider { margin: 0 .25rem; }
+}
+
+/* Pantallas justo sobre el límite (1200px a 1279px): se ocultan los íconos del menú */
+@media (min-width: 1200px) and (max-width: 1279.98px) {
+    .navbar-custom .top-nav .nav-link > i:first-child { display: none; }
+}
+
+/* ==========================================
+   NAVBAR EN MÓVIL / TABLET
+   ========================================== */
 @media (max-width: 1199.98px) {
     .nav-pill {
         border-radius: 26px;
@@ -213,8 +284,14 @@ body {
         border-radius: 0;
         margin: .15rem 0 .35rem 1.2rem !important;
     }
+    /* En móvil el submenú se despliega hacia abajo, dentro del mismo menú */
+    .dropdown-submenu > .submenu { min-width: 0; }
+    .dropdown-submenu.open > .submenu-toggle .submenu-arrow { transform: rotate(90deg); }
 }
 
+/* ==========================================
+   CONTENIDO DEL PANEL
+   ========================================== */
 .page-head h2 { font-weight: 800; letter-spacing: -.02em; font-size: clamp(1.65rem, 3vw, 2.1rem); }
 .page-head p { color: var(--text-muted); margin: .35rem 0 0; }
 
@@ -290,3 +367,7 @@ body {
 @media (prefers-reduced-motion: reduce) {
     * { transition: none !important; }
 }
+
+/* Ítem activo dentro de los dropdowns y botón de cerrar sesión */
+.dropdown-menu-custom .dropdown-item.active { color: var(--accent-green); background: var(--accent-soft); }
+.dropdown-menu-custom .dropdown-item-logout:hover { color: #ff8f8f; background: rgba(255, 107, 107, .1); }
