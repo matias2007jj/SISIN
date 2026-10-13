@@ -4,21 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Menú Principal - SISIN')</title>
-    <!-- Bootstrap 5 CSS -->
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FontAwesome Íconos -->
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Tipografía -->
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Estilos personalizados -->
+    
     <link href="{{ asset('css/menu.css') }}" rel="stylesheet">
     @stack('styles')
 </head>
 <body>
 
-    <!-- NAVBAR SUPERIOR -->
     <nav class="navbar navbar-expand-xl navbar-custom mb-4">
         <div class="container">
           <div class="nav-pill d-flex flex-wrap align-items-center justify-content-between">
@@ -45,13 +44,11 @@
 
                     <li class="nav-divider d-none d-xl-block" aria-hidden="true"></li>
 
-                    <!-- Almacén -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle {{ request()->routeIs('catalogo.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fa-solid fa-warehouse"></i> Almacén
                         </a>
                         <ul class="dropdown-menu dropdown-menu-custom">
-                            <!-- Submenú: Tablas Generales -->
                             <li class="dropdown-submenu">
                                 <a class="dropdown-item submenu-toggle" href="#">
                                     Tablas Generales <i class="fa-solid fa-chevron-right submenu-arrow"></i>
@@ -72,7 +69,6 @@
                         </ul>
                     </li>
 
-                    <!-- Reportes -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fa-solid fa-file-lines"></i> Reportes
@@ -88,7 +84,6 @@
                         </ul>
                     </li>
 
-                    <!-- Usuarios -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fa-regular fa-user"></i> Usuarios
@@ -101,7 +96,6 @@
                     </li>
                 </ul>
 
-                <!-- Usuario -->
                 <div class="dropdown user-menu mt-3 mt-xl-0">
                     <a class="user-chip d-flex align-items-center gap-2 text-decoration-none" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <span class="avatar">{{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}</span>
@@ -126,10 +120,8 @@
 
     @yield('content')
 
-    <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Submenús anidados (Almacén > Tablas Generales) -->
     <script>
         document.querySelectorAll('.submenu-toggle').forEach(function (toggle) {
             toggle.addEventListener('click', function (e) {

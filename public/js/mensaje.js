@@ -15,11 +15,8 @@ function MostrarMensaje(ti, men, ico) {
 }
 
 function MostrarAlerta(titulo, descripcion, tipoAlerta) {
-    // Asignar color al icono según la alerta
-    let colorIcono = '#00e676'; // Verde Neón por defecto
-    if (tipoAlerta === 'error') colorIcono = '#ff4d4d';   // Rojo
-    if (tipoAlerta === 'warning') colorIcono = '#ffb74d'; // Naranja
-    if (tipoAlerta === 'info') colorIcono = '#29b6f6';    // Azul
+    let colorIcono = '#00e676';
+    if (tipoAlerta === 'error') colorIcono = '#ff4d4d';  
 
     Swal.fire({
         title: titulo,

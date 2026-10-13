@@ -1,138 +1,141 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: Arial, sans-serif;
-}
-
-body {
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #050B09;
-}
-
+/* ==========================================================================
+   modal.css - Estilos Ventana Modal Personalizada
+   ========================================================================== */
 
 .mi-modal {
-    width: 480px;
-    background: #0B1713;
-    border: 1px solid #142821;
-    border-radius: 14px;
+    background-color: #161b22;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
     overflow: hidden;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+    color: #f3f4f6;
+    width: 100%;
 }
 
-.modal-header {
+.mi-modal .modal-header {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(22, 27, 34, 0) 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 1.25rem 1.5rem;
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    align-items: center;
-    padding: 20px 24px;
-    background: #0D1B16;
-    border-bottom: 1px solid #162E25;
 }
 
-.titulo {
+.mi-modal .titulo {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 0.6rem;
 }
 
-.punto {
-    width: 9px;
-    height: 9px;
-    background: #00E59B;
+.mi-modal .punto {
+    width: 10px;
+    height: 10px;
+    background-color: #10b981;
     border-radius: 50%;
+    box-shadow: 0 0 8px #10b981;
 }
 
-.titulo h2 {
-    color: #FFFFFF;
-    font-size: 18px;
-    font-weight: 600;
+.mi-modal .titulo h2 {
+    color: #ffffff;
+    font-size: 1.15rem;
+    font-weight: 700;
     margin: 0;
 }
 
-.cerrar {
-    background: none;
+.mi-modal .cerrar {
+    background: transparent;
     border: none;
-    color: #6C7D76;
-    font-size: 24px;
-    cursor: pointer;
+    color: #9ca3af;
+    font-size: 1.6rem;
     line-height: 1;
+    cursor: pointer;
+    transition: color 0.2s ease;
 }
 
-.cerrar:hover {
-    color: #00E59B;
+.mi-modal .cerrar:hover {
+    color: #ffffff;
 }
 
-.modal-body {
-    padding: 24px;
+.mi-modal .modal-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
 }
 
-.campo {
-    margin-bottom: 18px;
+.mi-modal .campo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
 }
 
-.campo label {
-    display: block;
-    margin-bottom: 8px;
-    color: #9BB0A7;
-    font-size: 14px;
+.mi-modal .campo label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #9ca3af;
+    letter-spacing: 0.04em;
 }
 
-.campo input,
-.campo textarea,
-.campo select {
-    width: 100%;
-    padding: 12px 14px;
-    background: #060E0C;
-    border: 1px solid #162E25;
-    border-radius: 8px;
-    color: #E2ECE8;
-    font-size: 14px;
+.mi-modal .campo input,
+.mi-modal .campo textarea {
+    background-color: #0d1117;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    padding: 0.65rem 0.9rem;
+    color: #ffffff;
+    font-size: 0.9rem;
     outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.campo input:focus,
-.campo textarea:focus,
-.campo select:focus {
-    border-color: #00E59B;
+.mi-modal .campo input::placeholder,
+.mi-modal .campo textarea::placeholder {
+    color: #6b7280;
 }
 
-.modal-footer {
+.mi-modal .campo input:focus,
+.mi-modal .campo textarea:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.2);
+}
+
+.mi-modal .modal-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 1rem 1.5rem;
     display: flex;
     justify-content: flex-end;
-    gap: 12px;
-    padding: 18px 24px;
-    background: #0A1411;
-    border-top: 1px solid #162E25;
+    gap: 0.75rem;
+    background: #12161f;
 }
 
-.btn {
-    padding: 10px 20px;
+.mi-modal .btn {
     border-radius: 8px;
+    padding: 0.55rem 1.25rem;
+    font-weight: 700;
+    font-size: 0.88rem;
     cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    transition: background 0.2s ease;
-}
-
-.btn-cancelar {
-    background: #11221B;
-    border: 1px solid #1B382D;
-    color: #FFFFFF;
-}
-
-.btn-cancelar:hover {
-    background: #162C23;
-}
-
-.btn-guardar {
-    background: #00E59B;
     border: none;
-    color: #040A08;
+    transition: all 0.2s ease;
 }
 
-.btn-guardar:hover {
-    background: #00FFAD;
+.mi-modal .btn-cancelar {
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #d1d5db;
+}
+
+.mi-modal .btn-cancelar:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+}
+
+.mi-modal .btn-guardar {
+    background-color: #10b981;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.mi-modal .btn-guardar:hover {
+    background-color: #059669;
 }
