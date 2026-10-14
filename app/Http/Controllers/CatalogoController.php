@@ -15,9 +15,14 @@ class CatalogoController extends Controller
         }
 
         if ($catalogo === 'sala') {
-            $salas = collect(); // Mañana lo conectamos al modelo Sala::all()
+            $salas = collect();
             return view('almacen.catalogo.sala', compact('salas', 'catalogo'));
         }
+
+        if ($catalogo === 'modelo') {
+            $modelos = collect(); 
+            return view('almacen.catalogo.modelo', compact('modelos', 'catalogo'));
+    }
 
         return redirect()->back()->with('warning', 'Módulo en desarrollo');
     }
