@@ -22,6 +22,16 @@
     </div>
 @endif
 
+@if($errors->any())
+    <div class="alert alert-danger alert-dismissible fade show border-0 mb-4 text-white" style="background-color: rgba(255, 77, 77, 0.2); border-left: 4px solid #ff4d4d !important;" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="fa-solid fa-circle-exclamation fs-5 me-2"></i>
+            <div>{{ $errors->first() }}</div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+@endif
+
 <div class="row g-3 align-items-center justify-content-between mb-4">
     <div class="col-12 col-md-6 col-lg-5">
         <div class="input-group search-toolbar">
@@ -35,7 +45,7 @@
 
     <div class="col-12 col-md-6 text-md-end">
         <span class="badge-count">
-            <i class="fa-solid fa-boxes-stacked me-1"></i> Total Registros: <span id="contadorModelos">{{ count($modelos ?? []) }}</span>
+            <i class="fa-solid fa-boxes-stacked me-1"></i> Total Registros: <span id="contadorModelos">{{ count($modelos) }}</span>
         </span>
     </div>
 </div>
@@ -52,7 +62,7 @@
             </tr>
         </thead>
         <tbody>
-            @forelse ($modelos ?? [] as $modelo)
+            @forelse ($modelos as $modelo)
                 <tr>
                     <td>
                         <div class="brand-chip">
@@ -61,9 +71,9 @@
                         </div>
                     </td>
                     <td>
-                        @if(isset($modelo->marca) && $modelo->marca)
+                        @if($modelo->programaEstudio)
                             <span class="badge-programa">
-                                <i class="fa-solid fa-tag me-1"></i>{{ $modelo->marca->nombre }}
+                                <i class="fa-solid fa-graduation-cap me-1"></i>{{ $modelo->programaEstudio->nombre }}
                             </span>
                         @else
                             <span class="text-muted fs-7">General / N/A</span>
@@ -131,11 +141,6 @@
                             <label for="nombre">Nombre</label>
                             <input type="text" id="nombre" name="nombre" class="text-uppercase" placeholder="Ingrese el nombre" required autofocus>
                         </div>
-
-                        <div class="campo">
-                            <label for="descripcion">Descripción</label>
-                            <textarea id="descripcion" name="descripcion" rows="4" placeholder="Ingrese una descripción"></textarea>
-                        </div>
                     </div>
 
                     <div class="modal-footer">
@@ -147,7 +152,8 @@
         </div>
     </div>
 </div>
-@foreach ($modelos ?? [] as $modelo)
+
+@foreach ($modelos as $modelo)
 <div class="modal fade" id="modalEditarModelo{{ $modelo->id }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 bg-transparent">
@@ -168,11 +174,6 @@
                             <label for="nombre_{{ $modelo->id }}">Nombre</label>
                             <input type="text" id="nombre_{{ $modelo->id }}" name="nombre" class="text-uppercase" value="{{ $modelo->nombre }}" placeholder="Ingrese el nombre" required>
                         </div>
-
-                        <div class="campo">
-                            <label for="descripcion_{{ $modelo->id }}">Descripción</label>
-                            <textarea id="descripcion_{{ $modelo->id }}" name="descripcion" rows="4" placeholder="Ingrese una descripción">{{ $modelo->descripcion ?? '' }}</textarea>
-                        </div>
                     </div>
 
                     <div class="modal-footer">
@@ -189,39 +190,5 @@
 
 @push('scripts')
 <script src="{{ asset('js/modal.js') }}"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const inputBuscar = document.getElementById('inputBuscar');
-        const btnLimpiar = document.getElementById('btnLimpiarBuscar');
-        const rows = document.querySelectorAll('#tablaModelos tbody tr:not(#rowSinDatos)');
-        const contador = document.getElementById('contadorModelos');
-
-        if (inputBuscar) {
-            inputBuscar.addEventListener('keyup', function() {
-                const filter = this.value.toUpperCase().trim();
-                let visibles = 0;
-
-                btnLimpiar.classList.toggle('d-none', filter === '');
-
-                rows.forEach(row => {
-                    const textContent = row.textContent || row.innerText;
-                    if (textContent.toUpperCase().indexOf(filter) > -1) {
-                        row.style.display = "";
-                        visibles++;
-                    } else {
-                        row.style.display = "none";
-                    }
-                });
-
-                if (contador) contador.textContent = visibles;
-            });
-
-            btnLimpiar.addEventListener('click', function() {
-                inputBuscar.value = '';
-                inputBuscar.dispatchEvent(new Event('keyup'));
-                inputBuscar.focus();
-            });
-        }
-    });
-</script>
+<script src="{{ asset('js/modelo.js') }}"></script>
 @endpush

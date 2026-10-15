@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Modelo;
 use App\Models\Tipo;
 use Illuminate\Http\Request;
 use App\Models\Marca;
@@ -25,7 +26,7 @@ class CatalogoController extends Controller
         }
 
         if ($catalogo === 'modelo') {
-            $modelos = collect();
+            $modelos = Modelo::with('programaEstudio')->orderBy('nombre', 'asc')->get();
             return view('almacen.catalogo.modelo', compact('modelos', 'catalogo'));
         }
 
@@ -56,6 +57,16 @@ class CatalogoController extends Controller
 
             return redirect()->back()->with('success', 'Tipo registrado correctamente');
         }
+        if ($catalogo === 'modelo') {
+            $request->validate(['nombre' => 'required|string|max:100']);
+         
+           Modelo::create([
+                'nombre' => mb_strtoupper(trim($request->nombre)),
+                'programa_estudio_id' => session('programa_estudio_id'),
+            ]);
+
+            return redirect()->back()->with('success', 'Modelo registrado correctamente');
+        }
 
         return redirect()->back();
     }
@@ -85,6 +96,16 @@ class CatalogoController extends Controller
             return redirect()->back()->with('success', 'Tipo actualizado correctamente');
         }
 
+        if ($catalogo === 'modelo') {
+            $request->validate(['nombre' => 'required|string|max:100']);
+
+            Modelo::findOrFail($id)->update([
+                'nombre' => mb_strtoupper(trim($request->nombre)),
+            ]);
+
+            return redirect()->back()->with('success', 'Modelo actualizado correctamente');
+        }
+
         return redirect()->back();
     }
 
@@ -103,10 +124,11 @@ class CatalogoController extends Controller
 
             return redirect()->back()->with('success', 'Tipo eliminado correctamente');
         }
-        if ($catalogo === 'tipo') {
-            Tipo::findOrFail($id)->delete();
 
-            return redirect()->back()->with('success', 'Tipo eliminado correctamente');
+        if ($catalogo === 'modelo') {
+            Modelo::findOrFail($id)->delete();
+
+            return redirect()->back()->with('success', 'Modelo eliminado correctamente');
         }
 
         return redirect()->back();
