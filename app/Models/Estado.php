@@ -12,5 +12,10 @@ class Estado extends Model
 
     protected $table = 'estados';
 
-    protected $fillable = ['nombre'];
+    protected $fillable = ['nombre', 'programa_estudio_id'];
+
+    public function programaEstudio()
+    {
+        return $this->belongsTo(ProgramaEstudio::class, 'programa_estudio_id');
+    }
 }

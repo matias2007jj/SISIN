@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Modelo;
 use App\Models\Tipo;
-use Illuminate\Http\Request;
 use App\Models\Marca;
+use App\Models\Estado; // <- Importar Estado
+use Illuminate\Http\Request;
 
 class CatalogoController extends Controller
 {
@@ -20,6 +21,12 @@ class CatalogoController extends Controller
             $tipos = Tipo::with('programaEstudio')->orderBy('nombre', 'asc')->get();
             return view('almacen.catalogo.tipo', compact('tipos', 'catalogo'));
         }
+
+        if ($catalogo === 'estado') {
+            $estados = Estado::with('programaEstudio')->orderBy('nombre', 'asc')->get();
+            return view('almacen.catalogo.estado', compact('estados', 'catalogo'));
+        }
+
         if ($catalogo === 'sala') {
             $salas = collect();
             return view('almacen.catalogo.sala', compact('salas', 'catalogo'));
@@ -36,9 +43,7 @@ class CatalogoController extends Controller
     public function store(Request $request, $catalogo)
     {   
         if ($catalogo === 'marca') {
-            $request->validate([
-                'nombre' => 'required|string|max:100',
-            ]);
+            $request->validate(['nombre' => 'required|string|max:100']);
 
             Marca::create([
                 'nombre' => strtoupper(trim($request->nombre)),
@@ -47,10 +52,11 @@ class CatalogoController extends Controller
 
             return redirect()->back()->with('success', 'Marca registrada correctamente');
         }
+
         if ($catalogo === 'tipo') {
             $request->validate(['nombre' => 'required|string|max:100']);
-         
-           Tipo::create([
+
+            Tipo::create([
                 'nombre' => mb_strtoupper(trim($request->nombre)),
                 'programa_estudio_id' => session('programa_estudio_id'),
             ]);
@@ -68,18 +74,26 @@ class CatalogoController extends Controller
             return redirect()->back()->with('success', 'Modelo registrado correctamente');
         }
 
+        if ($catalogo === 'estado') {
+            $request->validate(['nombre' => 'required|string|max:100']);
+
+            Estado::create([
+                'nombre' => mb_strtoupper(trim($request->nombre)),
+                'programa_estudio_id' => session('programa_estudio_id'),
+            ]);
+
+            return redirect()->back()->with('success', 'Estado registrado correctamente');
+        }
+
         return redirect()->back();
     }
 
     public function update(Request $request, $catalogo, $id)
     {
         if ($catalogo === 'marca') {
-            $request->validate([
-                'nombre' => 'required|string|max:100',
-            ]);
+            $request->validate(['nombre' => 'required|string|max:100']);
 
-            $marca = Marca::findOrFail($id);
-            $marca->update([
+            Marca::findOrFail($id)->update([
                 'nombre' => strtoupper(trim($request->nombre)),
             ]);
 
@@ -96,6 +110,7 @@ class CatalogoController extends Controller
             return redirect()->back()->with('success', 'Tipo actualizado correctamente');
         }
 
+<<<<<<< HEAD
         if ($catalogo === 'modelo') {
             $request->validate(['nombre' => 'required|string|max:100']);
 
@@ -104,6 +119,16 @@ class CatalogoController extends Controller
             ]);
 
             return redirect()->back()->with('success', 'Modelo actualizado correctamente');
+=======
+        if ($catalogo === 'estado') {
+            $request->validate(['nombre' => 'required|string|max:100']);
+
+            Estado::findOrFail($id)->update([
+                'nombre' => mb_strtoupper(trim($request->nombre)),
+            ]);
+
+            return redirect()->back()->with('success', 'Estado actualizado correctamente');
+>>>>>>> 41dbc48fa829ed88f62f101ee2c954f14c8efb21
         }
 
         return redirect()->back();
@@ -112,23 +137,25 @@ class CatalogoController extends Controller
     public function destroy($catalogo, $id)
     {
         if ($catalogo === 'marca') {
-            $marca = Marca::findOrFail($id);
-            $marca->delete();
-
+            Marca::findOrFail($id)->delete();
             return redirect()->back()->with('success', 'Marca eliminada correctamente');
         }
 
         if ($catalogo === 'tipo') {
-            $tipo = Tipo::findOrFail($id);
-            $tipo->delete();
-
+            Tipo::findOrFail($id)->delete();
             return redirect()->back()->with('success', 'Tipo eliminado correctamente');
         }
 
+<<<<<<< HEAD
         if ($catalogo === 'modelo') {
             Modelo::findOrFail($id)->delete();
 
             return redirect()->back()->with('success', 'Modelo eliminado correctamente');
+=======
+        if ($catalogo === 'estado') {
+            Estado::findOrFail($id)->delete();
+            return redirect()->back()->with('success', 'Estado eliminado correctamente');
+>>>>>>> 41dbc48fa829ed88f62f101ee2c954f14c8efb21
         }
 
         return redirect()->back();
