@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\grupo;
+use App\Models\ProgramaEstudio;
 use App\Models\Tipo;
 use App\Models\Marca;
 use App\Models\Estado; // <- Importar Estado
@@ -34,6 +36,12 @@ class CatalogoController extends Controller
         if ($catalogo === 'modelo') {
             $modelos = collect();
             return view('almacen.catalogo.modelo', compact('modelos', 'catalogo'));
+        }
+
+        if ($catalogo === 'grupo') {
+            $grupos = Grupo::with('programaEstudio')->orderBy('nombre', 'asc')->get();
+            $programasEstudio = ProgramaEstudio::orderBy('nombre', 'asc')->get();
+            return view('almacen.catalogo.grupo', compact('grupos', 'programasEstudio', 'catalogo'));
         }
 
         return redirect()->back()->with('warning', 'Módulo en desarrollo');
@@ -74,6 +82,21 @@ class CatalogoController extends Controller
             return redirect()->back()->with('success', 'Estado registrado correctamente');
         }
 
+        if ($catalogo === 'grupo') {
+            $request->validate([
+                'nombre' => 'required|string|max:60|unique:grupos,nombre',
+                'programa_estudio_id' => 'required|exists:programas_estudio,id'
+            ]);
+
+            Grupo::create([
+                'nombre' => strtoupper(trim($request->nombre)),
+                'programa_estudio_id' => $request->programa_estudio_id,
+            ]);
+
+            return redirect()->back()->with('success', 'Grupo registrado correctamente');
+        }
+
+
         return redirect()->back();
     }
 
@@ -109,6 +132,20 @@ class CatalogoController extends Controller
             return redirect()->back()->with('success', 'Estado actualizado correctamente');
         }
 
+        if ($catalogo === 'grupo') {
+            $request->validate([
+                'nombre' => 'required|string|max:60|unique:grupos,nombre,' . $id,
+                'programa_estudio_id' => 'required|exists:programas_estudio,id'
+            ]);
+
+            $grupo = Grupo::findOrFail($id);
+            $grupo->update([
+                'nombre' => strtoupper(trim($request->nombre)),
+                'programa_estudio_id' => $request->programa_estudio_id,
+            ]);
+
+            return redirect()->back()->with('success', 'Grupo actualizado correctamente');
+        }
         return redirect()->back();
     }
 
@@ -127,6 +164,13 @@ class CatalogoController extends Controller
         if ($catalogo === 'estado') {
             Estado::findOrFail($id)->delete();
             return redirect()->back()->with('success', 'Estado eliminado correctamente');
+        }
+
+        if ($catalogo === 'grupo') {
+            $grupo = Grupo::findOrFail($id);
+            $grupo->delete();
+
+            return redirect()->back()->with('success', 'Grupo eliminado correctamente');
         }
 
         return redirect()->back();
