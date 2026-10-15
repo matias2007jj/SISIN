@@ -11,7 +11,7 @@ class InstitucionSeeder extends Seeder
     public function run(): void
     {
         $institucion = Institucion::firstOrCreate(
-            ['ruc' => '11111111111'],   // RUC de ejemplo del script original: cámbialo por el real
+            ['ruc' => '11111111111'],   
             [
                 'nombre'    => 'Instituto de Educación Superior Tecnológico Público Julio César Tello',
                 'direccion' => 'Villa El Salvador',

@@ -10,8 +10,8 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             EstadoSeeder::class,
-            InstitucionSeeder::class,   // crea la institución y los programas
-            AdminSeeder::class,         // después, para darle acceso a todos los programas
+            InstitucionSeeder::class,   
+            AdminSeeder::class,         
         ]);
     }
 }
