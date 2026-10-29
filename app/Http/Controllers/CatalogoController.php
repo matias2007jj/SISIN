@@ -2,12 +2,9 @@
 
 namespace App\Http\Controllers;
 
-<<<<<<< HEAD
 use App\Models\Modelo;
-=======
 use App\Models\grupo;
 use App\Models\ProgramaEstudio;
->>>>>>> 67240bb796d46d70d517057d792ad696db0311c8
 use App\Models\Tipo;
 use App\Models\Marca;
 use App\Models\Estado; // <- Importar Estado
@@ -136,16 +133,6 @@ class CatalogoController extends Controller
             return redirect()->back()->with('success', 'Tipo actualizado correctamente');
         }
 
-<<<<<<< HEAD
-        if ($catalogo === 'modelo') {
-            $request->validate(['nombre' => 'required|string|max:100']);
-
-            Modelo::findOrFail($id)->update([
-                'nombre' => mb_strtoupper(trim($request->nombre)),
-            ]);
-
-            return redirect()->back()->with('success', 'Modelo actualizado correctamente');
-=======
         if ($catalogo === 'estado') {
             $request->validate(['nombre' => 'required|string|max:100']);
 
@@ -154,7 +141,6 @@ class CatalogoController extends Controller
             ]);
 
             return redirect()->back()->with('success', 'Estado actualizado correctamente');
->>>>>>> 41dbc48fa829ed88f62f101ee2c954f14c8efb21
         }
 
         if ($catalogo === 'grupo') {
@@ -186,16 +172,9 @@ class CatalogoController extends Controller
             return redirect()->back()->with('success', 'Tipo eliminado correctamente');
         }
 
-<<<<<<< HEAD
-        if ($catalogo === 'modelo') {
-            Modelo::findOrFail($id)->delete();
-
-            return redirect()->back()->with('success', 'Modelo eliminado correctamente');
-=======
         if ($catalogo === 'estado') {
             Estado::findOrFail($id)->delete();
             return redirect()->back()->with('success', 'Estado eliminado correctamente');
->>>>>>> 41dbc48fa829ed88f62f101ee2c954f14c8efb21
         }
 
         if ($catalogo === 'grupo') {

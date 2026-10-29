@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 15-10-2026 a las 08:54:52
+-- Tiempo de generación: 29-10-2026 a las 04:04:40
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -61,18 +61,6 @@ CREATE TABLE `cache` (
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `cache_locks`
---
-
-CREATE TABLE `cache_locks` (
-  `key` varchar(255) NOT NULL,
-  `owner` varchar(255) NOT NULL,
-  `expiration` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
 -- Estructura de tabla para la tabla `estados`
 --
 
@@ -95,22 +83,6 @@ INSERT INTO `estados` (`id`, `nombre`, `created_by`, `updated_by`, `created_at`,
 (2, 'BUENO', NULL, NULL, '2026-10-01 04:53:41', '2026-10-01 04:53:41', NULL),
 (3, 'REGULAR', NULL, NULL, '2026-10-01 04:53:41', '2026-10-01 04:53:41', NULL),
 (4, 'MALO', NULL, NULL, '2026-10-01 04:53:41', '2026-10-01 04:53:41', NULL);
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `failed_jobs`
---
-
-CREATE TABLE `failed_jobs` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `uuid` varchar(255) NOT NULL,
-  `connection` text NOT NULL,
-  `queue` text NOT NULL,
-  `payload` longtext NOT NULL,
-  `exception` longtext NOT NULL,
-  `failed_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -218,41 +190,6 @@ CREATE TABLE `inventario_detalles` (
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `jobs`
---
-
-CREATE TABLE `jobs` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `queue` varchar(255) NOT NULL,
-  `payload` longtext NOT NULL,
-  `attempts` tinyint(3) UNSIGNED NOT NULL,
-  `reserved_at` int(10) UNSIGNED DEFAULT NULL,
-  `available_at` int(10) UNSIGNED NOT NULL,
-  `created_at` int(10) UNSIGNED NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `job_batches`
---
-
-CREATE TABLE `job_batches` (
-  `id` varchar(255) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `total_jobs` int(11) NOT NULL,
-  `pending_jobs` int(11) NOT NULL,
-  `failed_jobs` int(11) NOT NULL,
-  `failed_job_ids` longtext NOT NULL,
-  `options` mediumtext DEFAULT NULL,
-  `cancelled_at` int(11) DEFAULT NULL,
-  `created_at` int(11) NOT NULL,
-  `finished_at` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
 -- Estructura de tabla para la tabla `marcas`
 --
 
@@ -313,18 +250,6 @@ CREATE TABLE `modelos` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   `deleted_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `password_reset_tokens`
---
-
-CREATE TABLE `password_reset_tokens` (
-  `email` varchar(255) NOT NULL,
-  `token` varchar(255) NOT NULL,
-  `created_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -405,29 +330,6 @@ CREATE TABLE `salas` (
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `sessions`
---
-
-CREATE TABLE `sessions` (
-  `id` varchar(255) NOT NULL,
-  `user_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `ip_address` varchar(45) DEFAULT NULL,
-  `user_agent` text DEFAULT NULL,
-  `payload` longtext NOT NULL,
-  `last_activity` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Volcado de datos para la tabla `sessions`
---
-
-INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('CvGLfh9GuFtH0yD38Jd2sXDQ5PYhJ8ORMn3W9Tqo', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoieHFRVEZaaGV5ODVhcVJYMFFSU1JVMWcyTzdLSzN1MTczamsxS2JwbSI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9hbG1hY2VuL3RhYmxhcy90aXBvIjtzOjU6InJvdXRlIjtzOjE0OiJjYXRhbG9nby5pbmRleCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fXM6NTA6ImxvZ2luX3dlYl81OWJhMzZhZGRjMmIyZjk0MDE1ODBmMDE0YzdmNThlYTRlMzA5ODlkIjtpOjE7czoxNzoicGFzc3dvcmRfaGFzaF93ZWIiO3M6NjQ6ImM0ZTU1NTAxNDZkMGY4ZWM0NGJiZDliYmU0OGJmMWM3MGZlNDQxZTI0ODhjNTZjNWJlMDIzNzAzOWI2OTY4MjkiO3M6MTk6InByb2dyYW1hX2VzdHVkaW9faWQiO2k6MTt9', 1792047071),
-('ijkQk4r0C58YT8DkMW2LOujFAkBvDfzAAr8vOOA3', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36', 'YTo1OntzOjY6Il90b2tlbiI7czo0MDoiWmc4S3dqdXVXZWVrQjlnR0U3RTZQaXNSbVhjOGt4YlZnTzJoU0NEdCI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDI6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9hbG1hY2VuL3RhYmxhcy9tYXJjYSI7czo1OiJyb3V0ZSI7czoxNDoiY2F0YWxvZ28uaW5kZXgiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX1zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToxO3M6MTc6InBhc3N3b3JkX2hhc2hfd2ViIjtzOjY0OiJjNGU1NTUwMTQ2ZDBmOGVjNDRiYmQ5YmJlNDhiZjFjNzBmZTQ0MWUyNDg4YzU2YzViZTAyMzcwMzliNjk2ODI5Ijt9', 1791953323);
-
--- --------------------------------------------------------
-
---
 -- Estructura de tabla para la tabla `tipos`
 --
 
@@ -448,23 +350,6 @@ CREATE TABLE `tipos` (
 
 INSERT INTO `tipos` (`id`, `programa_estudio_id`, `nombre`, `created_by`, `updated_by`, `created_at`, `updated_at`, `deleted_at`) VALUES
 (1, 1, 'AD', 1, NULL, '2026-10-15 11:51:10', '2026-10-15 11:51:10', NULL);
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `users`
---
-
-CREATE TABLE `users` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `email_verified_at` timestamp NULL DEFAULT NULL,
-  `password` varchar(255) NOT NULL,
-  `remember_token` varchar(100) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -551,13 +436,6 @@ ALTER TABLE `cache`
   ADD KEY `cache_expiration_index` (`expiration`);
 
 --
--- Indices de la tabla `cache_locks`
---
-ALTER TABLE `cache_locks`
-  ADD PRIMARY KEY (`key`),
-  ADD KEY `cache_locks_expiration_index` (`expiration`);
-
---
 -- Indices de la tabla `estados`
 --
 ALTER TABLE `estados`
@@ -565,13 +443,6 @@ ALTER TABLE `estados`
   ADD UNIQUE KEY `estados_nombre_unique` (`nombre`),
   ADD KEY `estados_created_by_foreign` (`created_by`),
   ADD KEY `estados_updated_by_foreign` (`updated_by`);
-
---
--- Indices de la tabla `failed_jobs`
---
-ALTER TABLE `failed_jobs`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `failed_jobs_uuid_unique` (`uuid`);
 
 --
 -- Indices de la tabla `grupos`
@@ -620,19 +491,6 @@ ALTER TABLE `inventario_detalles`
   ADD KEY `inventario_detalles_updated_by_foreign` (`updated_by`);
 
 --
--- Indices de la tabla `jobs`
---
-ALTER TABLE `jobs`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `jobs_queue_index` (`queue`);
-
---
--- Indices de la tabla `job_batches`
---
-ALTER TABLE `job_batches`
-  ADD PRIMARY KEY (`id`);
-
---
 -- Indices de la tabla `marcas`
 --
 ALTER TABLE `marcas`
@@ -655,12 +513,6 @@ ALTER TABLE `modelos`
   ADD KEY `modelos_programa_estudio_id_foreign` (`programa_estudio_id`),
   ADD KEY `modelos_created_by_foreign` (`created_by`),
   ADD KEY `modelos_updated_by_foreign` (`updated_by`);
-
---
--- Indices de la tabla `password_reset_tokens`
---
-ALTER TABLE `password_reset_tokens`
-  ADD PRIMARY KEY (`email`);
 
 --
 -- Indices de la tabla `personal`
@@ -693,14 +545,6 @@ ALTER TABLE `salas`
   ADD KEY `salas_updated_by_foreign` (`updated_by`);
 
 --
--- Indices de la tabla `sessions`
---
-ALTER TABLE `sessions`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `sessions_user_id_index` (`user_id`),
-  ADD KEY `sessions_last_activity_index` (`last_activity`);
-
---
 -- Indices de la tabla `tipos`
 --
 ALTER TABLE `tipos`
@@ -708,13 +552,6 @@ ALTER TABLE `tipos`
   ADD KEY `tipos_programa_estudio_id_foreign` (`programa_estudio_id`),
   ADD KEY `tipos_created_by_foreign` (`created_by`),
   ADD KEY `tipos_updated_by_foreign` (`updated_by`);
-
---
--- Indices de la tabla `users`
---
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `users_email_unique` (`email`);
 
 --
 -- Indices de la tabla `usuarios`
@@ -753,12 +590,6 @@ ALTER TABLE `estados`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
--- AUTO_INCREMENT de la tabla `failed_jobs`
---
-ALTER TABLE `failed_jobs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT de la tabla `grupos`
 --
 ALTER TABLE `grupos`
@@ -780,12 +611,6 @@ ALTER TABLE `inventarios`
 -- AUTO_INCREMENT de la tabla `inventario_detalles`
 --
 ALTER TABLE `inventario_detalles`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT de la tabla `jobs`
---
-ALTER TABLE `jobs`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
@@ -829,12 +654,6 @@ ALTER TABLE `salas`
 --
 ALTER TABLE `tipos`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT de la tabla `users`
---
-ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
