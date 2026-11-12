@@ -2,48 +2,47 @@
 
 namespace App\Http\Controllers;
 
-
-use App\Models\Modelo;
-use App\Models\grupo;
-use App\Models\ProgramaEstudio;
-use App\Models\Tipo;
-use App\Models\Marca;
-use App\Models\Estado; // <- Importar Estado
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class CatalogoController extends Controller
 {
     public function index($catalogo)
     {
+        $programaId   = session('programa_estudio_id');
+        $esSuperadmin = session('es_superadmin', false) ? 1 : 0;
+
         if ($catalogo === 'marca') {
-            $marcas = Marca::with('programaEstudio')->orderBy('nombre', 'asc')->get();
+            $marcas = DB::select('CALL sp_listar_marcas(?)', [$programaId]);
             return view('almacen.catalogo.marca', compact('marcas', 'catalogo'));
         }
 
         if ($catalogo === 'tipo') {
-            $tipos = Tipo::with('programaEstudio')->orderBy('nombre', 'asc')->get();
+            $tipos = DB::select('CALL sp_listar_tipos(?)', [$programaId]);
             return view('almacen.catalogo.tipo', compact('tipos', 'catalogo'));
         }
 
-        if ($catalogo === 'estado') {
-            $estados = Estado::with('programaEstudio')->orderBy('nombre', 'asc')->get();
-            return view('almacen.catalogo.estado', compact('estados', 'catalogo'));
-        }
-
-        if ($catalogo === 'sala') {
-            $salas = collect();
-            return view('almacen.catalogo.sala', compact('salas', 'catalogo'));
-        }
-
         if ($catalogo === 'modelo') {
-            $modelos = Modelo::with('programaEstudio')->orderBy('nombre', 'asc')->get();
+            $modelos = DB::select('CALL sp_listar_modelos(?)', [$programaId]);
             return view('almacen.catalogo.modelo', compact('modelos', 'catalogo'));
         }
 
+        if ($catalogo === 'estado') {
+            $estados = DB::select('CALL sp_listar_estados()');
+            return view('almacen.catalogo.estado', compact('estados', 'catalogo'));
+        }
+
         if ($catalogo === 'grupo') {
-            $grupos = Grupo::with('programaEstudio')->orderBy('nombre', 'asc')->get();
-            $programasEstudio = ProgramaEstudio::orderBy('nombre', 'asc')->get();
+            // Se envía $programaId y $esSuperadmin para permitir al SUPERADMIN ver todos los grupos
+            $grupos = DB::select('CALL sp_listar_grupos(?, ?)', [$programaId, $esSuperadmin]);
+            $programasEstudio = DB::select('SELECT id, nombre FROM programas_estudio WHERE deleted_at IS NULL ORDER BY nombre ASC');
             return view('almacen.catalogo.grupo', compact('grupos', 'programasEstudio', 'catalogo'));
+        }
+
+        if ($catalogo === 'sala') {
+            $salas = DB::select('CALL sp_listar_salas(?)', [$programaId]);
+            return view('almacen.catalogo.sala', compact('salas', 'catalogo'));
         }
 
         return redirect()->back()->with('warning', 'Módulo en desarrollo');
@@ -51,156 +50,78 @@ class CatalogoController extends Controller
 
     public function store(Request $request, $catalogo)
     {   
-        if ($catalogo === 'marca') {
-            $request->validate(['nombre' => 'required|string|max:100']);
+        $userId = Auth::id() ?? 1;
+        $programaId = session('programa_estudio_id');
 
-            Marca::create([
-                'nombre' => strtoupper(trim($request->nombre)),
-                'programa_estudio_id' => session('programa_estudio_id'),
-            ]);
+        if (in_array($catalogo, ['marca', 'tipo', 'modelo', 'estado', 'sala'])) {
+            $request->validate(['nombre' => 'required|string|max:60']);
 
-            return redirect()->back()->with('success', 'Marca registrada correctamente');
-        }
+            if ($catalogo === 'marca')  DB::statement('CALL sp_guardar_marca(?, ?, ?)', [$request->nombre, $programaId, $userId]);
+            if ($catalogo === 'tipo')   DB::statement('CALL sp_guardar_tipo(?, ?, ?)', [$request->nombre, $programaId, $userId]);
+            if ($catalogo === 'modelo') DB::statement('CALL sp_guardar_modelo(?, ?, ?)', [$request->nombre, $programaId, $userId]);
+            if ($catalogo === 'estado') DB::statement('CALL sp_guardar_estado(?, ?)', [$request->nombre, $userId]);
+            if ($catalogo === 'sala')   DB::statement('CALL sp_guardar_sala(?, ?, ?, ?)', [$request->nombre, $request->descripcion ?? null, $programaId, $userId]);
 
-        if ($catalogo === 'tipo') {
-            $request->validate(['nombre' => 'required|string|max:100']);
-
-            Tipo::create([
-                'nombre' => mb_strtoupper(trim($request->nombre)),
-                'programa_estudio_id' => session('programa_estudio_id'),
-            ]);
-
-            return redirect()->back()->with('success', 'Tipo registrado correctamente');
-        }
-        if ($catalogo === 'modelo') {
-            $request->validate(['nombre' => 'required|string|max:100']);
-         
-           Modelo::create([
-                'nombre' => mb_strtoupper(trim($request->nombre)),
-                'programa_estudio_id' => session('programa_estudio_id'),
-            ]);
-
-            return redirect()->back()->with('success', 'Modelo registrado correctamente');
-        }
-
-        if ($catalogo === 'estado') {
-            $request->validate(['nombre' => 'required|string|max:100']);
-
-            Estado::create([
-                'nombre' => mb_strtoupper(trim($request->nombre)),
-                'programa_estudio_id' => session('programa_estudio_id'),
-            ]);
-
-            return redirect()->back()->with('success', 'Estado registrado correctamente');
+            return redirect()->back()->with('success', ucfirst($catalogo) . ' registrado correctamente');
         }
 
         if ($catalogo === 'grupo') {
             $request->validate([
-                'nombre' => 'required|string|max:60|unique:grupos,nombre',
+                'nombre' => 'required|string|max:60',
                 'programa_estudio_id' => 'required|exists:programas_estudio,id'
             ]);
 
-            Grupo::create([
-                'nombre' => strtoupper(trim($request->nombre)),
-                'programa_estudio_id' => $request->programa_estudio_id,
-            ]);
-
+            DB::statement('CALL sp_guardar_grupo(?, ?, ?)', [$request->nombre, $request->programa_estudio_id, $userId]);
             return redirect()->back()->with('success', 'Grupo registrado correctamente');
         }
-
 
         return redirect()->back();
     }
 
     public function update(Request $request, $catalogo, $id)
     {
-        if ($catalogo === 'marca') {
-            $request->validate(['nombre' => 'required|string|max:100']);
+        $userId = Auth::id() ?? 1;
 
-            Marca::findOrFail($id)->update([
-                'nombre' => strtoupper(trim($request->nombre)),
-            ]);
+        if (in_array($catalogo, ['marca', 'tipo', 'modelo', 'estado', 'sala'])) {
+            $request->validate(['nombre' => 'required|string|max:60']);
 
-            return redirect()->back()->with('success', 'Marca actualizada correctamente');
-        }
+            if ($catalogo === 'marca')  DB::statement('CALL sp_actualizar_marca(?, ?, ?)', [$id, $request->nombre, $userId]);
+            if ($catalogo === 'tipo')   DB::statement('CALL sp_actualizar_tipo(?, ?, ?)', [$id, $request->nombre, $userId]);
+            if ($catalogo === 'modelo') DB::statement('CALL sp_actualizar_modelo(?, ?, ?)', [$id, $request->nombre, $userId]);
+            if ($catalogo === 'estado') DB::statement('CALL sp_actualizar_estado(?, ?, ?)', [$id, $request->nombre, $userId]);
+            if ($catalogo === 'sala')   DB::statement('CALL sp_actualizar_sala(?, ?, ?, ?)', [$id, $request->nombre, $request->descripcion ?? null, $userId]);
 
-        if ($catalogo === 'tipo') {
-            $request->validate(['nombre' => 'required|string|max:100']);
-
-            Tipo::findOrFail($id)->update([
-                'nombre' => mb_strtoupper(trim($request->nombre)),
-            ]);
-
-            return redirect()->back()->with('success', 'Tipo actualizado correctamente');
-        }
-
-
-        if ($catalogo === 'modelo') {
-            $request->validate(['nombre' => 'required|string|max:100']);
-
-            Modelo::findOrFail($id)->update([
-                'nombre' => mb_strtoupper(trim($request->nombre)),
-            ]);
-
-            return redirect()->back()->with('success', 'Modelo actualizado correctamente');
-
-        if ($catalogo === 'estado') {
-            $request->validate(['nombre' => 'required|string|max:100']);
-
-            Estado::findOrFail($id)->update([
-                'nombre' => mb_strtoupper(trim($request->nombre)),
-            ]);
-
-            return redirect()->back()->with('success', 'Estado actualizado correctamente');
-
+            return redirect()->back()->with('success', ucfirst($catalogo) . ' actualizado correctamente');
         }
 
         if ($catalogo === 'grupo') {
             $request->validate([
-                'nombre' => 'required|string|max:60|unique:grupos,nombre,' . $id,
+                'nombre' => 'required|string|max:60',
                 'programa_estudio_id' => 'required|exists:programas_estudio,id'
             ]);
 
-            $grupo = Grupo::findOrFail($id);
-            $grupo->update([
-                'nombre' => strtoupper(trim($request->nombre)),
-                'programa_estudio_id' => $request->programa_estudio_id,
-            ]);
-
+            DB::statement('CALL sp_actualizar_grupo(?, ?, ?, ?)', [$id, $request->nombre, $request->programa_estudio_id, $userId]);
             return redirect()->back()->with('success', 'Grupo actualizado correctamente');
-        }
-        return redirect()->back();
-    }}
-
-    public function destroy($catalogo, $id)
-    {
-        if ($catalogo === 'marca') {
-            Marca::findOrFail($id)->delete();
-            return redirect()->back()->with('success', 'Marca eliminada correctamente');
-        }
-
-        if ($catalogo === 'tipo') {
-            Tipo::findOrFail($id)->delete();
-            return redirect()->back()->with('success', 'Tipo eliminado correctamente');
-        }
-
-        if ($catalogo === 'modelo') {
-            Modelo::findOrFail($id)->delete();
-
-            return redirect()->back()->with('success', 'Modelo eliminado correctamente');
-
-        if ($catalogo === 'estado') {
-            Estado::findOrFail($id)->delete();
-            return redirect()->back()->with('success', 'Estado eliminado correctamente');
-        }
-
-        if ($catalogo === 'grupo') {
-            $grupo = Grupo::findOrFail($id);
-            $grupo->delete();
-
-            return redirect()->back()->with('success', 'Grupo eliminado correctamente');
         }
 
         return redirect()->back();
     }
-}}
+
+    public function destroy($catalogo, $id)
+    {
+        $userId = Auth::id() ?? 1;
+
+        if (in_array($catalogo, ['marca', 'tipo', 'modelo', 'estado', 'grupo', 'sala'])) {
+            if ($catalogo === 'marca')  DB::statement('CALL sp_eliminar_marca(?, ?)', [$id, $userId]);
+            if ($catalogo === 'tipo')   DB::statement('CALL sp_eliminar_tipo(?, ?)', [$id, $userId]);
+            if ($catalogo === 'modelo') DB::statement('CALL sp_eliminar_modelo(?, ?)', [$id, $userId]);
+            if ($catalogo === 'estado') DB::statement('CALL sp_eliminar_estado(?, ?)', [$id, $userId]);
+            if ($catalogo === 'grupo')  DB::statement('CALL sp_eliminar_grupo(?, ?)', [$id, $userId]);
+            if ($catalogo === 'sala')   DB::statement('CALL sp_eliminar_sala(?, ?)', [$id, $userId]);
+
+            return redirect()->back()->with('success', ucfirst($catalogo) . ' eliminado correctamente');
+        }
+
+        return redirect()->back();
+    }
+}

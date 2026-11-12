@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 12-11-2026 a las 09:30:49
+-- Tiempo de generación: 12-11-2026 a las 12:29:08
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -20,6 +20,192 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `sisin`
 --
+
+DELIMITER $$
+--
+-- Procedimientos
+--
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_actualizar_estado` (IN `p_id` BIGINT, IN `p_nombre` VARCHAR(60), IN `p_user_id` BIGINT)   BEGIN
+    UPDATE estados 
+    SET nombre = UPPER(TRIM(p_nombre)), updated_by = p_user_id, updated_at = NOW()
+    WHERE id = p_id AND deleted_at IS NULL;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_actualizar_grupo` (IN `p_id` BIGINT, IN `p_nombre` VARCHAR(60), IN `p_programa_id` BIGINT, IN `p_user_id` BIGINT)   BEGIN
+    UPDATE grupos 
+    SET nombre = UPPER(TRIM(p_nombre)), programa_estudio_id = p_programa_id, updated_by = p_user_id, updated_at = NOW()
+    WHERE id = p_id AND deleted_at IS NULL;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_actualizar_marca` (IN `p_id` BIGINT, IN `p_nombre` VARCHAR(60), IN `p_user_id` BIGINT)   BEGIN
+    UPDATE marcas 
+    SET nombre = UPPER(TRIM(p_nombre)), updated_by = p_user_id, updated_at = NOW()
+    WHERE id = p_id AND deleted_at IS NULL;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_actualizar_modelo` (IN `p_id` BIGINT, IN `p_nombre` VARCHAR(60), IN `p_user_id` BIGINT)   BEGIN
+    UPDATE modelos 
+    SET nombre = UPPER(TRIM(p_nombre)), updated_by = p_user_id, updated_at = NOW()
+    WHERE id = p_id AND deleted_at IS NULL;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_actualizar_sala` (IN `p_id` BIGINT, IN `p_nombre` VARCHAR(60), IN `p_observacion` VARCHAR(200), IN `p_user_id` BIGINT)   BEGIN
+    UPDATE salas 
+    SET nombre = UPPER(TRIM(p_nombre)),
+        observacion = p_observacion,
+        updated_by = p_user_id,
+        updated_at = NOW()
+    WHERE id = p_id AND deleted_at IS NULL;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_actualizar_tipo` (IN `p_id` BIGINT, IN `p_nombre` VARCHAR(60), IN `p_user_id` BIGINT)   BEGIN
+    UPDATE tipos 
+    SET nombre = UPPER(TRIM(p_nombre)), updated_by = p_user_id, updated_at = NOW()
+    WHERE id = p_id AND deleted_at IS NULL;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_eliminar_estado` (IN `p_id` BIGINT, IN `p_user_id` BIGINT)   BEGIN
+    UPDATE estados SET deleted_at = NOW(), updated_by = p_user_id WHERE id = p_id;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_eliminar_grupo` (IN `p_id` BIGINT, IN `p_user_id` BIGINT)   BEGIN
+    UPDATE grupos SET deleted_at = NOW(), updated_by = p_user_id WHERE id = p_id;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_eliminar_marca` (IN `p_id` BIGINT, IN `p_user_id` BIGINT)   BEGIN
+    UPDATE marcas SET deleted_at = NOW(), updated_by = p_user_id WHERE id = p_id;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_eliminar_modelo` (IN `p_id` BIGINT, IN `p_user_id` BIGINT)   BEGIN
+    UPDATE modelos SET deleted_at = NOW(), updated_by = p_user_id WHERE id = p_id;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_eliminar_sala` (IN `p_id` BIGINT, IN `p_user_id` BIGINT)   BEGIN
+    UPDATE salas SET deleted_at = NOW(), updated_by = p_user_id WHERE id = p_id;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_eliminar_tipo` (IN `p_id` BIGINT, IN `p_user_id` BIGINT)   BEGIN
+    UPDATE tipos SET deleted_at = NOW(), updated_by = p_user_id WHERE id = p_id;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_guardar_estado` (IN `p_nombre` VARCHAR(60), IN `p_user_id` BIGINT)   BEGIN
+    INSERT INTO estados (nombre, created_by, created_at, updated_at)
+    VALUES (UPPER(TRIM(p_nombre)), p_user_id, NOW(), NOW());
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_guardar_grupo` (IN `p_nombre` VARCHAR(60), IN `p_programa_id` BIGINT, IN `p_user_id` BIGINT)   BEGIN
+    INSERT INTO grupos (nombre, programa_estudio_id, created_by, created_at, updated_at)
+    VALUES (UPPER(TRIM(p_nombre)), p_programa_id, p_user_id, NOW(), NOW());
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_guardar_marca` (IN `p_nombre` VARCHAR(60), IN `p_programa_id` BIGINT, IN `p_user_id` BIGINT)   BEGIN
+    INSERT INTO marcas (nombre, programa_estudio_id, created_by, created_at, updated_at)
+    VALUES (UPPER(TRIM(p_nombre)), p_programa_id, p_user_id, NOW(), NOW());
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_guardar_modelo` (IN `p_nombre` VARCHAR(60), IN `p_programa_id` BIGINT, IN `p_user_id` BIGINT)   BEGIN
+    INSERT INTO modelos (nombre, programa_estudio_id, created_by, created_at, updated_at)
+    VALUES (UPPER(TRIM(p_nombre)), p_programa_id, p_user_id, NOW(), NOW());
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_guardar_sala` (IN `p_nombre` VARCHAR(60), IN `p_observacion` VARCHAR(200), IN `p_programa_id` BIGINT, IN `p_user_id` BIGINT)   BEGIN
+    INSERT INTO salas (nombre, observacion, programa_estudio_id, created_by, created_at, updated_at)
+    VALUES (UPPER(TRIM(p_nombre)), p_observacion, p_programa_id, p_user_id, NOW(), NOW());
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_guardar_tipo` (IN `p_nombre` VARCHAR(60), IN `p_programa_id` BIGINT, IN `p_user_id` BIGINT)   BEGIN
+    INSERT INTO tipos (nombre, programa_estudio_id, created_by, created_at, updated_at)
+    VALUES (UPPER(TRIM(p_nombre)), p_programa_id, p_user_id, NOW(), NOW());
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_guardar_usuario` (IN `p_username` VARCHAR(15), IN `p_password` VARCHAR(255), IN `p_tipo_usuario` VARCHAR(20), IN `p_institucion_id` BIGINT, IN `p_programa_estudio_id` BIGINT, IN `p_created_by` BIGINT)   BEGIN
+    DECLARE v_usuario_id BIGINT;
+
+    -- Registrar usuario con su institucion asignada
+    INSERT INTO usuarios (username, password, tipo_usuario, institucion_id, activo, created_by, created_at, updated_at)
+    VALUES (p_username, p_password, p_tipo_usuario, p_institucion_id, 1, p_created_by, NOW(), NOW());
+
+    SET v_usuario_id = LAST_INSERT_ID();
+
+    -- Registrar el programa de estudio de esa institucion
+    IF p_programa_estudio_id IS NOT NULL THEN
+        INSERT INTO usuario_programa_estudio (usuario_id, programa_estudio_id, acceso, created_by, created_at, updated_at)
+        VALUES (v_usuario_id, p_programa_estudio_id, 1, p_created_by, NOW(), NOW());
+    END IF;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_listar_estados` ()   BEGIN
+    SELECT id, nombre FROM estados WHERE deleted_at IS NULL ORDER BY nombre ASC;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_listar_grupos` (IN `p_programa_estudio_id` BIGINT, IN `p_es_superadmin` TINYINT)   BEGIN
+    IF p_es_superadmin = 1 THEN
+        SELECT 
+            g.id,
+            g.nombre,
+            g.programa_estudio_id,
+            pe.nombre AS programa_estudio,
+            pe.nombre AS programa_estudio_nombre,
+            g.created_at,
+            g.updated_at,
+            DATE_FORMAT(g.created_at, '%d/%m/%Y %H:%i') AS fecha_creacion,
+            DATE_FORMAT(g.updated_at, '%d/%m/%Y %H:%i') AS fecha_modificacion
+        FROM grupos g
+        INNER JOIN programas_estudio pe ON g.programa_estudio_id = pe.id
+        WHERE g.deleted_at IS NULL
+        ORDER BY g.nombre ASC;
+    ELSE
+        SELECT 
+            g.id,
+            g.nombre,
+            g.programa_estudio_id,
+            pe.nombre AS programa_estudio,
+            pe.nombre AS programa_estudio_nombre,
+            g.created_at,
+            g.updated_at,
+            DATE_FORMAT(g.created_at, '%d/%m/%Y %H:%i') AS fecha_creacion,
+            DATE_FORMAT(g.updated_at, '%d/%m/%Y %H:%i') AS fecha_modificacion
+        FROM grupos g
+        INNER JOIN programas_estudio pe ON g.programa_estudio_id = pe.id
+        WHERE g.programa_estudio_id = p_programa_estudio_id
+          AND g.deleted_at IS NULL
+        ORDER BY g.nombre ASC;
+    END IF;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_listar_marcas` (IN `p_programa_id` BIGINT)   BEGIN
+    SELECT m.id, m.nombre, m.programa_estudio_id, p.nombre AS programa_estudio_nombre
+    FROM marcas m
+    INNER JOIN programas_estudio p ON m.programa_estudio_id = p.id
+    WHERE m.programa_estudio_id = p_programa_id AND m.deleted_at IS NULL
+    ORDER BY m.nombre ASC;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_listar_modelos` (IN `p_programa_id` BIGINT)   BEGIN
+    SELECT mo.id, mo.nombre, mo.programa_estudio_id, p.nombre AS programa_estudio_nombre
+    FROM modelos mo
+    INNER JOIN programas_estudio p ON mo.programa_estudio_id = p.id
+    WHERE mo.programa_estudio_id = p_programa_id AND mo.deleted_at IS NULL
+    ORDER BY mo.nombre ASC;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_listar_salas` (IN `p_programa_id` BIGINT)   BEGIN
+    SELECT s.id, s.nombre, s.observacion, s.programa_estudio_id, p.nombre AS programa_estudio_nombre, s.created_at, s.updated_at
+    FROM salas s
+    INNER JOIN programas_estudio p ON s.programa_estudio_id = p.id
+    WHERE s.programa_estudio_id = p_programa_id AND s.deleted_at IS NULL
+    ORDER BY s.nombre ASC;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_listar_tipos` (IN `p_programa_id` BIGINT)   BEGIN
+    SELECT t.id, t.nombre, t.programa_estudio_id, p.nombre AS programa_estudio_nombre
+    FROM tipos t
+    INNER JOIN programas_estudio p ON t.programa_estudio_id = p.id
+    WHERE t.programa_estudio_id = p_programa_id AND t.deleted_at IS NULL
+    ORDER BY t.nombre ASC;
+END$$
+
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -129,6 +315,20 @@ CREATE TABLE `grupos` (
   `deleted_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Volcado de datos para la tabla `grupos`
+--
+
+INSERT INTO `grupos` (`id`, `programa_estudio_id`, `nombre`, `created_by`, `updated_by`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, 1, 'AD', NULL, NULL, '2026-11-05 03:07:31', '2026-11-05 03:07:31', '2026-11-05 03:56:33'),
+(2, 3, 'ER', NULL, NULL, '2026-11-05 03:56:39', '2026-11-05 03:56:39', NULL),
+(3, 3, 'ED', NULL, NULL, '2026-11-05 03:56:51', '2026-11-05 03:56:51', NULL),
+(4, 1, 'ADD', NULL, NULL, '2026-11-05 04:24:34', '2026-11-05 04:24:34', NULL),
+(5, 3, 'ADDD', NULL, NULL, '2026-11-05 04:24:45', '2026-11-05 04:24:45', NULL),
+(6, 1, 'ADR', NULL, NULL, '2026-11-05 04:25:08', '2026-11-05 04:25:08', NULL),
+(7, 3, 'EDA', 1, NULL, '2026-11-05 05:51:15', '2026-11-05 05:51:15', NULL),
+(8, 3, 'TECLADO', 1, NULL, '2026-11-05 05:52:00', '2026-11-05 05:52:00', NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -139,6 +339,7 @@ CREATE TABLE `instituciones` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `ruc` char(11) NOT NULL,
   `nombre` varchar(150) NOT NULL,
+  `tipo` varchar(20) NOT NULL DEFAULT 'INSTITUTO',
   `direccion` varchar(150) DEFAULT NULL,
   `created_by` bigint(20) UNSIGNED DEFAULT NULL,
   `updated_by` bigint(20) UNSIGNED DEFAULT NULL,
@@ -151,8 +352,10 @@ CREATE TABLE `instituciones` (
 -- Volcado de datos para la tabla `instituciones`
 --
 
-INSERT INTO `instituciones` (`id`, `ruc`, `nombre`, `direccion`, `created_by`, `updated_by`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, '11111111111', 'Instituto de Educación Superior Tecnológico Público Julio César Tello', 'Villa El Salvador', NULL, NULL, '2026-10-01 04:53:41', '2026-10-01 04:53:41', NULL);
+INSERT INTO `instituciones` (`id`, `ruc`, `nombre`, `tipo`, `direccion`, `created_by`, `updated_by`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, '11111111111', 'Instituto de Educación Superior Tecnológico Público Julio César Tello', 'INSTITUTO', 'Villa El Salvador', NULL, NULL, '2026-10-01 04:53:41', '2026-10-01 04:53:41', NULL),
+(2, '20279889208', 'PRISMA', 'COLEGIO', 'AV. VILAUTA NRO. SN SANTA RITA (FRENTE AL CEMENTERIO PARQUE DEL RECUERDO) TACNA - TACNA - CALANA', 1, 1, '2026-11-12 19:34:43', '2026-11-12 20:09:14', NULL),
+(3, '19815689445', 'UNTELS', 'UNIVERSIDAD', 'al frente de las cachangas', 1, NULL, '2026-11-12 20:09:03', '2026-11-12 20:09:03', NULL);
 
 -- --------------------------------------------------------
 
@@ -266,6 +469,15 @@ CREATE TABLE `marcas` (
   `updated_at` timestamp NULL DEFAULT NULL,
   `deleted_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `marcas`
+--
+
+INSERT INTO `marcas` (`id`, `programa_estudio_id`, `nombre`, `created_by`, `updated_by`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, 1, 'AE', NULL, NULL, '2026-11-05 03:12:05', '2026-11-05 03:12:14', NULL),
+(2, 1, 'DDD', NULL, NULL, '2026-11-05 04:25:28', '2026-11-05 04:25:28', NULL),
+(3, 3, 'AF', NULL, NULL, '2026-11-05 04:43:38', '2026-11-05 04:43:38', NULL);
 
 -- --------------------------------------------------------
 
@@ -413,7 +625,10 @@ INSERT INTO `programas_estudio` (`id`, `institucion_id`, `nombre`, `abreviatura`
 (4, 1, 'ELECTRICIDAD INDUSTRIAL', NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-01 04:53:41', NULL),
 (5, 1, 'MECANICA AUTOMOTRIZ', NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-01 04:53:41', NULL),
 (6, 1, 'MECANICA DE PRODUCCIÓN', NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-01 04:53:41', NULL),
-(7, 1, 'SECRETARIADO EJECUTIVO', NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-01 04:53:41', NULL);
+(7, 1, 'SECRETARIADO EJECUTIVO', NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-01 04:53:41', NULL),
+(8, 3, 'ADMINISTRACIÓN DE EMPRESAS', NULL, NULL, NULL, NULL, NULL, 1, 1, NULL, '2026-11-12 20:10:19', '2026-11-12 20:10:19', NULL),
+(9, 3, 'INGENIERÍA AMBIENTAL', NULL, NULL, NULL, NULL, NULL, 1, 1, NULL, '2026-11-12 20:10:47', '2026-11-12 20:10:47', NULL),
+(10, 2, 'DIEGO CPP', NULL, NULL, NULL, NULL, NULL, 1, 1, NULL, '2026-11-12 20:51:40', '2026-11-12 20:51:40', NULL);
 
 -- --------------------------------------------------------
 
@@ -453,10 +668,7 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('CvGLfh9GuFtH0yD38Jd2sXDQ5PYhJ8ORMn3W9Tqo', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoieHFRVEZaaGV5ODVhcVJYMFFSU1JVMWcyTzdLSzN1MTczamsxS2JwbSI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9hbG1hY2VuL3RhYmxhcy90aXBvIjtzOjU6InJvdXRlIjtzOjE0OiJjYXRhbG9nby5pbmRleCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fXM6NTA6ImxvZ2luX3dlYl81OWJhMzZhZGRjMmIyZjk0MDE1ODBmMDE0YzdmNThlYTRlMzA5ODlkIjtpOjE7czoxNzoicGFzc3dvcmRfaGFzaF93ZWIiO3M6NjQ6ImM0ZTU1NTAxNDZkMGY4ZWM0NGJiZDliYmU0OGJmMWM3MGZlNDQxZTI0ODhjNTZjNWJlMDIzNzAzOWI2OTY4MjkiO3M6MTk6InByb2dyYW1hX2VzdHVkaW9faWQiO2k6MTt9', 1792047071),
-('ES7d5cvFZisY5ePSA5loWVTkxB8mn2lCByQpasgh', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoicmJLWUtWNFFoNWhFTzUzblFqWldDMUZRSUI3aENtTm9tQ0xUYkJZbSI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDM6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9vcmdhbml6YWNpb24vcGVyc29uYWwiO3M6NToicm91dGUiO3M6MTQ6InBlcnNvbmFsLmluZGV4Ijt9czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6MTtzOjE3OiJwYXNzd29yZF9oYXNoX3dlYiI7czo2NDoiYWFlNjExOTllOGMxOTFhMmJkYmYzMWQ4YjBhMGMzODgxNmJlYWMyMzBlNzI2MzlmNTNjNDQwY2EyOTIwMjZkOSI7czoxOToicHJvZ3JhbWFfZXN0dWRpb19pZCI7aToxO30=', 1794472168),
-('ijkQk4r0C58YT8DkMW2LOujFAkBvDfzAAr8vOOA3', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36', 'YTo1OntzOjY6Il90b2tlbiI7czo0MDoiWmc4S3dqdXVXZWVrQjlnR0U3RTZQaXNSbVhjOGt4YlZnTzJoU0NEdCI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDI6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9hbG1hY2VuL3RhYmxhcy9tYXJjYSI7czo1OiJyb3V0ZSI7czoxNDoiY2F0YWxvZ28uaW5kZXgiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX1zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToxO3M6MTc6InBhc3N3b3JkX2hhc2hfd2ViIjtzOjY0OiJjNGU1NTUwMTQ2ZDBmOGVjNDRiYmQ5YmJlNDhiZjFjNzBmZTQ0MWUyNDg4YzU2YzViZTAyMzcwMzliNjk2ODI5Ijt9', 1791953323),
-('NN9if4feQOxQb1VRKs20QYBZeAklKluUankRkZFe', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'YToyOntzOjY6Il90b2tlbiI7czo0MDoidjRYdFNJRENweTZ3SE1IckZUMTRuWm5SUEVYdzlxRWUyY2R0bjVJRSI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319fQ==', 1794469108);
+('Mde87EfEImFoPU0fzfurSv5pqS8FKJKs9WJduPuI', 2, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoiZXBRck5aaUNCUkF5SUl5WjBBWUE3aUlkOGpzU0RWb01pR2xuM0lldiI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDI6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9hbG1hY2VuL3RhYmxhcy9tYXJjYSI7czo1OiJyb3V0ZSI7czoxNDoiY2F0YWxvZ28uaW5kZXgiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX1zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToyO3M6MTc6InBhc3N3b3JkX2hhc2hfd2ViIjtzOjY0OiI0NTFhZWVmZGJmZThiM2I2Y2IyY2Y2ZmI1Y2RlMWE2ODA2MjhjMzQ0NzUxZDZiYzFmNTQ3YjYyY2I3YTA0MTM4IjtzOjE5OiJwcm9ncmFtYV9lc3R1ZGlvX2lkIjtpOjM7fQ==', 1794482869);
 
 -- --------------------------------------------------------
 
@@ -510,6 +722,7 @@ CREATE TABLE `usuarios` (
   `username` varchar(15) NOT NULL,
   `password` varchar(255) NOT NULL,
   `personal_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `institucion_id` bigint(20) UNSIGNED DEFAULT NULL,
   `tipo_usuario` enum('ADMINISTRADOR','COORDINADOR','ASISTENTE','CONSULTA') NOT NULL DEFAULT 'CONSULTA',
   `activo` tinyint(1) NOT NULL DEFAULT 1,
   `remember_token` varchar(100) DEFAULT NULL,
@@ -524,8 +737,9 @@ CREATE TABLE `usuarios` (
 -- Volcado de datos para la tabla `usuarios`
 --
 
-INSERT INTO `usuarios` (`id`, `username`, `password`, `personal_id`, `tipo_usuario`, `activo`, `remember_token`, `created_by`, `updated_by`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, 'ADMIN', '$2y$12$oc4wT.3PH/lemn7potgj0ewIEspD/f0jHGsI8sIBULRhivghpgZoC', NULL, 'ADMINISTRADOR', 1, NULL, NULL, NULL, '2026-10-01 04:53:41', '2026-10-14 09:26:20', NULL);
+INSERT INTO `usuarios` (`id`, `username`, `password`, `personal_id`, `institucion_id`, `tipo_usuario`, `activo`, `remember_token`, `created_by`, `updated_by`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, 'ADMIN', '$2y$12$oc4wT.3PH/lemn7potgj0ewIEspD/f0jHGsI8sIBULRhivghpgZoC', NULL, NULL, 'ADMINISTRADOR', 1, NULL, NULL, NULL, '2026-10-01 04:53:41', '2026-10-14 09:26:20', NULL),
+(2, 'CONTA_USER', '$2y$12$E3hvyqZZUiaPz8vemA1Qku1Fryu1m8/p46cnKRtFh69vQ/UHayljS', NULL, 1, 'ASISTENTE', 1, NULL, NULL, NULL, '2026-11-05 04:58:24', '2026-11-05 04:58:24', NULL);
 
 -- --------------------------------------------------------
 
@@ -555,7 +769,8 @@ INSERT INTO `usuario_programa_estudio` (`id`, `usuario_id`, `programa_estudio_id
 (4, 1, 4, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-15 06:39:51'),
 (5, 1, 5, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-15 06:39:51'),
 (6, 1, 6, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-15 06:39:51'),
-(7, 1, 7, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-15 06:39:51');
+(7, 1, 7, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-15 06:39:51'),
+(16, 2, 3, 1, NULL, NULL, '2026-11-05 04:58:24', '2026-11-05 04:58:24');
 
 --
 -- Índices para tablas volcadas
@@ -765,7 +980,8 @@ ALTER TABLE `usuarios`
   ADD UNIQUE KEY `usuarios_username_unique` (`username`),
   ADD KEY `usuarios_created_by_foreign` (`created_by`),
   ADD KEY `usuarios_updated_by_foreign` (`updated_by`),
-  ADD KEY `usuarios_personal_id_foreign` (`personal_id`);
+  ADD KEY `usuarios_personal_id_foreign` (`personal_id`),
+  ADD KEY `usuarios_institucion_id_foreign` (`institucion_id`);
 
 --
 -- Indices de la tabla `usuario_programa_estudio`
@@ -803,13 +1019,13 @@ ALTER TABLE `failed_jobs`
 -- AUTO_INCREMENT de la tabla `grupos`
 --
 ALTER TABLE `grupos`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT de la tabla `instituciones`
 --
 ALTER TABLE `instituciones`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `inventarios`
@@ -833,7 +1049,7 @@ ALTER TABLE `jobs`
 -- AUTO_INCREMENT de la tabla `marcas`
 --
 ALTER TABLE `marcas`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `migrations`
@@ -863,7 +1079,7 @@ ALTER TABLE `personal_programa_estudio`
 -- AUTO_INCREMENT de la tabla `programas_estudio`
 --
 ALTER TABLE `programas_estudio`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT de la tabla `salas`
@@ -893,7 +1109,7 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT de la tabla `usuario_programa_estudio`
 --
 ALTER TABLE `usuario_programa_estudio`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- Restricciones para tablas volcadas
@@ -1022,6 +1238,7 @@ ALTER TABLE `tipos`
 --
 ALTER TABLE `usuarios`
   ADD CONSTRAINT `usuarios_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `usuarios_institucion_id_foreign` FOREIGN KEY (`institucion_id`) REFERENCES `instituciones` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `usuarios_personal_id_foreign` FOREIGN KEY (`personal_id`) REFERENCES `personal` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `usuarios_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL;
 

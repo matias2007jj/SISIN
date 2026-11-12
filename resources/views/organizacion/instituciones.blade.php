@@ -29,12 +29,15 @@
     </div>
 </div>
 
+<p class="text-muted fs-7 mb-2">Haz doble clic en una institución para ver su personal, programas y cargos.</p>
+
 <div class="table-responsive table-sisin-wrapper">
     <table class="table table-sisin align-middle" id="tablaRegistros">
         <thead>
             <tr>
                 <th style="width: 140px;">RUC</th>
                 <th style="min-width: 260px;">Institución</th>
+                <th style="width: 140px;">Tipo</th>
                 <th style="min-width: 180px;">Dirección</th>
                 <th class="text-center" style="width: 110px;">Programas</th>
                 <th class="text-center" style="width: 170px;">Acciones</th>
@@ -46,12 +49,14 @@
                     $registro = [
                         'ruc'       => $institucion->ruc,
                         'nombre'    => $institucion->nombre,
+                        'tipo'      => $institucion->tipo,
                         'direccion' => $institucion->direccion,
                     ];
                 @endphp
-                <tr>
+                <tr class="fila-link" data-href="{{ route('instituciones.show', $institucion) }}" title="Doble clic para ver el personal">
                     <td class="text-fecha">{{ $institucion->ruc }}</td>
                     <td><span class="brand-chip-title">{{ $institucion->nombre }}</span></td>
+                    <td class="text-fecha">{{ ucfirst(strtolower($institucion->tipo)) }}</td>
                     <td class="text-fecha">{{ $institucion->direccion ?: '-' }}</td>
                     <td class="text-center">
                         <span class="badge-programa">{{ $institucion->programas_count }}</span>
@@ -76,7 +81,7 @@
                 </tr>
             @empty
                 <tr id="rowSinDatos">
-                    <td colspan="5" class="text-center py-5">
+                    <td colspan="6" class="text-center py-5">
                         <h6 class="text-white fw-bold mb-1">No hay instituciones registradas</h6>
                         <p class="text-muted fs-7 mb-0">Haz clic en "Nueva Institución" para agregar la primera.</p>
                     </td>
@@ -112,12 +117,33 @@
                             <input type="text" id="ruc" name="ruc" maxlength="11" inputmode="numeric" pattern="[0-9]{11}" placeholder="11 dígitos" required>
                         </div>
                         <div class="campo mb-3">
+                            <label for="tipo">Tipo de Institución</label>
+                            <select id="tipo" name="tipo" required>
+                                @foreach (\App\Models\Institucion::TIPOS as $tipo)
+                                    <option value="{{ $tipo }}">{{ ucfirst(strtolower($tipo)) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="campo mb-3">
                             <label for="nombre">Nombre de la Institución</label>
                             <input type="text" id="nombre" name="nombre" maxlength="150" class="text-uppercase" placeholder="Ingrese el nombre" required>
                         </div>
                         <div class="campo mb-3">
                             <label for="direccion">Dirección</label>
                             <input type="text" id="direccion" name="direccion" maxlength="150" placeholder="Opcional">
+                        </div>
+
+                        <div class="js-solo-nuevo">
+                            <hr class="my-3 opacity-25">
+                            <p class="text-muted fs-7 mb-2">Usuario con el que ingresará esta institución</p>
+                            <div class="campo mb-3">
+                                <label for="username">Usuario</label>
+                                <input type="text" id="username" name="username" maxlength="15" autocomplete="off" placeholder="Vacío = usar el RUC">
+                            </div>
+                            <div class="campo mb-3">
+                                <label for="password">Contraseña</label>
+                                <input type="text" id="password" name="password" maxlength="60" autocomplete="new-password" placeholder="Vacío = generar una automática">
+                            </div>
                         </div>
                     </div>
 

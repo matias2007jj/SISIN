@@ -1,0 +1,10 @@
+Copia estos archivos sobre tu proyecto SISIN (respetando las rutas) y luego:
+
+  php artisan migrate
+  php artisan db:seed --class=UsuariosInstitucionSeeder   # crea el usuario de las instituciones ya existentes
+  php artisan view:clear && php artisan optimize:clear
+
+Probar:
+  1) Entra como admin (superusuario) -> menú de usuario -> "Institución activa" -> elige una.
+  2) Organización > Instituciones > Nueva Institución -> se crea también su usuario (se muestra una sola vez).
+  3) Cierra sesión y entra con ese usuario: la cabecera muestra "Institución · Rol" y solo ve su inventario.

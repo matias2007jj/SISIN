@@ -30,6 +30,14 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    /* ---------- Doble clic en una fila para abrir su ficha ---------- */
+    document.querySelectorAll('tr[data-href]').forEach(function (fila) {
+        fila.addEventListener('dblclick', function (ev) {
+            if (ev.target.closest('button, form, a')) return;
+            window.location.href = fila.dataset.href;
+        });
+    });
+
     /* ---------- Ventana modal única (nuevo / editar) ---------- */
     var modal = document.getElementById('modalRegistro');
     if (!modal) return;
@@ -46,6 +54,7 @@ document.addEventListener('DOMContentLoaded', function () {
         form.action = datos ? boton.dataset.url : form.dataset.urlNuevo;
         metodo.disabled = !datos;
         modal.querySelector('.js-titulo').textContent = datos ? form.dataset.tituloEditar : form.dataset.tituloNuevo;
+        modal.querySelectorAll('.js-solo-nuevo').forEach(function (el) { el.classList.toggle('d-none', !!datos); });
 
         if (datos) {
             Object.keys(datos).forEach(function (clave) {

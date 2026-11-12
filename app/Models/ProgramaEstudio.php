@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Models\Concerns\DeInstitucion;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProgramaEstudio extends Model
 {
-    use Auditable, SoftDeletes;
+    use Auditable, DeInstitucion, SoftDeletes;
 
     protected $table = 'programas_estudio';
 

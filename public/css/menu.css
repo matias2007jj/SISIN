@@ -354,3 +354,7 @@ body {
 
 .dropdown-menu-custom .dropdown-item.active { color: var(--accent-green); background: var(--accent-soft); }
 .dropdown-menu-custom .dropdown-item-logout:hover { color: #ff8f8f; background: rgba(255, 107, 107, .1); }
+/* Chip de usuario: nombre + institución · rol */
+.user-info { display: flex; flex-direction: column; line-height: 1.15; }
+.user-name { font-weight: 700; }
+.user-sub  { font-size: .65rem; color: var(--text-muted); max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

@@ -1,8 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\Usuario;
-use App\Models\ProgramaEstudio;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -18,7 +18,7 @@ class AuthController extends Controller
         $credentials = [
             'username' => $request->input('usu'),
             'password' => $request->input('pass'),
-            'activo'   => true, 
+            'activo'   => true,
         ];
 
         if (Auth::attempt($credentials)) {
@@ -27,17 +27,19 @@ class AuthController extends Controller
             /** @var Usuario $usuario */
             $usuario = Auth::user();
 
-            $programa = $usuario->programas()
-                ->wherePivot('acceso', true)
-                ->orderBy('programas_estudio.nombre')
-                ->first();
+            // Un usuario de institución queda fijo en ella (se lee de usuarios.institucion_id);
+            // el superusuario empieza viendo todas.
+            $request->session()->forget(['institucion_id', 'programa_estudio_id']);
 
-   
-            if (!$programa && $usuario->esAdministrador()) {
-                $programa = ProgramaEstudio::where('activo', true)->orderBy('nombre')->first();
+            if ($usuario->institucion_id && ! $usuario->institucion) {
+                Auth::logout();
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'La institución de este usuario ya no está disponible.',
+                ], 403);
             }
 
-            if ($programa) {
+            if ($programa = $usuario->programaPorDefecto()) {
                 $request->session()->put('programa_estudio_id', $programa->id);
             }
 

@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Models\Concerns\DeInstitucion;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Bien extends Model
 {
-    use Auditable, SoftDeletes;
+    use Auditable, DeInstitucion, SoftDeletes;
 
     protected $table = 'bienes';   // Eloquent pluralizaría "biens"
 
@@ -24,4 +25,9 @@ class Bien extends Model
     public function marca(): BelongsTo  { return $this->belongsTo(Marca::class); }
     public function modelo(): BelongsTo { return $this->belongsTo(Modelo::class); }
     public function estado(): BelongsTo { return $this->belongsTo(Estado::class); }
+
+    public function rutaInstitucion(): string
+    {
+        return 'sala.programaEstudio';
+    }
 }

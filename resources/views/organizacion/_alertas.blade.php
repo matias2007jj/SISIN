@@ -16,3 +16,11 @@
         </ul>
     </div>
 @endif
+
+@if (session('credenciales'))
+    <div class="alerta-sisin exito" role="alert">
+        <strong>Datos de acceso de la institución</strong> (anótelos ahora, no se vuelven a mostrar):<br>
+        Usuario: <code>{{ session('credenciales.usuario') }}</code> &nbsp;·&nbsp;
+        Contraseña: <code>{{ session('credenciales.clave') }}</code>
+    </div>
+@endif

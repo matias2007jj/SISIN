@@ -37,7 +37,6 @@
                             Home
                         </a>
                     </li>
-                    <li class="nav-item"><a class="nav-link" href="#">Clientes</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">Productos</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">Categorías</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">Facturas</a></li>
@@ -62,24 +61,25 @@
                                 </ul>
                             </li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#">Bienes</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('bienes.*') ? 'active' : '' }}" href="{{ route('bienes.index') }}">Bienes</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#">Toma de Inventario</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('inventarios.*') ? 'active' : '' }}" href="{{ route('inventarios.index') }}">Toma de Inventario</a></li>
                             <li><a class="dropdown-item" href="#">Reporte Bien</a></li>
                         </ul>
                     </li>
 
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {{ request()->routeIs('instituciones.*', 'programas.*', 'personal.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle {{ request()->routeIs('instituciones.*', 'personal.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Organización
                         </a>
                         <ul class="dropdown-menu dropdown-menu-custom">
                             <li>
-                                <a class="dropdown-item {{ request()->routeIs('instituciones.*') ? 'active' : '' }}" href="{{ route('instituciones.index') }}">Instituciones</a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item {{ request()->routeIs('programas.*') ? 'active' : '' }}" href="{{ route('programas.index') }}">Programas de Estudio</a>
-                            </li>
+                                    @if (auth()->user()->esSuperusuario())
+                                        <a class="dropdown-item {{ request()->routeIs('instituciones.*') ? 'active' : '' }}" href="{{ route('instituciones.index') }}">Instituciones</a>
+                                    @elseif (auth()->user()->institucion_id)
+                                        <a class="dropdown-item {{ request()->routeIs('instituciones.*') ? 'active' : '' }}" href="{{ route('instituciones.show', auth()->user()->institucion_id) }}">Mi institución</a>
+                                    @endif
+                                </li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
@@ -104,25 +104,27 @@
                         </ul>
                     </li>
 
-                    <li class="nav-item dropdown">
+                    @if (auth()->user()->puedeAdministrarUsuarios())
+<li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Usuarios
                         </a>
                         <ul class="dropdown-menu dropdown-menu-custom">
                             <li><h6 class="dropdown-header">Mantenimiento</h6></li>
-                            <li><a class="dropdown-item" href="#">Gestionar Usuarios</a></li>
-                            <li><a class="dropdown-item" href="#">Perfiles y Permisos</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('usuarios.*') ? 'active' : '' }}" href="{{ route('usuarios.index') }}">Gestionar Usuarios</a></li>
+                            
                         </ul>
                     </li>
+@endif
                 </ul>
 
                 <div class="dropdown user-menu mt-3 mt-xl-0">
                     <a class="user-chip d-flex align-items-center gap-2 text-decoration-none" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <span class="avatar">{{ mb_strtoupper(mb_substr($nombreUsuario, 0, 1)) }}</span>
-                        <span>{{ $nombreUsuario }}</span>
+                        @include('partials.usuario-chip')
                         
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end dropdown-menu-custom">
+                            @include('partials.contexto')
                         <li>
                             <a class="dropdown-item dropdown-item-logout" id="btn_salir" href="{{ route('salir.index') }}">
                                 Cerrar sesión

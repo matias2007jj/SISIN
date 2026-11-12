@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Models\Concerns\DeInstitucion;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Personal extends Model
 {
-    use Auditable, SoftDeletes;
+    use Auditable, DeInstitucion, SoftDeletes;
 
     protected $table = 'personal';
 
@@ -25,5 +26,10 @@ class Personal extends Model
     protected function nombreCompleto(): Attribute
     {
         return Attribute::get(fn () => trim("{$this->apellidos} {$this->nombres}"));
+    }
+
+    public function rutaInstitucion(): string
+    {
+        return 'asignaciones.programaEstudio';
     }
 }

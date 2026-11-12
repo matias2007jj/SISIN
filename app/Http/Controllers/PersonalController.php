@@ -6,6 +6,7 @@ use App\Models\Asignacion;
 use App\Models\Personal;
 use App\Models\ProgramaEstudio;
 use App\Models\Usuario;
+use App\Support\ContextoInstitucion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -79,9 +80,10 @@ class PersonalController extends Controller
             'email'     => ['nullable', 'email', 'max:100'],
             'direccion' => ['nullable', 'string', 'max:150'],
 
-            'asignaciones'                       => ['nullable', 'array'],
+            // Con institución activa, toda persona debe quedar asignada a un programa (si no, nadie la vería)
+            'asignaciones'                       => [ContextoInstitucion::id() === null ? 'nullable' : 'required', 'array'],
             'asignaciones.*.cargo'               => ['required', Rule::in(Asignacion::CARGOS)],
-            'asignaciones.*.programa_estudio_id' => ['required', 'exists:programas_estudio,id'],
+            'asignaciones.*.programa_estudio_id' => ['required', ContextoInstitucion::reglaPrograma()],
         ]);
 
         $asignaciones = collect($validado['asignaciones'] ?? [])

@@ -1,0 +1,9 @@
+.lista-programas {
+    max-height: 150px; overflow-y: auto;
+    background: #0d1117; border: 1px solid rgba(255,255,255,.12); border-radius: 10px;
+    padding: .5rem .8rem; display: flex; flex-direction: column; gap: .35rem;
+}
+.lista-programas label { font-size: .85rem; color: #e5e7eb; text-transform: none; letter-spacing: 0; font-weight: 500; display: flex; gap: .5rem; align-items: center; cursor: pointer; }
+.lista-programas input { accent-color: #10b981; }
+.badge-rol { font-size: .72rem; font-weight: 700; padding: .2rem .6rem; border-radius: 999px; background: rgba(59,130,246,.15); color: #60a5fa; border: 1px solid rgba(59,130,246,.3); }
+.badge-inactivo { background: rgba(239,68,68,.12); color: #f87171; border-color: rgba(239,68,68,.3); }

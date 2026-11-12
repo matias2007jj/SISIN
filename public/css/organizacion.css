@@ -79,3 +79,18 @@
 @media (max-width: 576px) {
     .asignacion-row { grid-template-columns: 1fr; }
 }
+
+/* Filas que se abren con doble clic */
+.fila-link { cursor: pointer; user-select: none; }
+
+/* Cabecera de la ficha de institución */
+.ficha-institucion {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.ficha-institucion .datos { color: #9ca3af; font-size: 0.85rem; }
+.ficha-institucion .datos strong { color: #e5e7eb; }

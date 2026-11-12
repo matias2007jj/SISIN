@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Models\Concerns\DeInstitucion;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class InventarioDetalle extends Model
 {
-    use Auditable, SoftDeletes;
+    use Auditable, DeInstitucion, SoftDeletes;
 
     protected $table = 'inventario_detalles';
 
@@ -54,5 +55,10 @@ class InventarioDetalle extends Model
             'nombre_estado'          => $bien->estado?->nombre,
             'otras_especificaciones' => $bien->otras_especificaciones,
         ];
+    }
+
+    public function rutaInstitucion(): string
+    {
+        return 'inventario.programaEstudio';
     }
 }
