@@ -1,0 +1,81 @@
+/* ==========================================================================
+   organizacion.css - Instituciones, Programas de Estudio y Personal
+   Se usa junto con grupo.css (tablas/buscador) y modal.css (ventanas)
+   ========================================================================== */
+
+.alerta-sisin {
+    border-radius: 10px;
+    padding: 0.8rem 1rem;
+    margin-bottom: 1.25rem;
+    font-size: 0.88rem;
+    border: 1px solid;
+}
+.alerta-sisin.exito { background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.35); color: #d1fae5; }
+.alerta-sisin.error { background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.35); color: #fecaca; }
+.alerta-sisin ul { margin: 0.4rem 0 0 1.1rem; padding: 0; }
+
+/* Campos tipo select / email dentro de la ventana modal */
+.mi-modal .campo select,
+.mi-modal .campo input[type="email"] {
+    background-color: #0d1117;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    padding: 0.65rem 0.9rem;
+    color: #ffffff;
+    font-size: 0.9rem;
+    outline: none;
+    color-scheme: dark;
+    width: 100%;
+}
+.mi-modal .campo select:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.2);
+}
+.mi-modal .modal-body { max-height: 70vh; overflow-y: auto; }
+
+.mi-modal .form-switch .form-check-label {
+    color: #d1d5db;
+    font-size: 0.85rem;
+}
+
+/* Etiquetas de cargo */
+.badge-cargo {
+    display: inline-block;
+    border-radius: 20px;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    border: 1px solid;
+}
+.cargo-coordinador { background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.3); }
+.cargo-docente     { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border-color: rgba(59, 130, 246, 0.3); }
+.cargo-asistente   { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.3); }
+
+.badge-estado-activo   { color: #34d399; font-weight: 700; font-size: 0.78rem; }
+.badge-estado-inactivo { color: #9ca3af; font-weight: 700; font-size: 0.78rem; }
+
+.lista-asignacion { display: flex; flex-direction: column; gap: 0.35rem; }
+.lista-asignacion .programa { color: #9ca3af; font-size: 0.78rem; margin-left: 0.35rem; }
+
+/* Asignaciones dentro del formulario de personal */
+.asignaciones-titulo {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #9ca3af;
+    letter-spacing: 0.04em;
+}
+.asignacion-row {
+    display: grid;
+    grid-template-columns: 170px 1fr auto;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+.asignacion-row select { width: 100%; }
+.asignaciones-vacio { color: #6b7280; font-size: 0.82rem; margin: 0.25rem 0 0.5rem; }
+
+@media (max-width: 576px) {
+    .asignacion-row { grid-template-columns: 1fr; }
+}

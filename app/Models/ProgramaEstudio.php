@@ -43,6 +43,11 @@ class ProgramaEstudio extends Model
         return $this->belongsTo(Personal::class, 'asistente_t2_id');
     }
 
+    public function asignaciones(): HasMany
+    {
+        return $this->hasMany(Asignacion::class);
+    }
+
     public function salas(): HasMany
     {
         return $this->hasMany(Sala::class);

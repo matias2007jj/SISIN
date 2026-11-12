@@ -5,6 +5,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CatalogoController;
+use App\Http\Controllers\InstitucionController;
+use App\Http\Controllers\PersonalController;
+use App\Http\Controllers\ProgramaEstudioController;
 
 Route::get('/', function () {
     return redirect()->route('menu');
@@ -47,6 +50,20 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/',       [CatalogoController::class, 'store'])->name('store');
         Route::put('/{id}',    [CatalogoController::class, 'update'])->name('update');
         Route::delete('/{id}', [CatalogoController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::prefix('organizacion')->group(function () {
+        Route::resource('instituciones', InstitucionController::class)
+            ->parameters(['instituciones' => 'institucion'])
+            ->only(['index', 'store', 'update', 'destroy']);
+
+        Route::resource('programas', ProgramaEstudioController::class)
+            ->parameters(['programas' => 'programa'])
+            ->only(['index', 'store', 'update', 'destroy']);
+
+        Route::resource('personal', PersonalController::class)
+            ->parameters(['personal' => 'persona'])
+            ->only(['index', 'store', 'update', 'destroy']);
     });
 
 });

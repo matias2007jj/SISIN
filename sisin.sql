@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 15-10-2026 a las 08:54:52
+-- Tiempo de generación: 12-11-2026 a las 08:16:02
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -422,6 +422,7 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
+('BSKaXM9aSZzUqY9uPDtCaxfRxq879ksT4L1HQUyx', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoiem5TZWw5Mkx3Y2pkQlpadndBa1RjeVdOcjVkQkpLYVp6N0s3U25wNiI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MjY6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9tZW51IjtzOjU6InJvdXRlIjtzOjQ6Im1lbnUiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX1zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToxO3M6MTc6InBhc3N3b3JkX2hhc2hfd2ViIjtzOjY0OiJhYWU2MTE5OWU4YzE5MWEyYmRiZjMxZDhiMGEwYzM4ODE2YmVhYzIzMGU3MjYzOWY1M2M0NDBjYTI5MjAyNmQ5IjtzOjE5OiJwcm9ncmFtYV9lc3R1ZGlvX2lkIjtpOjE7fQ==', 1794465074),
 ('CvGLfh9GuFtH0yD38Jd2sXDQ5PYhJ8ORMn3W9Tqo', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoieHFRVEZaaGV5ODVhcVJYMFFSU1JVMWcyTzdLSzN1MTczamsxS2JwbSI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9hbG1hY2VuL3RhYmxhcy90aXBvIjtzOjU6InJvdXRlIjtzOjE0OiJjYXRhbG9nby5pbmRleCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fXM6NTA6ImxvZ2luX3dlYl81OWJhMzZhZGRjMmIyZjk0MDE1ODBmMDE0YzdmNThlYTRlMzA5ODlkIjtpOjE7czoxNzoicGFzc3dvcmRfaGFzaF93ZWIiO3M6NjQ6ImM0ZTU1NTAxNDZkMGY4ZWM0NGJiZDliYmU0OGJmMWM3MGZlNDQxZTI0ODhjNTZjNWJlMDIzNzAzOWI2OTY4MjkiO3M6MTk6InByb2dyYW1hX2VzdHVkaW9faWQiO2k6MTt9', 1792047071),
 ('ijkQk4r0C58YT8DkMW2LOujFAkBvDfzAAr8vOOA3', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36', 'YTo1OntzOjY6Il90b2tlbiI7czo0MDoiWmc4S3dqdXVXZWVrQjlnR0U3RTZQaXNSbVhjOGt4YlZnTzJoU0NEdCI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDI6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9hbG1hY2VuL3RhYmxhcy9tYXJjYSI7czo1OiJyb3V0ZSI7czoxNDoiY2F0YWxvZ28uaW5kZXgiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX1zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToxO3M6MTc6InBhc3N3b3JkX2hhc2hfd2ViIjtzOjY0OiJjNGU1NTUwMTQ2ZDBmOGVjNDRiYmQ5YmJlNDhiZjFjNzBmZTQ0MWUyNDg4YzU2YzViZTAyMzcwMzliNjk2ODI5Ijt9', 1791953323);
 
@@ -492,7 +493,7 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id`, `username`, `password`, `personal_id`, `tipo_usuario`, `activo`, `remember_token`, `created_by`, `updated_by`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, 'ADMIN', '$2y$12$E3hvyqZZUiaPz8vemA1Qku1Fryu1m8/p46cnKRtFh69vQ/UHayljS', NULL, 'ADMINISTRADOR', 1, NULL, NULL, NULL, '2026-10-01 04:53:41', '2026-10-14 09:26:20', NULL);
+(1, 'ADMIN', '$2y$12$oc4wT.3PH/lemn7potgj0ewIEspD/f0jHGsI8sIBULRhivghpgZoC', NULL, 'ADMINISTRADOR', 1, NULL, NULL, NULL, '2026-10-01 04:53:41', '2026-10-14 09:26:20', NULL);
 
 -- --------------------------------------------------------
 

@@ -10,8 +10,6 @@
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}" />
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    
     <link href="{{ asset('css/login.css') }}" rel="stylesheet" type="text/css" />
 </head>
 
@@ -25,7 +23,7 @@
 
         <form onsubmit="return false;">
             <div class="auth-form-group-custom">
-                <i class="ri-user-2-line auti-custom-input-icon"></i>
+                
                 <label for="usu">Usuario</label>
                 <input type="text" class="form-control" id="usu"
                     placeholder="Ingrese Usuario"
@@ -33,7 +31,7 @@
             </div>
 
             <div class="auth-form-group-custom">
-                <i class="ri-lock-2-line auti-custom-input-icon"></i>
+                
                 <label for="pass">Password</label>
                 <input type="password" class="form-control" id="pass"
                     placeholder="Ingrese Password" />

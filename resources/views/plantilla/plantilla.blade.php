@@ -23,36 +23,35 @@
         <div class="container">
           <div class="nav-pill d-flex flex-wrap align-items-center justify-content-between">
             <a class="navbar-brand fw-bold m-0" href="{{ url('/menu') }}">
-                <span class="brand-mark"><i class="fa-solid fa-boxes-stacked"></i></span>
                 Sistema SISIN
             </a>
 
             <button class="btn btn-toggle-menu d-xl-none" type="button" data-bs-toggle="collapse" data-bs-target="#topMenu" aria-controls="topMenu" aria-expanded="false" aria-label="Abrir menú">
-                <i class="fa-solid fa-bars"></i>
+                Menú
             </button>
 
             <div class="collapse navbar-collapse" id="topMenu">
                 <ul class="navbar-nav top-nav me-auto ms-xl-4">
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('menu') ? 'active' : '' }}" href="{{ url('/menu') }}" @if(request()->is('menu')) aria-current="page" @endif>
-                            <i class="fa-solid fa-house"></i> Home
+                            Home
                         </a>
                     </li>
-                    <li class="nav-item"><a class="nav-link" href="#"><i class="fa-solid fa-user-group"></i> Clientes</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#"><i class="fa-solid fa-cart-shopping"></i> Productos</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#"><i class="fa-solid fa-tags"></i> Categorías</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#"><i class="fa-solid fa-receipt"></i> Facturas</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Clientes</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Productos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Categorías</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Facturas</a></li>
 
                     <li class="nav-divider d-none d-xl-block" aria-hidden="true"></li>
 
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle {{ request()->routeIs('catalogo.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fa-solid fa-warehouse"></i> Almacén
+                            Almacén
                         </a>
                         <ul class="dropdown-menu dropdown-menu-custom">
                             <li class="dropdown-submenu">
                                 <a class="dropdown-item submenu-toggle" href="#">
-                                    Tablas Generales <i class="fa-solid fa-chevron-right submenu-arrow"></i>
+                                    Tablas Generales 
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-custom submenu">
                                     @foreach (['grupo' => 'Grupo', 'estado' => 'Estado', 'marca' => 'Marca', 'modelo' => 'Modelo', 'sala' => 'Sala', 'tipo' => 'Tipo'] as $slug => $nombre)
@@ -71,8 +70,28 @@
                     </li>
 
                     <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {{ request()->routeIs('instituciones.*', 'programas.*', 'personal.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Organización
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-custom">
+                            <li>
+                                <a class="dropdown-item {{ request()->routeIs('instituciones.*') ? 'active' : '' }}" href="{{ route('instituciones.index') }}">Instituciones</a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {{ request()->routeIs('programas.*') ? 'active' : '' }}" href="{{ route('programas.index') }}">Programas de Estudio</a>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a class="dropdown-item {{ request()->routeIs('personal.*') ? 'active' : '' }}" href="{{ route('personal.index') }}">Personal</a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fa-solid fa-file-lines"></i> Reportes
+                            Reportes
                         </a>
                         <ul class="dropdown-menu dropdown-menu-custom">
                             <li><h6 class="dropdown-header">Generales</h6></li>
@@ -87,7 +106,7 @@
 
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fa-regular fa-user"></i> Usuarios
+                            Usuarios
                         </a>
                         <ul class="dropdown-menu dropdown-menu-custom">
                             <li><h6 class="dropdown-header">Mantenimiento</h6></li>
@@ -101,12 +120,12 @@
                     <a class="user-chip d-flex align-items-center gap-2 text-decoration-none" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <span class="avatar">{{ mb_strtoupper(mb_substr($nombreUsuario, 0, 1)) }}</span>
                         <span>{{ $nombreUsuario }}</span>
-                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
+                        
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end dropdown-menu-custom">
                         <li>
                             <a class="dropdown-item dropdown-item-logout" id="btn_salir" href="{{ route('salir.index') }}">
-                                <i class="fa-solid fa-right-from-bracket me-2"></i> Cerrar sesión
+                                Cerrar sesión
                             </a>
                         </li>
                     </ul>
@@ -120,11 +139,11 @@
         <main class="container plantilla-page pb-5">
             <div class="plantilla-card">
                 <header class="plantilla-header">
-                    <h2><i class="fa-solid @yield('icono', 'fa-table-list')"></i> @yield('titulo')</h2>
+                    <h2>@yield('titulo')</h2>
 
                     @hasSection('boton')
                         <button type="button" class="btn btn-green" data-bs-toggle="modal" data-bs-target="#@yield('modal_id', 'modalAgregar')">
-                            <i class="fa-solid fa-plus me-2"></i>@yield('boton')
+                            @yield('boton')
                         </button>
                     @endif
                 </header>
