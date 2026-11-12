@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 12-11-2026 a las 08:16:02
+-- Tiempo de generación: 12-11-2026 a las 09:30:49
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -348,6 +348,37 @@ CREATE TABLE `personal` (
   `deleted_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Volcado de datos para la tabla `personal`
+--
+
+INSERT INTO `personal` (`id`, `apellidos`, `nombres`, `dni`, `celular`, `email`, `direccion`, `created_by`, `updated_by`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(2, 'VEGA', 'JOSE', '12345456', '954982930', 'script_t1@dsitello.ed.pe', 'AV. VILAUTA NRO. SN SANTA RITA (FRENTE AL CEMENTERIO PARQUE DEL RECUERDO) TACNA - TACNA - CALANA', 1, NULL, '2026-11-12 18:58:53', '2026-11-12 18:58:53', NULL),
+(3, 'QUISPE', 'TEO', '54195159', '948994325', 'teo@gmail.com', 'su casa', 1, NULL, '2026-11-12 19:18:47', '2026-11-12 19:18:47', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `personal_programa_estudio`
+--
+
+CREATE TABLE `personal_programa_estudio` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `personal_id` bigint(20) UNSIGNED NOT NULL,
+  `programa_estudio_id` bigint(20) UNSIGNED NOT NULL,
+  `cargo` varchar(20) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `personal_programa_estudio`
+--
+
+INSERT INTO `personal_programa_estudio` (`id`, `personal_id`, `programa_estudio_id`, `cargo`, `created_at`, `updated_at`) VALUES
+(1, 2, 2, 'DOCENTE', '2026-11-12 18:58:53', '2026-11-12 18:58:53'),
+(2, 3, 2, 'ASISTENTE', '2026-11-12 19:18:47', '2026-11-12 19:18:47');
+
 -- --------------------------------------------------------
 
 --
@@ -422,9 +453,10 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('BSKaXM9aSZzUqY9uPDtCaxfRxq879ksT4L1HQUyx', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoiem5TZWw5Mkx3Y2pkQlpadndBa1RjeVdOcjVkQkpLYVp6N0s3U25wNiI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MjY6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9tZW51IjtzOjU6InJvdXRlIjtzOjQ6Im1lbnUiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX1zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToxO3M6MTc6InBhc3N3b3JkX2hhc2hfd2ViIjtzOjY0OiJhYWU2MTE5OWU4YzE5MWEyYmRiZjMxZDhiMGEwYzM4ODE2YmVhYzIzMGU3MjYzOWY1M2M0NDBjYTI5MjAyNmQ5IjtzOjE5OiJwcm9ncmFtYV9lc3R1ZGlvX2lkIjtpOjE7fQ==', 1794465074),
 ('CvGLfh9GuFtH0yD38Jd2sXDQ5PYhJ8ORMn3W9Tqo', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoieHFRVEZaaGV5ODVhcVJYMFFSU1JVMWcyTzdLSzN1MTczamsxS2JwbSI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9hbG1hY2VuL3RhYmxhcy90aXBvIjtzOjU6InJvdXRlIjtzOjE0OiJjYXRhbG9nby5pbmRleCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fXM6NTA6ImxvZ2luX3dlYl81OWJhMzZhZGRjMmIyZjk0MDE1ODBmMDE0YzdmNThlYTRlMzA5ODlkIjtpOjE7czoxNzoicGFzc3dvcmRfaGFzaF93ZWIiO3M6NjQ6ImM0ZTU1NTAxNDZkMGY4ZWM0NGJiZDliYmU0OGJmMWM3MGZlNDQxZTI0ODhjNTZjNWJlMDIzNzAzOWI2OTY4MjkiO3M6MTk6InByb2dyYW1hX2VzdHVkaW9faWQiO2k6MTt9', 1792047071),
-('ijkQk4r0C58YT8DkMW2LOujFAkBvDfzAAr8vOOA3', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36', 'YTo1OntzOjY6Il90b2tlbiI7czo0MDoiWmc4S3dqdXVXZWVrQjlnR0U3RTZQaXNSbVhjOGt4YlZnTzJoU0NEdCI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDI6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9hbG1hY2VuL3RhYmxhcy9tYXJjYSI7czo1OiJyb3V0ZSI7czoxNDoiY2F0YWxvZ28uaW5kZXgiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX1zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToxO3M6MTc6InBhc3N3b3JkX2hhc2hfd2ViIjtzOjY0OiJjNGU1NTUwMTQ2ZDBmOGVjNDRiYmQ5YmJlNDhiZjFjNzBmZTQ0MWUyNDg4YzU2YzViZTAyMzcwMzliNjk2ODI5Ijt9', 1791953323);
+('ES7d5cvFZisY5ePSA5loWVTkxB8mn2lCByQpasgh', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoicmJLWUtWNFFoNWhFTzUzblFqWldDMUZRSUI3aENtTm9tQ0xUYkJZbSI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDM6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9vcmdhbml6YWNpb24vcGVyc29uYWwiO3M6NToicm91dGUiO3M6MTQ6InBlcnNvbmFsLmluZGV4Ijt9czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6MTtzOjE3OiJwYXNzd29yZF9oYXNoX3dlYiI7czo2NDoiYWFlNjExOTllOGMxOTFhMmJkYmYzMWQ4YjBhMGMzODgxNmJlYWMyMzBlNzI2MzlmNTNjNDQwY2EyOTIwMjZkOSI7czoxOToicHJvZ3JhbWFfZXN0dWRpb19pZCI7aToxO30=', 1794472168),
+('ijkQk4r0C58YT8DkMW2LOujFAkBvDfzAAr8vOOA3', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36', 'YTo1OntzOjY6Il90b2tlbiI7czo0MDoiWmc4S3dqdXVXZWVrQjlnR0U3RTZQaXNSbVhjOGt4YlZnTzJoU0NEdCI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDI6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9hbG1hY2VuL3RhYmxhcy9tYXJjYSI7czo1OiJyb3V0ZSI7czoxNDoiY2F0YWxvZ28uaW5kZXgiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX1zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToxO3M6MTc6InBhc3N3b3JkX2hhc2hfd2ViIjtzOjY0OiJjNGU1NTUwMTQ2ZDBmOGVjNDRiYmQ5YmJlNDhiZjFjNzBmZTQ0MWUyNDg4YzU2YzViZTAyMzcwMzliNjk2ODI5Ijt9', 1791953323),
+('NN9if4feQOxQb1VRKs20QYBZeAklKluUankRkZFe', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'YToyOntzOjY6Il90b2tlbiI7czo0MDoidjRYdFNJRENweTZ3SE1IckZUMTRuWm5SUEVYdzlxRWUyY2R0bjVJRSI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319fQ==', 1794469108);
 
 -- --------------------------------------------------------
 
@@ -673,6 +705,14 @@ ALTER TABLE `personal`
   ADD KEY `personal_updated_by_foreign` (`updated_by`);
 
 --
+-- Indices de la tabla `personal_programa_estudio`
+--
+ALTER TABLE `personal_programa_estudio`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `personal_programa_cargo_unique` (`personal_id`,`programa_estudio_id`,`cargo`),
+  ADD KEY `ppe_programa_fk` (`programa_estudio_id`);
+
+--
 -- Indices de la tabla `programas_estudio`
 --
 ALTER TABLE `programas_estudio`
@@ -763,7 +803,7 @@ ALTER TABLE `failed_jobs`
 -- AUTO_INCREMENT de la tabla `grupos`
 --
 ALTER TABLE `grupos`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `instituciones`
@@ -811,7 +851,13 @@ ALTER TABLE `modelos`
 -- AUTO_INCREMENT de la tabla `personal`
 --
 ALTER TABLE `personal`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT de la tabla `personal_programa_estudio`
+--
+ALTER TABLE `personal_programa_estudio`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `programas_estudio`
@@ -936,6 +982,13 @@ ALTER TABLE `modelos`
 ALTER TABLE `personal`
   ADD CONSTRAINT `personal_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `personal_updated_by_foreign` FOREIGN KEY (`updated_by`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL;
+
+--
+-- Filtros para la tabla `personal_programa_estudio`
+--
+ALTER TABLE `personal_programa_estudio`
+  ADD CONSTRAINT `ppe_personal_fk` FOREIGN KEY (`personal_id`) REFERENCES `personal` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `ppe_programa_fk` FOREIGN KEY (`programa_estudio_id`) REFERENCES `programas_estudio` (`id`) ON DELETE CASCADE;
 
 --
 -- Filtros para la tabla `programas_estudio`
