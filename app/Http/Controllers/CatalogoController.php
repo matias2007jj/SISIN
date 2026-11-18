@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Models\ProgramaEstudio;
+use App\Support\ContextoInstitucion;
 
 class CatalogoController extends Controller
 {
@@ -36,7 +38,8 @@ class CatalogoController extends Controller
         if ($catalogo === 'grupo') {
             // Se envía $programaId y $esSuperadmin para permitir al SUPERADMIN ver todos los grupos
             $grupos = DB::select('CALL sp_listar_grupos(?, ?)', [$programaId, $esSuperadmin]);
-            $programasEstudio = DB::select('SELECT id, nombre FROM programas_estudio WHERE deleted_at IS NULL ORDER BY nombre ASC');
+            // Solo los programas de la institución activa (el scope de ProgramaEstudio ya filtra)
+            $programasEstudio = ProgramaEstudio::where('activo', true)->orderBy('nombre')->get(['id', 'nombre']);
             return view('almacen.catalogo.grupo', compact('grupos', 'programasEstudio', 'catalogo'));
         }
 
@@ -68,7 +71,7 @@ class CatalogoController extends Controller
         if ($catalogo === 'grupo') {
             $request->validate([
                 'nombre' => 'required|string|max:60',
-                'programa_estudio_id' => 'required|exists:programas_estudio,id'
+                'programa_estudio_id' => ['required', ContextoInstitucion::reglaPrograma()]
             ]);
 
             DB::statement('CALL sp_guardar_grupo(?, ?, ?)', [$request->nombre, $request->programa_estudio_id, $userId]);
@@ -97,7 +100,7 @@ class CatalogoController extends Controller
         if ($catalogo === 'grupo') {
             $request->validate([
                 'nombre' => 'required|string|max:60',
-                'programa_estudio_id' => 'required|exists:programas_estudio,id'
+                'programa_estudio_id' => ['required', ContextoInstitucion::reglaPrograma()]
             ]);
 
             DB::statement('CALL sp_actualizar_grupo(?, ?, ?, ?)', [$id, $request->nombre, $request->programa_estudio_id, $userId]);

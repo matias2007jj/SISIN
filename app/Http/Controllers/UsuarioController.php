@@ -53,7 +53,7 @@ class UsuarioController extends Controller
 
         $datos = $request->validate([
             'personal_id'  => ['required', 'integer'],
-            'username'     => ['nullable', 'string', 'max:15', 'regex:/^[A-Za-z0-9._-]+$/'],
+            'username'     => array_merge(['nullable'], Usuario::reglasUsername()),
             'password'     => ['nullable', 'string', 'min:6', 'max:60'],
             'tipo_usuario' => ['required', Rule::in(self::ROLES_ASIGNABLES)],
             'programas'    => ['nullable', 'array'],
@@ -101,6 +101,7 @@ class UsuarioController extends Controller
         $this->propio($usuario);
 
         $datos = $request->validate([
+            'username'     => array_merge(['required'], Usuario::reglasUsername($usuario->id)),
             'password'     => ['nullable', 'string', 'min:6', 'max:60'],
             'tipo_usuario' => ['required', Rule::in(self::ROLES_ASIGNABLES)],
             'programas'    => ['nullable', 'array'],
@@ -114,7 +115,11 @@ class UsuarioController extends Controller
         }
 
         DB::transaction(function () use ($usuario, $datos, $activo) {
-            $cambios = ['tipo_usuario' => $datos['tipo_usuario'], 'activo' => $activo];
+            $cambios = [
+                'username'     => $datos['username'],
+                'tipo_usuario' => $datos['tipo_usuario'],
+                'activo'       => $activo,
+            ];
 
             if (! empty($datos['password'])) {
                 $cambios['password'] = $datos['password'];

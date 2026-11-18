@@ -26,8 +26,7 @@
                 
                 <label for="usu">Usuario</label>
                 <input type="text" class="form-control" id="usu"
-                    placeholder="Ingrese Usuario"
-                    onkeyup="javascript:this.value=this.value.toUpperCase()" />
+                    placeholder="Ingrese Usuario" autocomplete="username" />
             </div>
 
             <div class="auth-form-group-custom">

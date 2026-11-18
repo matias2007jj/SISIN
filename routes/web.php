@@ -70,31 +70,30 @@ Route::middleware(['auth'])->group(function () {
         ->only(['index', 'store', 'update', 'destroy'])
         ->middleware('administra-usuarios');
 
-    Route::prefix('organizacion')->group(function () {
-        // Alta, edición y baja de instituciones: solo superusuario
-        Route::resource('instituciones', InstitucionController::class)
-            ->parameters(['instituciones' => 'institucion'])
-            ->only(['index', 'store', 'update', 'destroy'])
-            ->middleware('superusuario');
+    // Instituciones (ya no existe el apartado "Organización": todo cuelga de /instituciones)
+    // Alta, edición y baja de instituciones: solo superusuario
+    Route::resource('instituciones', InstitucionController::class)
+        ->parameters(['instituciones' => 'institucion'])
+        ->only(['index', 'store', 'update', 'destroy'])
+        ->middleware('superusuario');
 
-        // La ficha la puede abrir su propia institución (el scope devuelve 404 para otras)
-        Route::get('instituciones/{institucion}', [InstitucionController::class, 'show'])
-            ->name('instituciones.show');
+    // La ficha la puede abrir su propia institución (el scope devuelve 404 para otras)
+    Route::get('instituciones/{institucion}', [InstitucionController::class, 'show'])
+        ->name('instituciones.show');
 
-        // Programas de estudio de una institución
-        Route::post('instituciones/{institucion}/programas', [InstitucionController::class, 'storePrograma'])
-            ->name('instituciones.programas.store');
+    // Programas de estudio de una institución
+    Route::post('instituciones/{institucion}/programas', [InstitucionController::class, 'storePrograma'])
+        ->name('instituciones.programas.store');
 
-        // Personal de una institución (se gestiona desde la ficha de la institución)
-        Route::prefix('instituciones/{institucion}/personal')->name('instituciones.personal.')->group(function () {
-            Route::post('/',              [InstitucionController::class, 'storePersonal'])->name('store');
-            Route::put('/{asignacion}',    [InstitucionController::class, 'updatePersonal'])->name('update');
-            Route::delete('/{asignacion}', [InstitucionController::class, 'destroyPersonal'])->name('destroy');
-        });
-
-        Route::resource('personal', PersonalController::class)
-            ->parameters(['personal' => 'persona'])
-            ->only(['index', 'store', 'update', 'destroy']);
+    // Personal de una institución (se gestiona desde la ficha de la institución)
+    Route::prefix('instituciones/{institucion}/personal')->name('instituciones.personal.')->group(function () {
+        Route::post('/',              [InstitucionController::class, 'storePersonal'])->name('store');
+        Route::put('/{asignacion}',    [InstitucionController::class, 'updatePersonal'])->name('update');
+        Route::delete('/{asignacion}', [InstitucionController::class, 'destroyPersonal'])->name('destroy');
     });
+
+    Route::resource('personal', PersonalController::class)
+        ->parameters(['personal' => 'persona'])
+        ->only(['index', 'store', 'update', 'destroy']);
 
 });

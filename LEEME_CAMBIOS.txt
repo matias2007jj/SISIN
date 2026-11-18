@@ -1,10 +1,25 @@
+PARTE DEL SUPERUSUARIO - cambios
+
 Copia estos archivos sobre tu proyecto SISIN (respetando las rutas) y luego:
 
-  php artisan migrate
-  php artisan db:seed --class=UsuariosInstitucionSeeder   # crea el usuario de las instituciones ya existentes
-  php artisan view:clear && php artisan optimize:clear
+  php artisan migrate          # amplía usuarios.username de 15 a 100 caracteres
+  php artisan optimize:clear
 
-Probar:
-  1) Entra como admin (superusuario) -> menú de usuario -> "Institución activa" -> elige una.
-  2) Organización > Instituciones > Nueva Institución -> se crea también su usuario (se muestra una sola vez).
-  3) Cierra sesión y entra con ese usuario: la cabecera muestra "Institución · Rol" y solo ve su inventario.
+(Si prefieres phpMyAdmin en vez de migrate, importa cambios_sisin.sql.)
+
+Qué cambió
+  1) Se quitó el menú "Organización". Ahora hay un solo menú "Instituciones"
+     (el superusuario ve la lista; el usuario de una institución ve "Mi institución").
+     Las URLs pasaron de /organizacion/instituciones a /instituciones.
+     El personal se gestiona dentro de la ficha de cada institución (doble clic en la fila).
+  2) Al crear una institución, el usuario puede ser tipo correo, p. ej. institucion@gmail.edu.pe.
+     (el login ya no convierte lo escrito a mayúsculas)
+  3) Instituciones > Editar: ahora también se edita el usuario y la contraseña
+     (contraseña vacía = se conserva la actual). En Usuarios > Gestionar Usuarios
+     también se puede cambiar el usuario.
+  4) El personal actual (JOSE VEGA, TEO QUISPE) ya pertenece al Instituto Julio César Tello
+     (programa Desarrollo de Sistemas de Información), por lo que lo verá quien entre con el
+     usuario de esa institución. Esa institución todavía no tiene usuario: créalo en
+     Instituciones > Editar (Julio César Tello) escribiendo usuario y contraseña > Guardar.
+     (También sirve: php artisan db:seed --class=UsuariosInstitucionSeeder, que crea
+     un usuario = RUC con clave aleatoria para las instituciones que no tengan.)

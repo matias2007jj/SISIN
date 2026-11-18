@@ -68,26 +68,13 @@
                         </ul>
                     </li>
 
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {{ request()->routeIs('instituciones.*', 'personal.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Organización
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-custom">
-                            <li>
-                                    @if (auth()->user()->esSuperusuario())
-                                        <a class="dropdown-item {{ request()->routeIs('instituciones.*') ? 'active' : '' }}" href="{{ route('instituciones.index') }}">Instituciones</a>
-                                    @elseif (auth()->user()->institucion_id)
-                                        <a class="dropdown-item {{ request()->routeIs('instituciones.*') ? 'active' : '' }}" href="{{ route('instituciones.show', auth()->user()->institucion_id) }}">Mi institución</a>
-                                    @endif
-                                </li>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li>
-                                <a class="dropdown-item {{ request()->routeIs('personal.*') ? 'active' : '' }}" href="{{ route('personal.index') }}">Personal</a>
-                            </li>
-                        </ul>
-                    </li>
+                    <li class="nav-item">
+                            @if (auth()->user()->esSuperusuario())
+                                <a class="nav-link {{ request()->routeIs('instituciones.*') ? 'active' : '' }}" href="{{ route('instituciones.index') }}">Instituciones</a>
+                            @elseif (auth()->user()->institucion_id)
+                                <a class="nav-link {{ request()->routeIs('instituciones.*') ? 'active' : '' }}" href="{{ route('instituciones.show', auth()->user()->institucion_id) }}">Mi institución</a>
+                            @endif
+                        </li>
 
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">

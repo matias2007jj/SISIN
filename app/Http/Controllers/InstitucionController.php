@@ -12,12 +12,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class InstitucionController extends Controller
 {
     public function index()
     {
-        $instituciones = Institucion::withCount('programas')->orderBy('nombre')->get();
+        $instituciones = Institucion::withCount('programas')
+            ->with(['usuarios' => fn ($q) => $q->where('tipo_usuario', Usuario::ADMIN_INSTITUCION)->orderBy('id')])
+            ->orderBy('nombre')
+            ->get();
 
         return view('organizacion.instituciones', compact('instituciones'));
     }
@@ -46,7 +50,7 @@ class InstitucionController extends Controller
     {
         $datos  = $this->validar($request);
         $acceso = $request->validate([
-            'username' => ['nullable', 'string', 'max:15', 'regex:/^[A-Za-z0-9._-]+$/'],
+            'username' => array_merge(['nullable'], Usuario::reglasUsername()),   // p. ej. institucion@gmail.edu.pe
             'password' => ['nullable', 'string', 'min:6', 'max:60'],
         ]);
 
@@ -75,11 +79,67 @@ class InstitucionController extends Controller
             ->with('credenciales', ['usuario' => $username, 'clave' => $clave]);   // se muestran una sola vez
     }
 
+    /**
+     * Edita la institución y también su usuario de acceso (usuario y/o contraseña).
+     * Contraseña vacía = se conserva la actual. Si la institución aún no tiene usuario, se le crea uno.
+     */
     public function update(Request $request, Institucion $institucion)
     {
-        $institucion->update($this->validar($request, $institucion->id));
+        $datos = $this->validar($request, $institucion->id);
 
-        return redirect()->back()->with('success', 'Institución actualizada correctamente');
+        $usuario = $institucion->usuarios()
+            ->where('tipo_usuario', Usuario::ADMIN_INSTITUCION)
+            ->orderBy('id')
+            ->first();
+
+        $acceso = $request->validate([
+            'username' => array_merge(['nullable'], Usuario::reglasUsername($usuario?->id)),
+            'password' => ['nullable', 'string', 'min:6', 'max:60'],
+        ]);
+
+        $credenciales = null;
+
+        DB::transaction(function () use ($institucion, $datos, $usuario, $acceso, &$credenciales) {
+            $institucion->update($datos);
+
+            if ($usuario) {
+                $cambios = [];
+
+                if (! empty($acceso['username'])) {
+                    $cambios['username'] = $acceso['username'];
+                }
+                if (! empty($acceso['password'])) {
+                    $cambios['password'] = $acceso['password'];     // el cast 'hashed' lo encripta
+                }
+                if ($cambios) {
+                    $usuario->update($cambios);
+                }
+
+                return;
+            }
+
+            // La institución no tenía usuario (p. ej. creada antes de esta función): se le crea ahora
+            $username = $acceso['username'] ?? $datos['ruc'];
+            $clave    = $acceso['password'] ?? Str::password(10, symbols: false);
+
+            if (Usuario::withTrashed()->where('username', $username)->exists()) {
+                throw ValidationException::withMessages(['username' => 'Ese nombre de usuario ya está en uso.']);
+            }
+
+            Usuario::create([
+                'username'       => $username,
+                'password'       => $clave,
+                'institucion_id' => $institucion->id,
+                'tipo_usuario'   => Usuario::ADMIN_INSTITUCION,
+                'activo'         => true,
+            ]);
+
+            $credenciales = ['usuario' => $username, 'clave' => $clave];
+        });
+
+        $respuesta = redirect()->back()->with('success', 'Institución actualizada correctamente');
+
+        return $credenciales ? $respuesta->with('credenciales', $credenciales) : $respuesta;
     }
 
     public function destroy(Institucion $institucion)

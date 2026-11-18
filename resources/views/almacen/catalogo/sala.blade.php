@@ -58,9 +58,9 @@
                         </div>
                     </td>
                     <td>
-                        @if(isset($sala->programaEstudio) && $sala->programaEstudio)
+                        @if(!empty($sala->programa_estudio_nombre))
                             <span class="badge-programa">
-                                {{ $sala->programaEstudio->nombre }}
+                                {{ $sala->programa_estudio_nombre }}
                             </span>
                         @else
                             <span class="text-muted fs-7">General / N/A</span>
@@ -69,13 +69,13 @@
                     <td>
                         <span class="text-fecha">
                             
-                            {{ $sala->created_at ? $sala->created_at->format('d/m/Y H:i') : '-' }}
+                            {{ !empty($sala->created_at) ? \Carbon\Carbon::parse($sala->created_at)->format('d/m/Y H:i') : '-' }}
                         </span>
                     </td>
                     <td>
                         <span class="text-fecha">
                             
-                            {{ $sala->updated_at ? $sala->updated_at->format('d/m/Y H:i') : '-' }}
+                            {{ !empty($sala->updated_at) ? \Carbon\Carbon::parse($sala->updated_at)->format('d/m/Y H:i') : '-' }}
                         </span>
                     </td>
                     <td class="text-center">

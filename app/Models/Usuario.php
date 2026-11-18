@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\Rule;
 
 class Usuario extends Authenticatable
 {
@@ -27,6 +28,20 @@ class Usuario extends Authenticatable
     ];
 
     protected $table = 'usuarios';
+
+    /**
+     * Reglas del nombre de usuario: puede ser un texto simple (ADMIN, un DNI)
+     * o con forma de correo (institucion@gmail.edu.pe). Único, aunque esté eliminado.
+     */
+    public static function reglasUsername(?int $ignorarId = null): array
+    {
+        return [
+            'string',
+            'max:100',
+            'regex:/^[A-Za-z0-9._@+-]+$/',
+            Rule::unique('usuarios', 'username')->ignore($ignorarId),
+        ];
+    }
 
     protected $fillable = ['username', 'password', 'personal_id', 'institucion_id', 'tipo_usuario', 'activo'];
 

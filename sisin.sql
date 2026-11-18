@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 12-11-2026 a las 12:29:08
+-- Tiempo de generación: 18-11-2026 a las 10:24:31
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -118,7 +118,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_guardar_tipo` (IN `p_nombre` VAR
     VALUES (UPPER(TRIM(p_nombre)), p_programa_id, p_user_id, NOW(), NOW());
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_guardar_usuario` (IN `p_username` VARCHAR(15), IN `p_password` VARCHAR(255), IN `p_tipo_usuario` VARCHAR(20), IN `p_institucion_id` BIGINT, IN `p_programa_estudio_id` BIGINT, IN `p_created_by` BIGINT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_guardar_usuario` (IN `p_username` VARCHAR(100), IN `p_password` VARCHAR(255), IN `p_tipo_usuario` VARCHAR(20), IN `p_institucion_id` BIGINT, IN `p_programa_estudio_id` BIGINT, IN `p_created_by` BIGINT)   BEGIN
     DECLARE v_usuario_id BIGINT;
 
     -- Registrar usuario con su institucion asignada
@@ -353,7 +353,7 @@ CREATE TABLE `instituciones` (
 --
 
 INSERT INTO `instituciones` (`id`, `ruc`, `nombre`, `tipo`, `direccion`, `created_by`, `updated_by`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, '11111111111', 'Instituto de Educación Superior Tecnológico Público Julio César Tello', 'INSTITUTO', 'Villa El Salvador', NULL, NULL, '2026-10-01 04:53:41', '2026-10-01 04:53:41', NULL),
+(1, '11111111111', 'INSTITUTO DE EDUCACIÓN SUPERIOR TECNOLÓGICO PÚBLICO JULIO CÉSAR TELLO', 'INSTITUTO', 'Villa El Salvador', NULL, 1, '2026-10-01 04:53:41', '2026-11-18 20:03:36', NULL),
 (2, '20279889208', 'PRISMA', 'COLEGIO', 'AV. VILAUTA NRO. SN SANTA RITA (FRENTE AL CEMENTERIO PARQUE DEL RECUERDO) TACNA - TACNA - CALANA', 1, 1, '2026-11-12 19:34:43', '2026-11-12 20:09:14', NULL),
 (3, '19815689445', 'UNTELS', 'UNIVERSIDAD', 'al frente de las cachangas', 1, NULL, '2026-11-12 20:09:03', '2026-11-12 20:09:03', NULL);
 
@@ -527,6 +527,13 @@ CREATE TABLE `modelos` (
   `deleted_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Volcado de datos para la tabla `modelos`
+--
+
+INSERT INTO `modelos` (`id`, `programa_estudio_id`, `nombre`, `created_by`, `updated_by`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, 10, 'MUEBLE', 4, NULL, '2026-11-18 09:14:10', '2026-11-18 09:14:10', NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -648,6 +655,14 @@ CREATE TABLE `salas` (
   `deleted_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Volcado de datos para la tabla `salas`
+--
+
+INSERT INTO `salas` (`id`, `programa_estudio_id`, `nombre`, `observacion`, `created_by`, `updated_by`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, 1, 'AWDF', NULL, 1, NULL, '2026-11-12 11:34:29', '2026-11-12 11:34:29', NULL),
+(2, 10, 'SALA WA', '2do piso', 4, NULL, '2026-11-18 09:13:11', '2026-11-18 09:13:11', NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -668,7 +683,7 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('Mde87EfEImFoPU0fzfurSv5pqS8FKJKs9WJduPuI', 2, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoiZXBRck5aaUNCUkF5SUl5WjBBWUE3aUlkOGpzU0RWb01pR2xuM0lldiI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDI6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9hbG1hY2VuL3RhYmxhcy9tYXJjYSI7czo1OiJyb3V0ZSI7czoxNDoiY2F0YWxvZ28uaW5kZXgiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX1zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToyO3M6MTc6InBhc3N3b3JkX2hhc2hfd2ViIjtzOjY0OiI0NTFhZWVmZGJmZThiM2I2Y2IyY2Y2ZmI1Y2RlMWE2ODA2MjhjMzQ0NzUxZDZiYzFmNTQ3YjYyY2I3YTA0MTM4IjtzOjE5OiJwcm9ncmFtYV9lc3R1ZGlvX2lkIjtpOjM7fQ==', 1794482869);
+('k6fzs0atSGoBkgUAm4omVh7Hdsfh5faOs4JHgjUa', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiT3pSdHRtS0dpN1RYdEZkWVo5Nm1ta1MxRGpvSnJWaXBGTFBaRTVRWiI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6Mjc6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9sb2dpbiI7czo1OiJyb3V0ZSI7czo1OiJsb2dpbiI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1794993690);
 
 -- --------------------------------------------------------
 
@@ -692,7 +707,8 @@ CREATE TABLE `tipos` (
 --
 
 INSERT INTO `tipos` (`id`, `programa_estudio_id`, `nombre`, `created_by`, `updated_by`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, 1, 'AD', 1, NULL, '2026-10-15 11:51:10', '2026-10-15 11:51:10', NULL);
+(1, 1, 'AD', 1, NULL, '2026-10-15 11:51:10', '2026-10-15 11:51:10', NULL),
+(2, 10, 'XD', 4, NULL, '2026-11-18 09:14:22', '2026-11-18 09:14:22', NULL);
 
 -- --------------------------------------------------------
 
@@ -719,11 +735,11 @@ CREATE TABLE `users` (
 
 CREATE TABLE `usuarios` (
   `id` bigint(20) UNSIGNED NOT NULL,
-  `username` varchar(15) NOT NULL,
+  `username` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
   `personal_id` bigint(20) UNSIGNED DEFAULT NULL,
   `institucion_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `tipo_usuario` enum('ADMINISTRADOR','COORDINADOR','ASISTENTE','CONSULTA') NOT NULL DEFAULT 'CONSULTA',
+  `tipo_usuario` enum('ADMINISTRADOR','ADMIN_INSTITUCION','COORDINADOR','ASISTENTE','CONSULTA') NOT NULL DEFAULT 'CONSULTA',
   `activo` tinyint(1) NOT NULL DEFAULT 1,
   `remember_token` varchar(100) DEFAULT NULL,
   `created_by` bigint(20) UNSIGNED DEFAULT NULL,
@@ -739,7 +755,9 @@ CREATE TABLE `usuarios` (
 
 INSERT INTO `usuarios` (`id`, `username`, `password`, `personal_id`, `institucion_id`, `tipo_usuario`, `activo`, `remember_token`, `created_by`, `updated_by`, `created_at`, `updated_at`, `deleted_at`) VALUES
 (1, 'ADMIN', '$2y$12$oc4wT.3PH/lemn7potgj0ewIEspD/f0jHGsI8sIBULRhivghpgZoC', NULL, NULL, 'ADMINISTRADOR', 1, NULL, NULL, NULL, '2026-10-01 04:53:41', '2026-10-14 09:26:20', NULL),
-(2, 'CONTA_USER', '$2y$12$E3hvyqZZUiaPz8vemA1Qku1Fryu1m8/p46cnKRtFh69vQ/UHayljS', NULL, 1, 'ASISTENTE', 1, NULL, NULL, NULL, '2026-11-05 04:58:24', '2026-11-05 04:58:24', NULL);
+(3, 'Tello@gmail.com', '$2y$12$4wpU57Q1rZehE62boKr7f.A6hhApINSFvL.VF8Yk.obSpm1z.Z20q', NULL, 1, 'ADMIN_INSTITUCION', 1, NULL, 1, NULL, '2026-11-18 20:03:36', '2026-11-18 20:03:36', NULL),
+(4, 'Prisma@edu.pe', '$2y$12$/VYYV/vZEw6Os1oPeqtE/.AterbxbZb8DW3kbWbjEun5ynjNZ8m.6', NULL, 2, 'ADMIN_INSTITUCION', 1, NULL, 1, NULL, '2026-11-18 20:04:11', '2026-11-18 20:04:11', NULL),
+(5, 'untels@gmail.com', '$2y$12$VUn4eKuGwFx5fWQ6FMqOyucLhhMJnqxCQBdnZLd953AObR3RYcp0q', NULL, 3, 'ADMIN_INSTITUCION', 1, NULL, 1, NULL, '2026-11-18 20:19:34', '2026-11-18 20:19:34', NULL);
 
 -- --------------------------------------------------------
 
@@ -769,8 +787,7 @@ INSERT INTO `usuario_programa_estudio` (`id`, `usuario_id`, `programa_estudio_id
 (4, 1, 4, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-15 06:39:51'),
 (5, 1, 5, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-15 06:39:51'),
 (6, 1, 6, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-15 06:39:51'),
-(7, 1, 7, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-15 06:39:51'),
-(16, 2, 3, 1, NULL, NULL, '2026-11-05 04:58:24', '2026-11-05 04:58:24');
+(7, 1, 7, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-15 06:39:51');
 
 --
 -- Índices para tablas volcadas
@@ -1025,7 +1042,7 @@ ALTER TABLE `grupos`
 -- AUTO_INCREMENT de la tabla `instituciones`
 --
 ALTER TABLE `instituciones`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `inventarios`
@@ -1061,7 +1078,7 @@ ALTER TABLE `migrations`
 -- AUTO_INCREMENT de la tabla `modelos`
 --
 ALTER TABLE `modelos`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `personal`
@@ -1085,13 +1102,13 @@ ALTER TABLE `programas_estudio`
 -- AUTO_INCREMENT de la tabla `salas`
 --
 ALTER TABLE `salas`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `tipos`
 --
 ALTER TABLE `tipos`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `users`
@@ -1103,7 +1120,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `usuario_programa_estudio`

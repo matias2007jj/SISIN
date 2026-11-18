@@ -51,6 +51,7 @@
                 @php
                     $ids = $u->programas->where('pivot.acceso', true)->pluck('id')->values();
                     $registro = [
+                        'username'     => $u->username,
                         'tipo_usuario' => $u->tipo_usuario,
                         'activo'       => $u->activo,
                         'programas'    => $ids,
@@ -144,13 +145,15 @@
                                     @endforeach
                                 </select>
                                 @if ($personal->isEmpty())
-                                    <small class="text-muted">No hay personal sin usuario. Registre primero al personal en Organización → Personal.</small>
+                                    <small class="text-muted">No hay personal sin usuario. Registre primero al personal desde Instituciones (ficha de la institución).</small>
                                 @endif
                             </div>
-                            <div class="campo mb-3">
-                                <label for="username">Usuario</label>
-                                <input type="text" id="username" name="username" maxlength="15" autocomplete="off" placeholder="Vacío = DNI">
-                            </div>
+                        </div>
+
+                        {{-- Al crear: vacío = DNI. Al editar: se puede cambiar (puede ser un correo) --}}
+                        <div class="campo mb-3">
+                            <label for="username">Usuario</label>
+                            <input type="text" id="username" name="username" maxlength="100" autocomplete="off" placeholder="Vacío = DNI">
                         </div>
 
                         {{-- Solo al editar: a quién pertenece --}}

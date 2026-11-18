@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         modal.querySelectorAll('.js-solo-editar').forEach(function (el) { el.classList.toggle('d-none', !datos); });
 
+        if (username) username.placeholder = datos ? 'Nombre de usuario (puede ser un correo)' : 'Vacío = DNI';
+
         var titulo = modal.querySelector('.js-persona');
         if (titulo) titulo.textContent = datos ? datos.persona : '';
     });

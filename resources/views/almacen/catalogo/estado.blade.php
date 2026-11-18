@@ -68,9 +68,9 @@
                         </div>
                     </td>
                     <td>
-                        @if($estado->programaEstudio)
+                        @if(!empty($estado->programa_estudio_nombre))
                             <span class="badge-programa">
-                                {{ $estado->programaEstudio->nombre }}
+                                {{ $estado->programa_estudio_nombre }}
                             </span>
                         @else
                             <span class="text-muted fs-7">General / N/A</span>
@@ -79,13 +79,13 @@
                     <td>
                         <span class="text-fecha">
                             
-                            {{ $estado->created_at ? $estado->created_at->format('d/m/Y H:i') : '-' }}
+                            {{ !empty($estado->created_at) ? \Carbon\Carbon::parse($estado->created_at)->format('d/m/Y H:i') : '-' }}
                         </span>
                     </td>
                     <td>
                         <span class="text-fecha">
                             
-                            {{ $estado->updated_at ? $estado->updated_at->format('d/m/Y H:i') : '-' }}
+                            {{ !empty($estado->updated_at) ? \Carbon\Carbon::parse($estado->updated_at)->format('d/m/Y H:i') : '-' }}
                         </span>
                     </td>
                     <td class="text-center">

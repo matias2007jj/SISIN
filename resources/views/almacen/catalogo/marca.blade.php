@@ -58,9 +58,9 @@
                         </div>
                     </td>
                     <td>
-                        @if($marca->programaEstudio)
+                        @if(!empty($marca->programa_estudio_nombre))
                             <span class="badge-programa">
-                                {{ $marca->programaEstudio->nombre }}
+                                {{ $marca->programa_estudio_nombre }}
                             </span>
                         @else
                             <span class="text-muted fs-7">General / N/A</span>
@@ -69,13 +69,13 @@
                     <td>
                         <span class="text-fecha">
                             
-                            {{ $marca->created_at ? $marca->created_at->format('d/m/Y H:i') : '-' }}
+                            {{ !empty($marca->created_at) ? \Carbon\Carbon::parse($marca->created_at)->format('d/m/Y H:i') : '-' }}
                         </span>
                     </td>
                     <td>
                         <span class="text-fecha">
                             
-                            {{ $marca->updated_at ? $marca->updated_at->format('d/m/Y H:i') : '-' }}
+                            {{ !empty($marca->updated_at) ? \Carbon\Carbon::parse($marca->updated_at)->format('d/m/Y H:i') : '-' }}
                         </span>
                     </td>
                     <td class="text-center">

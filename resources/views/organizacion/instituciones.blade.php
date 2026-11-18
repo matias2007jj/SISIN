@@ -39,6 +39,7 @@
                 <th style="min-width: 260px;">Institución</th>
                 <th style="width: 140px;">Tipo</th>
                 <th style="min-width: 180px;">Dirección</th>
+                <th style="min-width: 190px;">Usuario de acceso</th>
                 <th class="text-center" style="width: 110px;">Programas</th>
                 <th class="text-center" style="width: 170px;">Acciones</th>
             </tr>
@@ -51,6 +52,7 @@
                         'nombre'    => $institucion->nombre,
                         'tipo'      => $institucion->tipo,
                         'direccion' => $institucion->direccion,
+                        'username'  => $institucion->usuarios->first()?->username,
                     ];
                 @endphp
                 <tr class="fila-link" data-href="{{ route('instituciones.show', $institucion) }}" title="Doble clic para ver el personal">
@@ -58,6 +60,7 @@
                     <td><span class="brand-chip-title">{{ $institucion->nombre }}</span></td>
                     <td class="text-fecha">{{ ucfirst(strtolower($institucion->tipo)) }}</td>
                     <td class="text-fecha">{{ $institucion->direccion ?: '-' }}</td>
+                    <td class="text-fecha">{{ $institucion->usuarios->first()?->username ?: 'Sin usuario' }}</td>
                     <td class="text-center">
                         <span class="badge-programa">{{ $institucion->programas_count }}</span>
                     </td>
@@ -81,7 +84,7 @@
                 </tr>
             @empty
                 <tr id="rowSinDatos">
-                    <td colspan="6" class="text-center py-5">
+                    <td colspan="7" class="text-center py-5">
                         <h6 class="text-white fw-bold mb-1">No hay instituciones registradas</h6>
                         <p class="text-muted fs-7 mb-0">Haz clic en "Nueva Institución" para agregar la primera.</p>
                     </td>
@@ -133,17 +136,15 @@
                             <input type="text" id="direccion" name="direccion" maxlength="150" placeholder="Opcional">
                         </div>
 
-                        <div class="js-solo-nuevo">
-                            <hr class="my-3 opacity-25">
-                            <p class="text-muted fs-7 mb-2">Usuario con el que ingresará esta institución</p>
-                            <div class="campo mb-3">
-                                <label for="username">Usuario</label>
-                                <input type="text" id="username" name="username" maxlength="15" autocomplete="off" placeholder="Vacío = usar el RUC">
-                            </div>
-                            <div class="campo mb-3">
-                                <label for="password">Contraseña</label>
-                                <input type="text" id="password" name="password" maxlength="60" autocomplete="new-password" placeholder="Vacío = generar una automática">
-                            </div>
+                        <hr class="my-3 opacity-25">
+                        <p class="text-muted fs-7 mb-2">Usuario con el que ingresa esta institución</p>
+                        <div class="campo mb-3">
+                            <label for="username">Usuario</label>
+                            <input type="text" id="username" name="username" maxlength="100" autocomplete="off" placeholder="Ej: institucion@gmail.edu.pe (vacío = usar el RUC)">
+                        </div>
+                        <div class="campo mb-3">
+                            <label for="password">Contraseña</label>
+                            <input type="text" id="password" name="password" maxlength="60" autocomplete="new-password" placeholder="Vacío = generar una automática">
                         </div>
                     </div>
 
@@ -160,4 +161,16 @@
 
 @push('scripts')
 <script src="{{ asset('js/organizacion.js') }}"></script>
+<script>
+    // Mismo formulario para crear y editar: solo cambian los textos de ayuda del usuario y la contraseña
+    document.addEventListener('registro:abrir', function (ev) {
+        var editando = !!ev.detail;
+        document.getElementById('username').placeholder = editando
+            ? 'Usuario de acceso (puede ser un correo)'
+            : 'Ej: institucion@gmail.edu.pe (vacío = usar el RUC)';
+        document.getElementById('password').placeholder = editando
+            ? 'Vacío = conservar la contraseña actual'
+            : 'Vacío = generar una automática';
+    });
+</script>
 @endpush

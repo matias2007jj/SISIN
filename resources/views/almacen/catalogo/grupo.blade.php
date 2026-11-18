@@ -58,9 +58,9 @@
                         </div>
                     </td>
                     <td>
-                        @if($grupo->programaEstudio)
+                        @if(!empty($grupo->programa_estudio_nombre))
                             <span class="badge-programa">
-                                {{ $grupo->programaEstudio->nombre }}
+                                {{ $grupo->programa_estudio_nombre }}
                             </span>
                         @else
                             <span class="text-muted fs-7">General / N/A</span>
@@ -69,13 +69,13 @@
                     <td>
                         <span class="text-fecha">
                             
-                            {{ $grupo->created_at ? $grupo->created_at->format('d/m/Y H:i') : '-' }}
+                            {{ !empty($grupo->created_at) ? \Carbon\Carbon::parse($grupo->created_at)->format('d/m/Y H:i') : '-' }}
                         </span>
                     </td>
                     <td>
                         <span class="text-fecha">
                             
-                            {{ $grupo->updated_at ? $grupo->updated_at->format('d/m/Y H:i') : '-' }}
+                            {{ !empty($grupo->updated_at) ? \Carbon\Carbon::parse($grupo->updated_at)->format('d/m/Y H:i') : '-' }}
                         </span>
                     </td>
                     <td class="text-center">
@@ -138,6 +138,9 @@
                                     <option value="{{ $prog->id }}">{{ $prog->nombre }}</option>
                                 @endforeach
                             </select>
+                            @if (empty($programasEstudio) || count($programasEstudio) === 0)
+                                <small class="text-muted">Aún no hay programas de estudio. Regístrelos en "Mi institución" → Agregar Programa de Estudio.</small>
+                            @endif
                         </div>
                     </div>
 
