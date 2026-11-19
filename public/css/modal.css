@@ -78,7 +78,8 @@
 }
 
 .mi-modal .campo input,
-.mi-modal .campo textarea {
+.mi-modal .campo textarea,
+.mi-modal .campo select {
     background-color: #0d1117;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 10px;
@@ -89,13 +90,19 @@
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+.mi-modal .campo select option {
+    background-color: #161b22;
+    color: #ffffff;
+}
+
 .mi-modal .campo input::placeholder,
 .mi-modal .campo textarea::placeholder {
     color: #6b7280;
 }
 
 .mi-modal .campo input:focus,
-.mi-modal .campo textarea:focus {
+.mi-modal .campo textarea:focus,
+.mi-modal .campo select:focus {
     border-color: #10b981;
     box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.2);
 }
