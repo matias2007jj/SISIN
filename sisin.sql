@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 19-11-2026 a las 05:25:26
+-- Tiempo de generación: 19-11-2026 a las 11:58:50
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -317,7 +317,8 @@ CREATE TABLE `bienes` (
 
 INSERT INTO `bienes` (`id`, `sala_id`, `grupo_id`, `cbi`, `tipo_id`, `descripcion`, `marca_id`, `modelo_id`, `serie_medida`, `estado_id`, `otras_especificaciones`, `created_by`, `updated_by`, `created_at`, `updated_at`, `deleted_at`) VALUES
 (1, 3, 9, '1231321', 3, 'PIZARRA', 4, 2, 'S/M', 5, 'A', 6, NULL, '2026-11-19 03:21:00', '2026-11-19 03:21:00', NULL),
-(2, 4, 10, '1545', 4, 'ADDD', 5, 4, 'S/M', 5, 'AD', 5, NULL, '2026-11-19 03:43:26', '2026-11-19 03:43:26', NULL);
+(2, 4, 10, '1545', 4, 'ADDD', 5, 4, 'S/M', 5, 'AD', 5, NULL, '2026-11-19 03:43:26', '2026-11-19 03:43:26', NULL),
+(3, 4, 10, '123131', 4, 'AHI PS', 5, 4, '12431414', 2, 'AHI PS', 5, NULL, '2026-11-19 10:53:02', '2026-11-19 10:53:02', NULL);
 
 -- --------------------------------------------------------
 
@@ -789,6 +790,7 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
+('4QMBCM0XN5JJS0tWaD5DwDE3epH6ZFGOGqUfyaXA', 5, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/158.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoiQjVsNWxWNmc2TGE3YzlLTEg5VHlGQnpXeVdqSXNhMEJmTjBvMzJiNSI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MzY6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9hbG1hY2VuL2JpZW5lcyI7czo1OiJyb3V0ZSI7czoxMjoiYmllbmVzLmluZGV4Ijt9czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6NTtzOjE3OiJwYXNzd29yZF9oYXNoX3dlYiI7czo2NDoiOTkyYWFlZDI5MzAyYjNhYjE3Y2U2ZDFkNjZmYTg1MTQ3ZjI3ZmRiYmRiMjY1ZDg4NmQwODBlZTc4NjM4YTY5OCI7czoxOToicHJvZ3JhbWFfZXN0dWRpb19pZCI7aTo4O30=', 1795085583),
 ('DNNseml0tv7FPZUwlW6V4MLgqp3GdEAk3tb03NY3', 8, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'YTo1OntzOjY6Il90b2tlbiI7czo0MDoiTVRhV1JSU1BtNEMyYmpMQ3RWcEJ3VGROUURvZFFUQ2FCeGt5eGVvTSI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDI6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9hbG1hY2VuL3RhYmxhcy9ncnVwbyI7czo1OiJyb3V0ZSI7czoxNDoiY2F0YWxvZ28uaW5kZXgiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX1zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aTo4O3M6MTc6InBhc3N3b3JkX2hhc2hfd2ViIjtzOjY0OiJmZTNlNmQyMjlmNTJlZmVhM2Q4ZjFhZTM1NWNlMzQwODViYjMzMWM3NTkwOTU5OTUzODA5ZTMwY2VkNzAwYTI3Ijt9', 1795060162);
 
 -- --------------------------------------------------------
@@ -847,7 +849,7 @@ CREATE TABLE `usuarios` (
   `password` varchar(255) NOT NULL,
   `personal_id` bigint(20) UNSIGNED DEFAULT NULL,
   `institucion_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `tipo_usuario` enum('ADMINISTRADOR','ADMIN_INSTITUCION','COORDINADOR','ASISTENTE','CONSULTA') NOT NULL DEFAULT 'CONSULTA',
+  `tipo_usuario` enum('ADMINISTRADOR','ADMIN_INSTITUCION','COORDINADOR','ASISTENTE','DOCENTE') NOT NULL DEFAULT 'DOCENTE',
   `activo` tinyint(1) NOT NULL DEFAULT 1,
   `remember_token` varchar(100) DEFAULT NULL,
   `created_by` bigint(20) UNSIGNED DEFAULT NULL,
@@ -865,7 +867,7 @@ INSERT INTO `usuarios` (`id`, `username`, `password`, `personal_id`, `institucio
 (1, 'ADMIN', '$2y$12$oc4wT.3PH/lemn7potgj0ewIEspD/f0jHGsI8sIBULRhivghpgZoC', NULL, NULL, 'ADMINISTRADOR', 1, NULL, NULL, NULL, '2026-10-01 04:53:41', '2026-10-14 09:26:20', NULL),
 (3, 'Tello@gmail.com', '$2y$12$ZNYYCsbiXOtG4ZnGbZ2tjuPdGdWctzqqpwdwJHByy7YQLlMR7r9Da', NULL, 1, 'ADMIN_INSTITUCION', 1, NULL, 1, 1, '2026-11-18 20:03:36', '2026-11-19 08:43:50', '2026-11-19 08:43:50'),
 (4, 'Prisma@edu.pe', '$2y$12$/VYYV/vZEw6Os1oPeqtE/.AterbxbZb8DW3kbWbjEun5ynjNZ8m.6', NULL, 2, 'ADMIN_INSTITUCION', 1, NULL, 1, NULL, '2026-11-18 20:04:11', '2026-11-18 20:04:11', NULL),
-(5, 'untels@gmail.com', '$2y$12$78ENX1v9RkllPg5cbbJ.qO4cfflMJZ6K6nwO1x9KdkOdkm9ezvtBi', NULL, 3, 'ADMIN_INSTITUCION', 1, NULL, 1, 1, '2026-11-18 20:19:34', '2026-11-19 08:41:57', NULL),
+(5, 'untels@gmail.com', '$2y$12$W0DyJCC8769PHPSRANKfP.ez.A72Sw2jxswT/8f9arQktNSWFyMsC', NULL, 3, 'ADMIN_INSTITUCION', 1, NULL, 1, 1, '2026-11-18 20:19:34', '2026-11-19 21:51:57', NULL),
 (6, 'juanp@gmail.com', '$2y$12$48jlYq4Wq9toeTUBhBWzvOo/lP3ARMI9imhsyIWPZDkKsWUVkyUrm', NULL, 5, 'ADMIN_INSTITUCION', 1, NULL, 1, 1, '2026-11-18 09:33:14', '2026-11-19 07:58:42', NULL),
 (7, 'sergio123@gmail.com', '$2y$12$iu7cVPgrmKyKLiXVBXYrBu.XUwnrm0gpUviPfpXDmw2TCOi27JYNG', 4, 5, 'ASISTENTE', 1, NULL, 6, NULL, '2026-11-18 09:39:53', '2026-11-18 09:39:53', NULL),
 (8, 'martin', '$2y$12$HZhKKj6uUabVbQJ.MLvITeB.veeuQ3rXAorcQWh50GLLtugQFocTu', NULL, 6, 'ADMIN_INSTITUCION', 1, NULL, 1, NULL, '2026-11-19 08:47:12', '2026-11-19 08:47:12', NULL);
@@ -1130,7 +1132,7 @@ ALTER TABLE `usuario_programa_estudio`
 -- AUTO_INCREMENT de la tabla `bienes`
 --
 ALTER TABLE `bienes`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `estados`
