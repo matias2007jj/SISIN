@@ -1,7 +1,3 @@
-/* ==========================================================================
-   organizacion.css - Instituciones, Programas de Estudio y Personal
-   Se usa junto con grupo.css (tablas/buscador) y modal.css (ventanas)
-   ========================================================================== */
 
 .alerta-sisin {
     border-radius: 10px;
@@ -14,7 +10,6 @@
 .alerta-sisin.error { background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.35); color: #fecaca; }
 .alerta-sisin ul { margin: 0.4rem 0 0 1.1rem; padding: 0; }
 
-/* Campos tipo select / email dentro de la ventana modal */
 .mi-modal .campo select,
 .mi-modal .campo input[type="email"] {
     background-color: #0d1117;
@@ -38,7 +33,6 @@
     font-size: 0.85rem;
 }
 
-/* Etiquetas de cargo */
 .badge-cargo {
     display: inline-block;
     border-radius: 20px;
@@ -58,7 +52,6 @@
 .lista-asignacion { display: flex; flex-direction: column; gap: 0.35rem; }
 .lista-asignacion .programa { color: #9ca3af; font-size: 0.78rem; margin-left: 0.35rem; }
 
-/* Asignaciones dentro del formulario de personal */
 .asignaciones-titulo {
     font-size: 0.8rem;
     font-weight: 700;
@@ -80,10 +73,8 @@
     .asignacion-row { grid-template-columns: 1fr; }
 }
 
-/* Filas que se abren con doble clic */
 .fila-link { cursor: pointer; user-select: none; }
 
-/* Cabecera de la ficha de institución */
 .ficha-institucion {
     display: flex;
     flex-wrap: wrap;

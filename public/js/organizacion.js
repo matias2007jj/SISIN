@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
 
-    /* ---------- Buscador de la tabla ---------- */
     var input    = document.getElementById('inputBuscar');
     var limpiar  = document.getElementById('btnLimpiarBuscar');
     var contador = document.getElementById('contadorRegistros');

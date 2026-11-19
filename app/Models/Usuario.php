@@ -22,7 +22,6 @@ class Usuario extends Authenticatable
     public const ASISTENTE         = 'ASISTENTE';
     public const DOCENTE           = 'DOCENTE';
 
-    /** Texto que se muestra al usuario para cada tipo_usuario. */
     public const ROLES = [
         'ADMINISTRADOR'     => 'Superusuario',
         'ADMIN_INSTITUCION' => 'Administrador de institución',
@@ -31,15 +30,10 @@ class Usuario extends Authenticatable
         'DOCENTE'           => 'Docente',
     ];
 
-    /** Memoria por petición de los programas permitidos (se calcula una sola vez). */
     private ?array $idsProgramas = null;
 
     protected $table = 'usuarios';
 
-    /**
-     * Reglas del nombre de usuario: puede ser un texto simple (ADMIN, un DNI)
-     * o con forma de correo (institucion@gmail.edu.pe). Único, aunque esté eliminado.
-     */
     public static function reglasUsername(?int $ignorarId = null): array
     {
         return [
@@ -57,7 +51,7 @@ class Usuario extends Authenticatable
     protected function casts(): array
     {
         return [
-            'password' => 'hashed',   // se hashea sola al asignarla
+            'password' => 'hashed',   
             'activo'   => 'boolean',
         ];
     }
@@ -92,25 +86,21 @@ class Usuario extends Authenticatable
         return $this->tipo_usuario === 'ADMINISTRADOR';
     }
 
-    /** Superusuario = administrador SIN institución: ve y controla todas. */
     public function esSuperusuario(): bool
     {
         return $this->tipo_usuario === 'ADMINISTRADOR' && $this->institucion_id === null;
     }
 
-    /** Quién puede crear/editar usuarios: el superusuario y el administrador de institución. */
     public function puedeAdministrarUsuarios(): bool
     {
         return $this->puede('usuarios.gestionar');
     }
 
-    /** Un ADMINISTRADOR atado a una institución se trata como director de esa institución. */
     public function rolEfectivo(): string
     {
         return $this->tipo_usuario === 'ADMINISTRADOR' ? self::ADMIN_INSTITUCION : (string) $this->tipo_usuario;
     }
 
-    /** ¿Tiene este permiso? (ver App\Support\Permisos). El superusuario siempre puede. */
     public function puede(string $permiso): bool
     {
         if ($this->esSuperusuario()) {
@@ -120,20 +110,17 @@ class Usuario extends Authenticatable
         return in_array($permiso, Permisos::deRol($this->rolEfectivo()), true);
     }
 
-    /** Superusuario y director ven todos los programas de la institución; el resto, solo los suyos. */
     public function veTodaLaInstitucion(): bool
     {
         return $this->esSuperusuario() || $this->rolEfectivo() === self::ADMIN_INSTITUCION;
     }
 
-    /** IDs de los programas de estudio activos con los que puede trabajar, ordenados por nombre. */
     public function idsProgramasPermitidos(): array
     {
         if ($this->idsProgramas !== null) {
             return $this->idsProgramas;
         }
 
-        // ProgramaEstudio ya trae el filtro de institución (InstitucionScope)
         $q = ProgramaEstudio::query()
             ->where('programas_estudio.activo', true)
             ->orderBy('programas_estudio.nombre');
@@ -162,7 +149,6 @@ class Usuario extends Authenticatable
         return Attribute::get(fn () => self::ROLES[$this->tipo_usuario] ?? $this->tipo_usuario);
     }
 
-    /** Institución con la que está trabajando ahora (null = todas, solo superusuario). */
     public function institucionActiva(): ?Institucion
     {
         if ($this->institucion_id) {
@@ -176,7 +162,6 @@ class Usuario extends Authenticatable
         return null;
     }
 
-    /** Cargos que tiene en la institución, si el usuario está vinculado a una persona del personal. */
     public function cargos(): Collection
     {
         if (! $this->personal_id) {
@@ -189,7 +174,6 @@ class Usuario extends Authenticatable
             ->map(fn ($a) => $a->cargo . ' · ' . ($a->programaEstudio?->nombre ?? '—'));
     }
 
-    /** Programa con el que arranca la sesión. */
     public function programaPorDefecto(): ?ProgramaEstudio
     {
         $id = $this->idsProgramasPermitidos()[0] ?? null;

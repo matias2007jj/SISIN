@@ -131,7 +131,6 @@
                     </div>
 
                     <div class="modal-body">
-                        {{-- Solo al crear: elegir a la persona --}}
                         <div class="js-solo-nuevo">
                             <div class="campo mb-3">
                                 <label for="personal_id">Persona del personal</label>
@@ -155,13 +154,11 @@
                             </div>
                         </div>
 
-                        {{-- Al crear: vacío = DNI. Al editar: se puede cambiar (puede ser un correo) --}}
                         <div class="campo mb-3">
                             <label for="username">Usuario</label>
                             <input type="text" id="username" name="username" maxlength="100" autocomplete="off" placeholder="Vacío = DNI">
                         </div>
 
-                        {{-- Solo al editar: a quién pertenece --}}
                         <p class="js-solo-editar d-none text-muted fs-7 mb-3">Persona: <strong class="text-white js-persona"></strong></p>
 
                         <div class="campo mb-3">

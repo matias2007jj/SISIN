@@ -12,7 +12,7 @@ class Bien extends Model
 {
     use Auditable, DeInstitucion, SoftDeletes;
 
-    protected $table = 'bienes';   // Eloquent pluralizaría "biens"
+    protected $table = 'bienes';   
 
     protected $fillable = [
         'sala_id', 'grupo_id', 'cbi', 'tipo_id', 'descripcion',

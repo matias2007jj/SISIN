@@ -4,7 +4,7 @@
     $nombreUsuario = is_scalar($nombreUsuario) ? (string) $nombreUsuario : 'Usuario';
 @endphp
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,7 +17,7 @@
     <link href="{{ asset('css/plantilla.css') }}" rel="stylesheet">
     @stack('styles')
 </head>
-<body>
+<body style="background-color: #0b1114; color: #ffffff;">
 
     @include('partials.navegacion')
 

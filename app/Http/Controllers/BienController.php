@@ -12,7 +12,7 @@ use Illuminate\Validation\Rule;
 
 class BienController extends Controller
 {
-    /** Estado "INACTIVO": solo se asigna con el botón de baja. */
+
     private const ESTADO_INACTIVO = 6;
 
     public function index()
@@ -22,7 +22,6 @@ class BienController extends Controller
         $institucionId = $user->institucionActiva()?->id;
         $programaId    = ContextoInstitucion::programaId();
 
-        // Superusuario y director ven toda la institución; coordinador, asistente y docente, solo su programa activo
         $verInstitucion = $user->veTodaLaInstitucion();
 
         $bienes = DB::select('CALL sp_listar_bienes(?, ?, ?)', [
@@ -31,14 +30,12 @@ class BienController extends Controller
             $verInstitucion ? 1 : 0,
         ]);
 
-        // Combos aislados por el programa de estudio activo
         $salas   = $programaId ? DB::select('CALL sp_listar_salas(?)', [$programaId]) : [];
         $grupos  = $programaId ? DB::select('CALL sp_listar_grupos(?, 0)', [$programaId]) : [];
         $tipos   = $programaId ? DB::select('CALL sp_listar_tipos(?)', [$programaId]) : [];
         $marcas  = $programaId ? DB::select('CALL sp_listar_marcas(?)', [$programaId]) : [];
         $modelos = $programaId ? DB::select('CALL sp_listar_modelos(?)', [$programaId]) : [];
 
-        // Excluye INACTIVO para que solo se asigne con el botón de baja
         $estados = collect(DB::select('CALL sp_listar_estados()'))
             ->where('id', '!=', self::ESTADO_INACTIVO);
 
@@ -86,7 +83,6 @@ class BienController extends Controller
         $programaId = ContextoInstitucion::programaId();
         $bien       = $this->delProgramaActivo((int) $id, $programaId);
 
-        // Quien no puede dar de baja tampoco puede reactivar lo que otro dio de baja
         if ((int) $bien->estado_id === self::ESTADO_INACTIVO && ! Auth::user()->puede('bienes.inactivar')) {
             abort(403, 'Solo el coordinador o el director pueden reactivar un bien inactivo.');
         }
@@ -117,7 +113,6 @@ class BienController extends Controller
     {
         $bien = $this->delProgramaActivo((int) $id, ContextoInstitucion::programaId());
 
-        // Pasa el bien a estado INACTIVO sin borrar el registro
         DB::statement('CALL sp_desactivar_bien(?, ?)', [
             $bien->id,
             Auth::id(),
@@ -126,12 +121,7 @@ class BienController extends Controller
         return redirect()->route('bienes.index')->with('success', 'El bien pasó a estado INACTIVO.');
     }
 
-    /* ------------------------------- Auxiliares ------------------------------- */
 
-    /**
-     * Reglas del formulario. Sala, grupo, tipo, marca y modelo deben ser del programa activo:
-     * así nadie puede mandar el id de un dato de otro programa o de otra institución.
-     */
     private function reglas(int $programaId, ?int $ignorarId = null): array
     {
         $delPrograma = fn (string $tabla) => Rule::exists($tabla, 'id')
@@ -152,7 +142,6 @@ class BienController extends Controller
         ];
     }
 
-    /** El bien debe existir y pertenecer al programa con el que el usuario está trabajando. */
     private function delProgramaActivo(int $id, ?int $programaId): Bien
     {
         abort_if($programaId === null, 403, 'No tiene un programa de estudio activo.');

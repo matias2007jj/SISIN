@@ -1,4 +1,3 @@
-/* Complementa organizacion.js (buscador y modal nuevo/editar) con lo propio de usuarios. */
 document.addEventListener('DOMContentLoaded', function () {
     var modal    = document.getElementById('modalRegistro');
     var selector = document.getElementById('personal_id');
@@ -6,7 +5,6 @@ document.addEventListener('DOMContentLoaded', function () {
     var username = document.getElementById('username');
     if (!modal) return;
 
-    // organizacion.js lanza este evento al abrir el modal (datos = null si es "nuevo")
     document.addEventListener('registro:abrir', function (ev) {
         var datos = ev.detail;
 
@@ -21,14 +19,12 @@ document.addEventListener('DOMContentLoaded', function () {
         if (titulo) titulo.textContent = datos ? datos.persona : '';
     });
 
-    // Al elegir a la persona: rol sugerido según su cargo y usuario sugerido = DNI
     if (selector) {
         selector.addEventListener('change', function () {
             var op = selector.options[selector.selectedIndex];
             if (!op || !op.value) return;
             if (op.dataset.rol) rol.value = op.dataset.rol;
 
-            // Programas sugeridos: aquellos donde la persona ya figura como personal
             if (op.dataset.programas) {
                 var ids = JSON.parse(op.dataset.programas);
                 modal.querySelectorAll('input[name="programas[]"]').forEach(function (c) {

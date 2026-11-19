@@ -22,7 +22,6 @@ class Personal extends Model
         return $this->hasMany(Asignacion::class);
     }
 
-    /** "APELLIDOS NOMBRES", igual que el CONCAT del procedimiento original. */
     protected function nombreCompleto(): Attribute
     {
         return Attribute::get(fn () => trim("{$this->apellidos} {$this->nombres}"));

@@ -24,9 +24,8 @@
     </li>
 @endif
 
-{{-- Programa de estudio activo: define con qué bienes, salas, grupos, etc. se trabaja --}}
 @php
-    $mostrarPrograma = ! $u->esSuperusuario() || $inst;      // el superusuario primero elige institución
+    $mostrarPrograma = ! $u->esSuperusuario() || $inst;     
     $programasMenu   = $mostrarPrograma
         ? \App\Models\ProgramaEstudio::whereIn('id', $u->idsProgramasPermitidos())->orderBy('nombre')->get(['id', 'nombre'])
         : collect();

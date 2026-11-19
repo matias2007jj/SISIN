@@ -15,9 +15,7 @@
 @php
     $global = auth()->user()->esSuperusuario() && ! auth()->user()->institucionActiva();
 
-    // Programa: columna visible para quien ve toda la institución (superusuario / director)
     $columnaPrograma  = $global || $verInstitucion;
-    // Acciones: cada rol ve solo los botones que puede usar (ver App\Support\Permisos)
     $mostrarAcciones  = ! $global && ($puedeRegistrar || $puedeInactivar);
     $columnas         = 9 + ($global ? 1 : 0) + ($columnaPrograma ? 1 : 0) - ($mostrarAcciones ? 0 : 1);
 @endphp

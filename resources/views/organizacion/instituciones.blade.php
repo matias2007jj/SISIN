@@ -162,7 +162,6 @@
 @push('scripts')
 <script src="{{ asset('js/organizacion.js') }}"></script>
 <script>
-    // Mismo formulario para crear y editar: solo cambian los textos de ayuda del usuario y la contraseña
     document.addEventListener('registro:abrir', function (ev) {
         var editando = !!ev.detail;
         document.getElementById('username').placeholder = editando

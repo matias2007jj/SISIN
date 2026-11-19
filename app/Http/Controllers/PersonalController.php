@@ -80,7 +80,6 @@ class PersonalController extends Controller
             'email'     => ['nullable', 'email', 'max:100'],
             'direccion' => ['nullable', 'string', 'max:150'],
 
-            // Con institución activa, toda persona debe quedar asignada a un programa (si no, nadie la vería)
             'asignaciones'                       => [ContextoInstitucion::id() === null ? 'nullable' : 'required', 'array'],
             'asignaciones.*.cargo'               => ['required', Rule::in(Asignacion::CARGOS)],
             'asignaciones.*.programa_estudio_id' => ['required', ContextoInstitucion::reglaPrograma()],
@@ -103,13 +102,9 @@ class PersonalController extends Controller
         return [$validado, $asignaciones];
     }
 
-    /**
-     * Reemplaza las asignaciones de la persona y mantiene al día el
-     * coordinador_id de cada programa de estudio.
-     */
+   
     private function sincronizar(Personal $persona, array $asignaciones): void
     {
-        // Programas donde era coordinador y ya no lo será
         $coordina = collect($asignaciones)
             ->where('cargo', 'COORDINADOR')
             ->pluck('programa_estudio_id')

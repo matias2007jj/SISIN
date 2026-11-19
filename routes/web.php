@@ -13,11 +13,7 @@ use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\UsuarioController;
 
-/*
-|--------------------------------------------------------------------------
-| Rutas Públicas y Autenticación
-|--------------------------------------------------------------------------
-*/
+
 Route::get('/', function () {
     return redirect()->route('menu');
 });
@@ -48,33 +44,20 @@ Route::get('/salir', function (Request $request) {
     return redirect()->route('login');
 })->name('salir.index');
 
-/*
-|--------------------------------------------------------------------------
-| Rutas Protegidas (Requieren Sesión)
-|--------------------------------------------------------------------------
-| Quién entra a cada una lo decide el middleware 'permiso:...'
-| (la matriz de permisos por rol está en App\Support\Permisos).
-*/
+
 Route::middleware(['auth'])->group(function () {
 
     Route::get('/menu', [MenuController::class, 'index'])->name('menu');
 
-    // Mi cuenta: cualquier rol puede cambiar su propia contraseña
     Route::get('mi-cuenta', [CuentaController::class, 'edit'])->name('cuenta.edit');
     Route::put('mi-cuenta', [CuentaController::class, 'update'])->name('cuenta.update');
 
-    // Contexto: programa de estudio con el que se trabaja (solo los que el usuario tiene asignados)
     Route::post('contexto/programa', [ContextoController::class, 'programa'])->name('contexto.programa');
 
-    // Contexto: institución activa (solo superusuario)
     Route::post('contexto/institucion', [ContextoController::class, 'institucion'])
         ->middleware('superusuario')
         ->name('contexto.institucion');
 
-    // Almacén: Bienes
-    //   ver         -> todos los roles
-    //   registrar   -> superusuario, director, coordinador, asistente
-    //   inactivar   -> superusuario, director, coordinador
     Route::prefix('almacen/bienes')->name('bienes.')->middleware('permiso:bienes.ver')->group(function () {
         Route::get('/',        [BienController::class, 'index'])->name('index');
         Route::post('/',       [BienController::class, 'store'])->middleware('permiso:bienes.registrar')->name('store');
@@ -82,14 +65,11 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/{id}', [BienController::class, 'destroy'])->middleware('permiso:bienes.inactivar')->name('destroy');
     });
 
-    // Almacén: Inventarios (consulta para todos los roles)
     Route::prefix('almacen/inventarios')->name('inventarios.')->middleware('permiso:inventarios.ver')->group(function () {
         Route::get('/',             [InventarioController::class, 'index'])->name('index');
         Route::get('/{inventario}', [InventarioController::class, 'show'])->name('show');
     });
 
-    // Almacén: Tablas / Catálogos auxiliares
-    // El permiso depende del catálogo y la acción (catalogo.sala.editar, ...): lo valida el controlador.
     Route::prefix('almacen/tablas/{catalogo}')->name('catalogo.')->middleware('permiso:catalogos.ver')->group(function () {
         Route::get('/',        [CatalogoController::class, 'index'])->name('index');
         Route::post('/',       [CatalogoController::class, 'store'])->name('store');
@@ -97,23 +77,20 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/{id}', [CatalogoController::class, 'destroy'])->name('destroy');
     });
 
-    // Usuarios del personal (director de la institución o superusuario)
     Route::resource('usuarios', UsuarioController::class)
         ->only(['index', 'store', 'update', 'destroy'])
         ->middleware('permiso:usuarios.gestionar');
 
-    // Instituciones (alta, edición y baja: solo superusuario)
+
     Route::resource('instituciones', InstitucionController::class)
         ->parameters(['instituciones' => 'institucion'])
         ->only(['index', 'store', 'update', 'destroy'])
         ->middleware('superusuario');
 
-    // Ficha de la institución: superusuario y director (todo); coordinador (solo lectura de sus programas)
     Route::get('instituciones/{institucion}', [InstitucionController::class, 'show'])
         ->middleware('permiso:institucion.ver')
         ->name('instituciones.show');
 
-    // Programas y personal de la institución: solo superusuario y director
     Route::middleware('permiso:institucion.gestionar')->group(function () {
         Route::post('instituciones/{institucion}/programas', [InstitucionController::class, 'storePrograma'])
             ->name('instituciones.programas.store');

@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Scope;
 
-/** Filtra automáticamente cualquier consulta a la institución activa de la sesión. */
 class InstitucionScope implements Scope
 {
     public function apply(Builder $builder, Model $model): void
@@ -17,7 +16,7 @@ class InstitucionScope implements Scope
         $id = ContextoInstitucion::id();
 
         if ($id === null) {
-            return;                                    // superusuario viendo todo
+            return;                                   
         }
 
         if ($model instanceof Institucion) {
@@ -30,7 +29,6 @@ class InstitucionScope implements Scope
             return;
         }
 
-        // Resto de modelos: llegan a la institución por la cadena de relaciones
         $builder->whereHas(
             $model->rutaInstitucion(),
             fn ($q) => $q->where('programas_estudio.institucion_id', $id)

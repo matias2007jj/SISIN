@@ -1,5 +1,5 @@
 html, body {
-    background-color: #0b0f17 !important;
+    background-color: #0b1114 !important;
     color: #f3f4f6 !important;
     font-family: 'Manrope', sans-serif !important;
     margin: 0;
@@ -18,10 +18,10 @@ main.plantilla-page {
 }
 
 .plantilla-card {
-    background: #161b22 !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    background: #11181c !important;
+    border: 1px solid rgba(16, 185, 129, 0.15) !important;
     border-radius: 18px !important;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4) !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5) !important;
     padding: 2rem !important;
     color: #f3f4f6 !important;
     width: 100% !important;
@@ -66,4 +66,53 @@ main.plantilla-page {
 .btn-green:hover {
     background-color: #059669 !important;
     transform: translateY(-1px);
+}
+
+.badge-programa {
+    display: inline-block !important;
+    padding: 0.35rem 0.85rem !important;
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+    border-radius: 50rem !important;
+    background-color: rgba(16, 185, 129, 0.15) !important;
+    color: #10b981 !important;
+    border: 1px solid rgba(16, 185, 129, 0.4) !important;
+    letter-spacing: 0.3px;
+}
+
+.search-toolbar input.form-control {
+    background-color: #0b1114 !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+.search-toolbar input.form-control::placeholder {
+    color: #9ca3af !important;
+}
+
+.search-toolbar input.form-control:focus {
+    border-color: #10b981 !important;
+    box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.2) !important;
+}
+
+.table-sisin-wrapper,
+.table-sisin {
+    --bs-table-bg: #0b1114 !important;
+    --bs-table-striped-bg: #0e161a !important;
+    --bs-table-hover-bg: rgba(16, 185, 129, 0.08) !important;
+    --bs-table-border-color: rgba(255, 255, 255, 0.08) !important;
+    background-color: #0b1114 !important;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.table-sisin thead th {
+    background-color: #0e161a !important;
+    color: #9ca3af !important;
+    border-bottom: 1px solid rgba(16, 185, 129, 0.25) !important;
+}
+
+.table-sisin tbody td {
+    background-color: #0b1114 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
 }

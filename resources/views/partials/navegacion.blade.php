@@ -59,7 +59,6 @@
                         </li>
                     @endif
 
-                    {{-- Superusuario: lista de instituciones. Director: su institución. Coordinador: su(s) programa(s). --}}
                     @if ($u->esSuperusuario())
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('instituciones.*') ? 'active' : '' }}" href="{{ route('instituciones.index') }}">Instituciones</a>

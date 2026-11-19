@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
-/** Cada usuario, sea cual sea su rol, puede cambiar su propia contraseña. */
 class CuentaController extends Controller
 {
     public function edit()
@@ -29,7 +28,7 @@ class CuentaController extends Controller
             return redirect()->back()->withErrors(['password_actual' => 'La contraseña actual no es correcta.']);
         }
 
-        $usuario->update(['password' => $datos['password']]);   // el cast 'hashed' la encripta
+        $usuario->update(['password' => $datos['password']]); 
 
         return redirect()->route('cuenta.edit')->with('success', 'Contraseña actualizada correctamente');
     }

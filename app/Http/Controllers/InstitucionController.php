@@ -27,11 +27,7 @@ class InstitucionController extends Controller
         return view('organizacion.instituciones', compact('instituciones'));
     }
 
-    /**
-     * Ficha de la institución: sus programas y su personal con programa de estudio y cargo.
-     * Superusuario y director ven todo y pueden gestionarlo; el coordinador solo ve (sin editar)
-     * los programas que tiene asignados y el personal de ellos.
-     */
+   
     public function show(Institucion $institucion)
     {
         /** @var Usuario $user */
@@ -58,10 +54,7 @@ class InstitucionController extends Controller
         return view('organizacion.institucion', compact('institucion', 'asignaciones', 'programas', 'cargos', 'puedeGestionar'));
     }
 
-    /**
-     * Crea la institución Y su usuario de acceso en una sola transacción:
-     * o se crean las dos cosas o no se crea ninguna.
-     */
+ 
     public function store(Request $request)
     {
         $datos  = $this->validar($request);
@@ -83,7 +76,7 @@ class InstitucionController extends Controller
 
             Usuario::create([
                 'username'       => $username,
-                'password'       => $clave,                       // el cast 'hashed' lo encripta
+                'password'       => $clave,                       
                 'institucion_id' => $institucion->id,
                 'tipo_usuario'   => Usuario::ADMIN_INSTITUCION,
                 'activo'         => true,
@@ -92,13 +85,10 @@ class InstitucionController extends Controller
 
         return redirect()->route('instituciones.index')
             ->with('success', 'Institución registrada y usuario de acceso creado correctamente')
-            ->with('credenciales', ['usuario' => $username, 'clave' => $clave]);   // se muestran una sola vez
+            ->with('credenciales', ['usuario' => $username, 'clave' => $clave]);   
     }
 
-    /**
-     * Edita la institución y también su usuario de acceso (usuario y/o contraseña).
-     * Contraseña vacía = se conserva la actual. Si la institución aún no tiene usuario, se le crea uno.
-     */
+  
     public function update(Request $request, Institucion $institucion)
     {
         $datos = $this->validar($request, $institucion->id);
@@ -125,7 +115,7 @@ class InstitucionController extends Controller
                     $cambios['username'] = $acceso['username'];
                 }
                 if (! empty($acceso['password'])) {
-                    $cambios['password'] = $acceso['password'];     // el cast 'hashed' lo encripta
+                    $cambios['password'] = $acceso['password'];    
                 }
                 if ($cambios) {
                     $usuario->update($cambios);
@@ -134,7 +124,6 @@ class InstitucionController extends Controller
                 return;
             }
 
-            // La institución no tenía usuario (p. ej. creada antes de esta función): se le crea ahora
             $username = $acceso['username'] ?? $datos['ruc'];
             $clave    = $acceso['password'] ?? Str::password(10, symbols: false);
 
@@ -166,14 +155,13 @@ class InstitucionController extends Controller
         }
 
         DB::transaction(function () use ($institucion) {
-            $institucion->usuarios()->delete();      // sus usuarios dejan de poder entrar
+            $institucion->usuarios()->delete();      
             $institucion->delete();
         });
 
         return redirect()->route('instituciones.index')->with('success', 'Institución eliminada correctamente');
     }
 
-    /* ----------------------- Programas de la institución ---------------------- */
 
     public function storePrograma(Request $request, Institucion $institucion)
     {
@@ -197,7 +185,6 @@ class InstitucionController extends Controller
         return redirect()->back()->with('success', 'Programa de estudio registrado correctamente');
     }
 
-    /* ----------------------- Personal de la institución ----------------------- */
 
     public function storePersonal(Request $request, Institucion $institucion)
     {
@@ -207,9 +194,7 @@ class InstitucionController extends Controller
             $persona = Personal::withoutGlobalScope(InstitucionScope::class)->withTrashed()->where('dni', $datos['dni'])->first();
 
             if ($persona) {
-                // Ya existe (quizá en otra institución): se reutiliza el registro. Sus datos solo se
-                // actualizan si ya es personal de ESTA institución (o estaba eliminada); así un director
-                // no puede pisar los datos de alguien que trabaja en otra institución.
+               
                 $yaEsDeEstaInstitucion = Asignacion::where('personal_id', $persona->id)
                     ->whereHas('programaEstudio', fn ($q) => $q->where('institucion_id', $institucion->id))
                     ->exists();
@@ -258,7 +243,6 @@ class InstitucionController extends Controller
                 ->first();
 
             if ($existente) {
-                // Ya tenía ese mismo cargo en ese programa: se unifican
                 $asignacion->delete();
                 $asignacion = $existente;
             } else {
@@ -286,7 +270,6 @@ class InstitucionController extends Controller
         return redirect()->back()->with('success', 'Se quitó al personal del programa correctamente');
     }
 
-    /* ------------------------------- Auxiliares ------------------------------- */
 
     private function validar(Request $request, ?int $id = null): array
     {

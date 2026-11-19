@@ -8,6 +8,7 @@ use App\Models\Modelo;
 use App\Models\ProgramaEstudio;
 use App\Models\Sala;
 use App\Models\Tipo;
+use App\Models\Usuario;
 use App\Support\ContextoInstitucion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,7 +17,6 @@ use Illuminate\Validation\Rule;
 
 class CatalogoController extends Controller
 {
-    /** Catálogos que pertenecen a un programa de estudio. */
     private const MODELOS = [
         'marca'  => Marca::class,
         'tipo'   => Tipo::class,
@@ -25,168 +25,179 @@ class CatalogoController extends Controller
         'grupo'  => Grupo::class,
     ];
 
-    /** Estado INACTIVO: el sistema depende de él (baja de bienes), no se edita ni se borra. */
     private const ESTADO_INACTIVO = 6;
 
     public function index($catalogo)
     {
         $this->autorizar($catalogo, 'ver');
 
-        $programaId   = ContextoInstitucion::programaId();
-        $puedeCrear   = $this->puede($catalogo, 'crear');
-        $puedeEditar  = $this->puede($catalogo, 'editar');
-        $puedeEliminar = $this->puede($catalogo, 'eliminar');
-        $vista = compact('catalogo', 'puedeCrear', 'puedeEditar', 'puedeEliminar');
+        /** @var Usuario $user */$user           = Auth::user();
+        $institucionId  = ContextoInstitucion::id();$programaId     = ContextoInstitucion::programaId();
+        $idsPermitidos  =$user->idsProgramasPermitidos();
+        $puedeCrear     =$this->puede($catalogo, 'crear');$puedeEditar    = $this->puede($catalogo, 'editar');
+        $puedeEliminar  =$this->puede($catalogo, 'eliminar');$tablaProgramas = (new ProgramaEstudio())->getTable();
 
-        if ($catalogo === 'marca') {
-            $marcas = DB::select('CALL sp_listar_marcas(?)', [$programaId]);
-            return view('almacen.catalogo.marca', $vista + compact('marcas'));
-        }
+        $programasEstudio =$catalogo !== 'estado'
+            ? DB::table("$tablaProgramas as pe")
+                ->leftJoin('instituciones as inst', 'inst.id', '=', 'pe.institucion_id')
+                ->whereIn('pe.id', $idsPermitidos)
+                ->whereNull('pe.deleted_at')
+                ->orderBy('pe.nombre')
+                ->get(['pe.id', 'pe.nombre', 'inst.nombre as institucion_nombre'])
+            : collect();
 
-        if ($catalogo === 'tipo') {
-            $tipos = DB::select('CALL sp_listar_tipos(?)', [$programaId]);
-            return view('almacen.catalogo.tipo', $vista + compact('tipos'));
-        }
+        $vista = compact('catalogo', 'puedeCrear', 'puedeEditar', 'puedeEliminar', 'programasEstudio');
 
-        if ($catalogo === 'modelo') {
-            $modelos = DB::select('CALL sp_listar_modelos(?)', [$programaId]);
-            return view('almacen.catalogo.modelo', $vista + compact('modelos'));
-        }
-
-        if ($catalogo === 'estado') {
-            $estados = DB::select('CALL sp_listar_estados()');
+        if ($catalogo === 'estado') {$estados = DB::select('CALL sp_listar_estados()');
             return view('almacen.catalogo.estado', $vista + compact('estados'));
         }
 
-        if ($catalogo === 'grupo') {
-            $grupos = DB::select('CALL sp_listar_grupos(?, 0)', [$programaId]);
+        $tablas = [
+            'marca'  => ['tabla' => 'marcas',  'var' => 'marcas'],
+            'tipo'   => ['tabla' => 'tipos',   'var' => 'tipos'],
+            'modelo' => ['tabla' => 'modelos', 'var' => 'modelos'],
+            'sala'   => ['tabla' => 'salas',   'var' => 'salas'],
+            'grupo'  => ['tabla' => 'grupos',  'var' => 'grupos'],
+        ];
 
-            // Solo los programas a los que el usuario tiene acceso
-            $programasEstudio = ProgramaEstudio::whereIn('id', Auth::user()->idsProgramasPermitidos())
-                ->orderBy('nombre')
-                ->get(['id', 'nombre']);
+        $tabla =$tablas[$catalogo]['tabla'];$var   = $tablas[$catalogo]['var'];
 
-            return view('almacen.catalogo.grupo', $vista + compact('grupos', 'programasEstudio'));
+        $query = DB::table("$tabla as t")
+            ->leftJoin("$tablaProgramas as pe", 'pe.id', '=', 't.programa_estudio_id')
+            ->leftJoin('instituciones as inst', 'inst.id', '=', 'pe.institucion_id')
+            ->whereNull('t.deleted_at')
+            ->select(
+                't.*',
+                'pe.nombre as programa_estudio_nombre',
+                'inst.nombre as institucion_nombre'
+            )
+            ->orderBy('t.nombre');
+
+        if ($user->esSuperusuario()) {
+            if ($institucionId !== null) {
+                $query->where('pe.institucion_id',$institucionId);
+            }
+        } elseif ($user->tipo_usuario === 'ADMIN_INSTITUCION') {
+            $query->whereIn('t.programa_estudio_id',$idsPermitidos);
+        } elseif ($programaId !== null) {
+            $query->where('t.programa_estudio_id',$programaId);
         }
 
-        // sala
-        $salas = DB::select('CALL sp_listar_salas(?)', [$programaId]);
-        return view('almacen.catalogo.sala', $vista + compact('salas'));
+        $registros =$query->get();
+
+        return view("almacen.catalogo.$catalogo", $vista + [$var =>$registros]);
     }
 
-    public function store(Request $request, $catalogo)
+    public function store(Request $request,$catalogo)
     {
         $this->autorizar($catalogo, 'crear');
 
-        $userId     = Auth::id();
-        $programaId = ContextoInstitucion::programaId();
+        $userId = Auth::id();
 
-        if ($catalogo === 'estado') {
-            $request->validate(['nombre' => 'required|string|max:60']);
-            DB::statement('CALL sp_guardar_estado(?, ?)', [$request->nombre, $userId]);
+        if ($catalogo === 'estado') {$request->validate(['nombre' => 'required|string|max:60']);
+            DB::statement('CALL sp_guardar_estado(?, ?)', [$request->nombre,$userId]);
 
             return redirect()->back()->with('success', 'Estado registrado correctamente');
         }
 
-        if ($catalogo === 'grupo') {
-            $request->validate([
-                'nombre'              => 'required|string|max:60',
-                'programa_estudio_id' => ['required', 'integer', $this->reglaProgramaPermitido()],
-            ]);
-
-            DB::statement('CALL sp_guardar_grupo(?, ?, ?)', [$request->nombre, $request->programa_estudio_id, $userId]);
-
-            return redirect()->back()->with('success', 'Grupo registrado correctamente');
+        $programaDestinoId = $this->resolverProgramaDestino($request);
+        if ($programaDestinoId === null) {
+            return redirect()->back()->with('aviso_error', 'Debe seleccionar o tener un programa de estudio activo.');
         }
 
-        // marca, tipo, modelo, sala: se guardan en el programa activo
-        if ($programaId === null) {
-            return redirect()->back()->with('aviso_error', 'No tiene un programa de estudio activo.');
-        }
+        $request->validate([
+            'nombre'      => 'required|string|max:60',
+            'observacion' => 'nullable|string|max:200',
+        ]);
 
-        $request->validate(['nombre' => 'required|string|max:60']);
-
-        if ($catalogo === 'marca')  DB::statement('CALL sp_guardar_marca(?, ?, ?)', [$request->nombre, $programaId, $userId]);
-        if ($catalogo === 'tipo')   DB::statement('CALL sp_guardar_tipo(?, ?, ?)', [$request->nombre, $programaId, $userId]);
-        if ($catalogo === 'modelo') DB::statement('CALL sp_guardar_modelo(?, ?, ?)', [$request->nombre, $programaId, $userId]);
-        if ($catalogo === 'sala')   DB::statement('CALL sp_guardar_sala(?, ?, ?, ?)', [$request->nombre, $request->descripcion ?? null, $programaId, $userId]);
+        if ($catalogo === 'grupo')  DB::statement('CALL sp_guardar_grupo(?, ?, ?)', [$request->nombre, $programaDestinoId,$userId]);
+        if ($catalogo === 'marca')  DB::statement('CALL sp_guardar_marca(?, ?, ?)', [$request->nombre, $programaDestinoId,$userId]);
+        if ($catalogo === 'tipo')   DB::statement('CALL sp_guardar_tipo(?, ?, ?)', [$request->nombre, $programaDestinoId,$userId]);
+        if ($catalogo === 'modelo') DB::statement('CALL sp_guardar_modelo(?, ?, ?)', [$request->nombre, $programaDestinoId,$userId]);
+        if ($catalogo === 'sala')   DB::statement('CALL sp_guardar_sala(?, ?, ?, ?)', [$request->nombre,$request->observacion ?? null, $programaDestinoId,$userId]);
 
         return redirect()->back()->with('success', ucfirst($catalogo) . ' registrado correctamente');
     }
 
-    public function update(Request $request, $catalogo, $id)
+    public function update(Request $request, $catalogo,$id)
     {
-        $this->autorizar($catalogo, 'editar');
-        $this->verificarPertenencia($catalogo, $id);
+        $this->autorizar($catalogo, 'editar');$this->verificarPertenencia($catalogo,$id);
 
         $userId = Auth::id();
 
-        if ($catalogo === 'grupo') {
-            $request->validate([
-                'nombre'              => 'required|string|max:60',
-                'programa_estudio_id' => ['required', 'integer', $this->reglaProgramaPermitido()],
-            ]);
+        if ($catalogo === 'estado') {$request->validate(['nombre' => 'required|string|max:60']);
+            DB::statement('CALL sp_actualizar_estado(?, ?, ?)', [$id, $request->nombre,$userId]);
 
-            DB::statement('CALL sp_actualizar_grupo(?, ?, ?, ?)', [$id, $request->nombre, $request->programa_estudio_id, $userId]);
-
-            return redirect()->back()->with('success', 'Grupo actualizado correctamente');
+            return redirect()->back()->with('success', 'Estado actualizado correctamente');
         }
 
-        $request->validate(['nombre' => 'required|string|max:60']);
+        $clase    = self::MODELOS[$catalogo];$registro = $clase::findOrFail($id);
 
-        if ($catalogo === 'marca')  DB::statement('CALL sp_actualizar_marca(?, ?, ?)', [$id, $request->nombre, $userId]);
-        if ($catalogo === 'tipo')   DB::statement('CALL sp_actualizar_tipo(?, ?, ?)', [$id, $request->nombre, $userId]);
-        if ($catalogo === 'modelo') DB::statement('CALL sp_actualizar_modelo(?, ?, ?)', [$id, $request->nombre, $userId]);
-        if ($catalogo === 'estado') DB::statement('CALL sp_actualizar_estado(?, ?, ?)', [$id, $request->nombre, $userId]);
-        if ($catalogo === 'sala')   DB::statement('CALL sp_actualizar_sala(?, ?, ?, ?)', [$id, $request->nombre, $request->descripcion ?? null, $userId]);
+        $programaDestinoId =$this->resolverProgramaDestino($request, (int)$registro->programa_estudio_id);
+
+        $request->validate([
+            'nombre'      => 'required|string|max:60',
+            'observacion' => 'nullable|string|max:200',
+        ]);
+
+        if ($catalogo === 'grupo')  DB::statement('CALL sp_actualizar_grupo(?, ?, ?, ?)', [$id,$request->nombre, $programaDestinoId,$userId]);
+        if ($catalogo === 'marca')  DB::statement('CALL sp_actualizar_marca(?, ?, ?, ?)', [$id,$request->nombre, $programaDestinoId,$userId]);
+        if ($catalogo === 'tipo')   DB::statement('CALL sp_actualizar_tipo(?, ?, ?, ?)', [$id,$request->nombre, $programaDestinoId,$userId]);
+        if ($catalogo === 'modelo') DB::statement('CALL sp_actualizar_modelo(?, ?, ?, ?)', [$id,$request->nombre, $programaDestinoId,$userId]);
+        if ($catalogo === 'sala')   DB::statement('CALL sp_actualizar_sala(?, ?, ?, ?, ?)', [$id, $request->nombre,$request->observacion ?? null, $programaDestinoId,$userId]);
 
         return redirect()->back()->with('success', ucfirst($catalogo) . ' actualizado correctamente');
     }
 
-    public function destroy($catalogo, $id)
+    public function destroy($catalogo,$id)
     {
-        $this->autorizar($catalogo, 'eliminar');
-        $this->verificarPertenencia($catalogo, $id);
+        $this->autorizar($catalogo, 'eliminar');$this->verificarPertenencia($catalogo,$id);
 
         $userId = Auth::id();
 
-        if ($catalogo === 'marca')  DB::statement('CALL sp_eliminar_marca(?, ?)', [$id, $userId]);
-        if ($catalogo === 'tipo')   DB::statement('CALL sp_eliminar_tipo(?, ?)', [$id, $userId]);
-        if ($catalogo === 'modelo') DB::statement('CALL sp_eliminar_modelo(?, ?)', [$id, $userId]);
-        if ($catalogo === 'estado') DB::statement('CALL sp_eliminar_estado(?, ?)', [$id, $userId]);
-        if ($catalogo === 'grupo')  DB::statement('CALL sp_eliminar_grupo(?, ?)', [$id, $userId]);
-        if ($catalogo === 'sala')   DB::statement('CALL sp_eliminar_sala(?, ?)', [$id, $userId]);
+        if ($catalogo === 'marca')  DB::statement('CALL sp_eliminar_marca(?, ?)', [$id,$userId]);
+        if ($catalogo === 'tipo')   DB::statement('CALL sp_eliminar_tipo(?, ?)', [$id,$userId]);
+        if ($catalogo === 'modelo') DB::statement('CALL sp_eliminar_modelo(?, ?)', [$id,$userId]);
+        if ($catalogo === 'estado') DB::statement('CALL sp_eliminar_estado(?, ?)', [$id,$userId]);
+        if ($catalogo === 'grupo')  DB::statement('CALL sp_eliminar_grupo(?, ?)', [$id,$userId]);
+        if ($catalogo === 'sala')   DB::statement('CALL sp_eliminar_sala(?, ?)', [$id,$userId]);
 
         return redirect()->back()->with('success', ucfirst($catalogo) . ' eliminado correctamente');
     }
 
-    /* ------------------------------- Auxiliares ------------------------------- */
+    private function resolverProgramaDestino(Request $request, ?int $programaActual = null): ?int
+    {
+        /** @var Usuario $user */$user = Auth::user();
 
-    private function puede(string $catalogo, string $accion): bool
+        if ($user->esSuperusuario() || $user->tipo_usuario === 'ADMIN_INSTITUCION') {$request->validate([
+                'programa_estudio_id' => ['required', 'integer', $this->reglaProgramaPermitido()],
+            ]);
+
+            return (int) $request->programa_estudio_id;
+        }
+
+        return $programaActual ?? ContextoInstitucion::programaId();
+    }
+
+    private function puede(string $catalogo, string$accion): bool
     {
         return Auth::user()->puede("catalogo.$catalogo.$accion");
     }
 
-    /** El catálogo debe existir y el rol debe tener permiso para esa acción. */
-    private function autorizar(string $catalogo, string $accion): void
+    private function autorizar(string $catalogo, string$accion): void
     {
         abort_unless($catalogo === 'estado' || isset(self::MODELOS[$catalogo]), 404);
-        abort_unless($this->puede($catalogo, $accion), 403, 'Su rol no tiene permiso para realizar esta acción.');
+        abort_unless($this->puede($catalogo,$accion), 403, 'Su rol no tiene permiso para realizar esta acción.');
     }
 
-    /**
-     * El registro a editar o borrar debe ser de un programa al que el usuario tiene acceso
-     * (los procedimientos almacenados solo reciben el id y no lo comprueban).
-     */
-    private function verificarPertenencia(string $catalogo, $id): void
+    private function verificarPertenencia(string $catalogo,$id): void
     {
         if ($catalogo === 'estado') {
             abort_if((int) $id === self::ESTADO_INACTIVO, 403, 'El estado INACTIVO es del sistema y no se puede modificar.');
             return;
         }
 
-        $clase    = self::MODELOS[$catalogo];
-        $registro = $clase::findOrFail($id);
+        $clase    = self::MODELOS[$catalogo];$registro = $clase::findOrFail($id);
 
         abort_unless(Auth::user()->puedeUsarPrograma((int) $registro->programa_estudio_id), 404);
     }

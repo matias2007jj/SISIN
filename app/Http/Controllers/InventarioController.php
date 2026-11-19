@@ -7,10 +7,7 @@ use Illuminate\Support\Facades\Auth;
 
 class InventarioController extends Controller
 {
-    /**
-     * Tomas de inventario. Superusuario y director ven toda la institución activa (el scope ya filtra);
-     * coordinador, asistente y docente, solo las de los programas que tienen asignados.
-     */
+  
     public function index()
     {
         $user = Auth::user();
@@ -25,7 +22,6 @@ class InventarioController extends Controller
         return view('almacen.inventario.index', compact('inventarios'));
     }
 
-    /** Si el inventario es de otra institución o de un programa sin acceso, responde 404. */
     public function show(Inventario $inventario)
     {
         $user = Auth::user();

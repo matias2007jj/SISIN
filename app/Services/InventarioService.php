@@ -12,10 +12,7 @@ use Illuminate\Validation\ValidationException;
 
 class InventarioService
 {
-    /**
-     * Equivale a sp_inventario_mt_i01 + copiar los bienes de la sala.
-     * Todo en una transacción: o se crea completo o no se crea nada.
-     */
+
     public function crear(
         ProgramaEstudio $programa,
         Sala $sala,
@@ -33,8 +30,6 @@ class InventarioService
         return DB::transaction(function () use ($programa, $sala, $serie, $fechaEntrega, $observacion, $copiarBienes) {
             $programa->load(['coordinador', 'asistenteT1', 'asistenteT2']);
 
-            // El original usaba INNER JOIN y, si faltaba alguno, no insertaba nada sin avisar.
-            // Aquí los responsables son opcionales; si los quieres obligatorios, valida aquí.
             $inventario = Inventario::create([
                 'programa_estudio_id' => $programa->id,
                 'serie'               => $serie,
@@ -62,7 +57,6 @@ class InventarioService
         });
     }
 
-    /** Equivale a sp_inventarioDetalle_mt_I01. */
     public function agregarBien(Inventario $inventario, Bien $bien, ?string $nroDrelm = null): InventarioDetalle
     {
         $this->asegurarAbierto($inventario);
@@ -72,7 +66,6 @@ class InventarioService
         );
     }
 
-    /** Equivale a sp_inventarioDetalle_mt_U01. */
     public function actualizarNroDrelm(InventarioDetalle $detalle, ?string $nroDrelm): InventarioDetalle
     {
         $this->asegurarAbierto($detalle->inventario);
@@ -92,11 +85,7 @@ class InventarioService
         return $inventario;
     }
 
-    /**
-     * Siguiente correlativo por programa + serie (igual que el original: MAX(numero) + 1).
-     * withTrashed evita reutilizar números de inventarios borrados; lockForUpdate evita
-     * que dos usuarios obtengan el mismo número a la vez.
-     */
+
     private function siguienteNumero(int $programaId, string $serie): string
     {
         $max = Inventario::withTrashed()

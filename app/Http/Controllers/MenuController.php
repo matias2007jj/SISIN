@@ -12,7 +12,6 @@ use App\Models\Usuario;
 use App\Support\ContextoInstitucion;
 use Illuminate\Support\Facades\Auth;
 
-/** Página de inicio: resumen y accesos rápidos según lo que el rol puede ver y hacer. */
 class MenuController extends Controller
 {
     private const ESTADO_INACTIVO = 6;
@@ -26,7 +25,6 @@ class MenuController extends Controller
         $institucion    = $user->institucionActiva();
         $global         = $user->esSuperusuario() && ! $institucion;
 
-        // Bienes e inventarios: toda la institución, o solo los programas del usuario
         $bienes = Bien::query();
         $inventarios = Inventario::query()->where('estado_inventario', 'ABIERTO');
 
@@ -53,14 +51,14 @@ class MenuController extends Controller
                 ['label' => 'Bienes operativos',    'value' => $operativos],
                 ['label' => 'Usuarios',             'value' => $this->totalUsuarios()],
             ];
-        } elseif ($user->puede('institucion.ver')) {       // coordinador
+        } elseif ($user->puede('institucion.ver')) {       
             $resumen = [
                 ['label' => 'Mis programas',          'value' => count($ids)],
                 ['label' => 'Personal a cargo',       'value' => Asignacion::whereIn('programa_estudio_id', $ids)->distinct()->count('personal_id')],
                 ['label' => 'Bienes operativos',      'value' => $operativos],
                 ['label' => 'Inventarios abiertos',   'value' => $inventarios->count()],
             ];
-        } else {                                            // asistente y docente
+        } else {                                          
             $resumen = [
                 ['label' => 'Mis programas',        'value' => count($ids)],
                 ['label' => 'Bienes operativos',    'value' => $operativos],
@@ -80,7 +78,6 @@ class MenuController extends Controller
         ]);
     }
 
-    /** Tarjetas de acceso rápido: solo las que el rol puede usar. */
     private function accesos(Usuario $user, ?Institucion $institucion): array
     {
         $accesos = [];
@@ -141,7 +138,6 @@ class MenuController extends Controller
         return $accesos;
     }
 
-    /** Usuarios del personal de la institución activa (nunca los superusuarios). */
     private function totalUsuarios(): int
     {
         $q = Usuario::query()->whereNotNull('institucion_id');

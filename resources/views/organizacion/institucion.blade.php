@@ -125,7 +125,6 @@
 
 @if ($puedeGestionar)
 @section('modales')
-{{-- Agregar programa de estudio --}}
 <div class="modal fade" id="modalPrograma" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 bg-transparent">
@@ -168,7 +167,6 @@
     </div>
 </div>
 
-{{-- Agregar / editar personal --}}
 <div class="modal fade" id="modalRegistro" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 bg-transparent">

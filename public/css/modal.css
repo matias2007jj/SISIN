@@ -1,9 +1,5 @@
-/* ==========================================================================
-   modal.css - Estilos Ventana Modal Personalizada
-   ========================================================================== */
-
 .mi-modal {
-    background-color: #161b22;
+    background-color: #11181c;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 16px;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
@@ -80,7 +76,7 @@
 .mi-modal .campo input,
 .mi-modal .campo textarea,
 .mi-modal .campo select {
-    background-color: #0d1117;
+    background-color: #0b1114;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 10px;
     padding: 0.65rem 0.9rem;
@@ -91,7 +87,7 @@
 }
 
 .mi-modal .campo select option {
-    background-color: #161b22;
+    background-color: #11181c;
     color: #ffffff;
 }
 
@@ -113,7 +109,7 @@
     display: flex;
     justify-content: flex-end;
     gap: 0.75rem;
-    background: #12161f;
+    background: #11181c;
 }
 
 .mi-modal .btn {
@@ -145,4 +141,122 @@
 
 .mi-modal .btn-guardar:hover {
     background-color: #059669;
+}
+/* Estilos de Grupos y Marcas (grupo.css & marcas.css)*/
+
+.search-toolbar {
+    background: #0b1114 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
+    padding: 0.4rem 0.8rem !important;
+}
+
+.search-toolbar .input-group-text {
+    background: transparent !important;
+    border: none !important;
+    color: #10b981 !important;
+}
+
+.search-toolbar .form-control {
+    background: transparent !important;
+    border: none !important;
+    color: #ffffff !important;
+}
+
+.badge-count {
+    background: rgba(16, 185, 129, 0.12) !important;
+    color: #10b981 !important;
+    border: 1px solid rgba(16, 185, 129, 0.25) !important;
+    border-radius: 30px !important;
+    padding: 0.4rem 0.9rem !important;
+    font-size: 0.82rem !important;
+    font-weight: 700 !important;
+}
+
+.table-sisin-wrapper {
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    background: #0b1114 !important;
+}
+
+.table-sisin {
+    margin-bottom: 0 !important;
+    background-color: #0b1114 !important;
+    color: #f3f4f6 !important;
+}
+
+.table-sisin thead th {
+    background-color: #11181c !important;
+    color: #9ca3af !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    padding: 0.85rem 1rem !important;
+    font-size: 0.75rem !important;
+}
+
+.table-sisin tbody, 
+.table-sisin tbody tr, 
+.table-sisin tbody td {
+    background-color: #0b1114 !important;
+    color: #f3f4f6 !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.table-sisin tbody tr:hover td {
+    background-color: rgba(16, 185, 129, 0.06) !important;
+}
+
+#rowSinDatos td {
+    background-color: #0b1114 !important;
+    color: #9ca3af !important;
+}
+
+.brand-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.brand-chip-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+}
+
+.brand-chip-title {
+    font-weight: 700;
+    color: #ffffff;
+    font-size: 0.9rem;
+}
+
+.badge-programa {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    border-radius: 20px;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.text-fecha {
+    font-size: 0.8rem;
+    color: #9ca3af;
+}
+
+.btn-action-icon {
+    height: 32px;
+    padding: 0 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
 }

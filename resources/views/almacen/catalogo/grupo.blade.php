@@ -6,15 +6,18 @@
 @section('modal_id', 'modalAgregarGrupo')
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('css/grupo.css') }}">
     <link rel="stylesheet" href="{{ asset('css/modal.css') }}">
 @endpush
 
 @section('contenido')
+@php
+    $esSuper = auth()->user()->esSuperusuario();
+    $cols = 4 + ($esSuper ? 1 : 0) + (($puedeEditar || $puedeEliminar) ? 1 : 0);
+@endphp
+
 @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show border-0 mb-4 text-white" style="background-color: rgba(16, 185, 129, 0.2); border-left: 4px solid #10b981 !important;" role="alert">
         <div class="d-flex align-items-center">
-            
             <div>{{ session('success') }}</div>
         </div>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Cerrar"></button>
@@ -24,7 +27,15 @@
 <div class="row g-3 align-items-center justify-content-between mb-4">
     <div class="col-12 col-md-6 col-lg-5">
         <div class="input-group search-toolbar">
-            <input type="text" id="inputBuscar" class="form-control text-uppercase" placeholder="Escribe para filtrar grupo..." autocomplete="off">
+            <input
+                type="text"
+                id="inputBuscar"
+                class="form-control text-uppercase"
+                placeholder="Escribe para filtrar grupo..."
+                autocomplete="off"
+                data-tabla="#tablaGrupos tbody tr:not(#rowSinDatos)"
+                data-contador="#contadorGrupos"
+            >
             <button type="button" class="btn btn-link text-muted pe-1 d-none" id="btnLimpiarBuscar">
                 &times;
             </button>
@@ -43,6 +54,9 @@
         <thead>
             <tr>
                 <th style="min-width: 220px;">Nombre Grupo</th>
+                @if ($esSuper)
+                <th style="min-width: 180px;">Institución</th>
+                @endif
                 <th style="min-width: 180px;">Programa de Estudio</th>
                 <th style="min-width: 150px;">Fecha Creación</th>
                 <th style="min-width: 150px;">Fecha Modificación</th>
@@ -52,74 +66,81 @@
             </tr>
         </thead>
         <tbody>
-            @forelse ($grupos as $grupo)
-                <tr>
-                    <td>
-                        <div class="brand-chip">
-                            <span class="brand-chip-title">{{ $grupo->nombre }}</span>
-                        </div>
-                    </td>
-                    <td>
-                        @if(!empty($grupo->programa_estudio_nombre))
-                            <span class="badge-programa">
-                                {{ $grupo->programa_estudio_nombre }}
-                            </span>
-                        @else
-                            <span class="text-muted fs-7">General / N/A</span>
+            @if (count($grupos) > 0)
+                @foreach ($grupos as $grupo)
+                    <tr>
+                        <td>
+                            <div class="brand-chip">
+                                <span class="brand-chip-title">{{ $grupo->nombre }}</span>
+                            </div>
+                        </td>
+                        @if ($esSuper)
+                        <td>
+                            @if(!empty($grupo->institucion_nombre))
+                                <span class="badge-programa">{{ $grupo->institucion_nombre }}</span>
+                            @else
+                                <span class="text-muted fs-7">Sin institución</span>
+                            @endif
+                        </td>
                         @endif
-                    </td>
-                    <td>
-                        <span class="text-fecha">
-                            
-                            {{ !empty($grupo->created_at) ? \Carbon\Carbon::parse($grupo->created_at)->format('d/m/Y H:i') : '-' }}
-                        </span>
-                    </td>
-                    <td>
-                        <span class="text-fecha">
-                            
-                            {{ !empty($grupo->updated_at) ? \Carbon\Carbon::parse($grupo->updated_at)->format('d/m/Y H:i') : '-' }}
-                        </span>
-                    </td>
-                    @if ($puedeEditar || $puedeEliminar)
-                    <td class="text-center">
-                        <div class="d-inline-flex gap-1">
-                            @if ($puedeEditar)
-                            <button type="button" class="btn btn-outline-warning btn-action-icon" data-bs-toggle="modal" data-bs-target="#modalEditarGrupo{{ $grupo->id }}" title="Editar Grupo">
-                                Editar
-                            </button>
+                        <td>
+                            @if(!empty($grupo->programa_estudio_nombre))
+                                <span class="badge-programa">
+                                    {{ $grupo->programa_estudio_nombre }}
+                                </span>
+                            @else
+                                <span class="text-muted fs-7">General / N/A</span>
                             @endif
-
-                            @if ($puedeEliminar)
-                            <form action="{{ route('catalogo.destroy', ['catalogo' => 'grupo', 'id' => $grupo->id]) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Desea eliminar el grupo {{ $grupo->nombre }}?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-outline-danger btn-action-icon" title="Eliminar Grupo">
-                                    Eliminar
+                        </td>
+                        <td>
+                            <span class="text-fecha">
+                                {{ !empty($grupo->created_at) ? \Carbon\Carbon::parse($grupo->created_at)->format('d/m/Y H:i') : '-' }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="text-fecha">
+                                {{ !empty($grupo->updated_at) ? \Carbon\Carbon::parse($grupo->updated_at)->format('d/m/Y H:i') : '-' }}
+                            </span>
+                        </td>
+                        @if ($puedeEditar || $puedeEliminar)
+                        <td class="text-center">
+                            <div class="d-inline-flex gap-1">
+                                @if ($puedeEditar)
+                                <button type="button" class="btn btn-outline-warning btn-action-icon" data-bs-toggle="modal" data-bs-target="#modalEditarGrupo{{ $grupo->id }}" title="Editar Grupo">
+                                    Editar
                                 </button>
-                            </form>
-                            @endif
-                        </div>
-                    </td>
-                    @endif
-                </tr>
-            @empty
+                                @endif
+
+                                @if ($puedeEliminar)
+                                <form action="{{ route('catalogo.destroy', ['catalogo' => 'grupo', 'id' => $grupo->id]) }}" method="POST" class="d-inline" data-confirm="¿Desea eliminar el grupo {{ $grupo->nombre }}?">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-outline-danger btn-action-icon" title="Eliminar Grupo">
+                                        Eliminar
+                                    </button>
+                                </form>
+                                @endif
+                            </div>
+                        </td>
+                        @endif
+                    </tr>
+                @endforeach
+            @else
                 <tr id="rowSinDatos">
-                    <td colspan="{{ ($puedeEditar || $puedeEliminar) ? 5 : 4 }}" class="text-center py-5">
-                        
+                    <td colspan="{{ $cols }}" class="text-center py-5">
                         <h6 class="text-white fw-bold mb-1">No hay grupos registrados</h6>
                         @if ($puedeCrear)
                         <p class="text-muted fs-7 mb-3">Haz clic en "Nuevo Grupo" para agregar el primero.</p>
                         @endif
                     </td>
                 </tr>
-            @endforelse
+            @endif
         </tbody>
     </table>
 </div>
 @endsection
 
 @section('modales')
-
 <div class="modal fade" id="modalAgregarGrupo" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 bg-transparent">
@@ -140,18 +161,22 @@
                             <input type="text" id="nombre" name="nombre" class="text-uppercase form-control bg-dark text-white border-secondary" placeholder="Ingrese el nombre del grupo" required autofocus>
                         </div>
 
+                        @if(auth()->user()->esSuperusuario() || auth()->user()->tipo_usuario === 'ADMIN_INSTITUCION')
                         <div class="campo mb-3">
                             <label for="programa_estudio_id">Programa de Estudio</label>
                             <select id="programa_estudio_id" name="programa_estudio_id" class="form-select bg-dark text-white border-secondary" required>
                                 <option value="">Seleccione un programa...</option>
                                 @foreach($programasEstudio ?? [] as $prog)
-                                    <option value="{{ $prog->id }}">{{ $prog->nombre }}</option>
+                                    <option value="{{ $prog->id }}">
+                                        {{ $prog->nombre }}{{ $esSuper && !empty($prog->institucion_nombre) ? ' (' . $prog->institucion_nombre . ')' : '' }}
+                                    </option>
                                 @endforeach
                             </select>
                             @if (empty($programasEstudio) || count($programasEstudio) === 0)
                                 <small class="text-muted">Aún no hay programas de estudio. Regístrelos en "Mi institución" → Agregar Programa de Estudio.</small>
                             @endif
                         </div>
+                        @endif
                     </div>
 
                     <div class="modal-footer">
@@ -186,16 +211,18 @@
                             <input type="text" id="nombre_{{ $grupo->id }}" name="nombre" class="text-uppercase form-control bg-dark text-white border-secondary" value="{{ $grupo->nombre }}" required>
                         </div>
 
+                        @if(auth()->user()->esSuperusuario() || auth()->user()->tipo_usuario === 'ADMIN_INSTITUCION')
                         <div class="campo mb-3">
                             <label for="programa_estudio_id_{{ $grupo->id }}">Programa de Estudio</label>
                             <select id="programa_estudio_id_{{ $grupo->id }}" name="programa_estudio_id" class="form-select bg-dark text-white border-secondary" required>
                                 @foreach($programasEstudio ?? [] as $prog)
                                     <option value="{{ $prog->id }}" {{ $grupo->programa_estudio_id == $prog->id ? 'selected' : '' }}>
-                                        {{ $prog->nombre }}
+                                        {{ $prog->nombre }}{{ $esSuper && !empty($prog->institucion_nombre) ? ' (' . $prog->institucion_nombre . ')' : '' }}
                                     </option>
                                 @endforeach
                             </select>
                         </div>
+                        @endif
                     </div>
 
                     <div class="modal-footer">
@@ -211,40 +238,6 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/modal.js') }}"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const inputBuscar = document.getElementById('inputBuscar');
-        const btnLimpiar = document.getElementById('btnLimpiarBuscar');
-        const rows = document.querySelectorAll('#tablaGrupos tbody tr:not(#rowSinDatos)');
-        const contador = document.getElementById('contadorGrupos');
-
-        if (inputBuscar) {
-            inputBuscar.addEventListener('keyup', function() {
-                const filter = this.value.toUpperCase().trim();
-                let visibles = 0;
-
-                btnLimpiar.classList.toggle('d-none', filter === '');
-
-                rows.forEach(row => {
-                    const textContent = row.textContent || row.innerText;
-                    if (textContent.toUpperCase().indexOf(filter) > -1) {
-                        row.style.display = "";
-                        visibles++;
-                    } else {
-                        row.style.display = "none";
-                    }
-                });
-
-                if (contador) contador.textContent = visibles;
-            });
-
-            btnLimpiar.addEventListener('click', function() {
-                inputBuscar.value = '';
-                inputBuscar.dispatchEvent(new Event('keyup'));
-                inputBuscar.focus();
-            });
-        }
-    });
-</script>
+    <script src="{{ asset('js/modal.js') }}"></script>
+    <script src="{{ asset('js/catalogo.js') }}"></script>
 @endpush

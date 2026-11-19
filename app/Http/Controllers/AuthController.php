@@ -27,8 +27,6 @@ class AuthController extends Controller
             /** @var Usuario $usuario */
             $usuario = Auth::user();
 
-            // Un usuario de institución queda fijo en ella (se lee de usuarios.institucion_id);
-            // el superusuario empieza viendo todas.
             $request->session()->forget(['institucion_id', 'programa_estudio_id']);
 
             if ($usuario->institucion_id && ! $usuario->institucion) {

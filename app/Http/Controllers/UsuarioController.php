@@ -13,13 +13,9 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
-/**
- * Usuarios de la institución activa. Los crea el administrador de la institución
- * (o el superusuario con una institución elegida) a partir del personal registrado.
- */
+
 class UsuarioController extends Controller
 {
-    /** Roles que pueden tener los usuarios del personal. ADMIN_INSTITUCION solo lo asigna el superusuario. */
     private const ROLES_DEL_PERSONAL = [Usuario::COORDINADOR, Usuario::ASISTENTE, Usuario::DOCENTE];
 
     public function index()
@@ -29,7 +25,6 @@ class UsuarioController extends Controller
             ->orderBy('username')
             ->get();
 
-        // Personal de la institución (ya filtrado por el scope) que todavía no tiene usuario
         $conUsuario = Usuario::whereNotNull('personal_id')->pluck('personal_id');
         $personal   = Personal::with('asignaciones')
             ->whereNotIn('id', $conUsuario)
@@ -61,7 +56,6 @@ class UsuarioController extends Controller
             'programas.*'  => ['integer', ContextoInstitucion::reglaPrograma()],
         ], $this->mensajes());
 
-        // Personal::find respeta el scope: solo encuentra personal de esta institución
         $persona = Personal::find($datos['personal_id']);
 
         if (! $persona) {
@@ -84,7 +78,7 @@ class UsuarioController extends Controller
                 'username'       => $username,
                 'password'       => $clave,
                 'personal_id'    => $persona->id,
-                'institucion_id' => $institucionId,              // siempre la institución activa
+                'institucion_id' => $institucionId,             
                 'tipo_usuario'   => $datos['tipo_usuario'],
                 'activo'         => true,
             ]);
@@ -146,12 +140,6 @@ class UsuarioController extends Controller
         return redirect()->route('usuarios.index')->with('success', 'Usuario eliminado correctamente');
     }
 
-    /* ------------------------------- Auxiliares ------------------------------- */
-
-    /**
-     * Usuarios que el usuario actual puede gestionar. Usuario no lleva el scope global
-     * (se evita una recursión con el login), así que el filtro se aplica aquí.
-     */
     private function consulta(): Builder
     {
         $q = Usuario::query()->whereNotNull('institucion_id');       // nunca los superusuarios
@@ -167,8 +155,7 @@ class UsuarioController extends Controller
     {
         abort_unless($this->consulta()->whereKey($usuario->id)->exists(), 404);
 
-        // Las cuentas de administrador de institución las maneja solo el superusuario
-        // (Instituciones > Editar), no otro director.
+
         abort_if(
             $usuario->tipo_usuario === Usuario::ADMIN_INSTITUCION && ! auth()->user()->esSuperusuario(),
             403,
@@ -176,7 +163,6 @@ class UsuarioController extends Controller
         );
     }
 
-    /** El director asigna coordinador, asistente y docente; el superusuario además administrador. */
     private function rolesAsignables(): array
     {
         return auth()->user()->esSuperusuario()
@@ -184,7 +170,6 @@ class UsuarioController extends Controller
             : self::ROLES_DEL_PERSONAL;
     }
 
-    /** Coordinador, asistente y docente necesitan al menos un programa; si no, entrarían y no verían nada. */
     private function exigeProgramas(Request $request): bool
     {
         return in_array($request->input('tipo_usuario'), self::ROLES_DEL_PERSONAL, true);

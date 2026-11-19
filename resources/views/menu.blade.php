@@ -24,7 +24,6 @@
         </div>
     @endif
 
-    {{-- Resumen según el rol --}}
     <div class="summary mb-4" style="grid-template-columns: repeat({{ count($resumen) }}, 1fr);">
         @foreach ($resumen as $item)
             <div class="summary-item {{ ! empty($item['warn']) ? 'is-warn' : '' }}">
@@ -35,23 +34,5 @@
             </div>
         @endforeach
     </div>
-
-    {{-- Accesos rápidos: solo lo que este rol puede usar --}}
-    <div class="row g-3">
-        @foreach ($accesos as $acceso)
-            <div class="col-12 col-md-6 col-xl-4">
-                <a href="{{ $acceso['url'] }}" class="text-decoration-none">
-                    <div class="menu-card h-100 p-4">
-                        <h5 class="card-title fw-bold mb-1">{{ $acceso['titulo'] }}</h5>
-                        <p class="card-text mb-0">{{ $acceso['texto'] }}</p>
-                    </div>
-                </a>
-            </div>
-        @endforeach
-    </div>
-
-    @if (empty($accesos))
-        <p class="text-muted">Su usuario todavía no tiene accesos asignados. Pida a su administrador que le asigne un programa de estudio.</p>
-    @endif
 </main>
 @endsection

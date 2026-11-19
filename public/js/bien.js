@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Confirmación antes de pasar a INACTIVO (también para roles que no ven el formulario de registro)
     document.addEventListener('submit', (e) => {
         const formDesactivar = e.target.closest('.form-desactivar');
         if (!formDesactivar) return;
@@ -18,7 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const metodo = document.getElementById('metodoForm');
     const storeUrl = form.dataset.storeUrl;
 
-    // 1. Abrir modal para Crear
     const btnNuevo = document.getElementById('btnNuevoBien');
     if (btnNuevo) {
         btnNuevo.addEventListener('click', () => {
@@ -30,7 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 2. Abrir modal para Editar (delegación de eventos por si filtras/paginación)
     document.addEventListener('click', (e) => {
         const btnEditar = e.target.closest('.btn-editar');
         if (!btnEditar) return;

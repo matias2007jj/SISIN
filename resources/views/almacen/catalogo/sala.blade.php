@@ -11,11 +11,24 @@
 @endpush
 
 @section('contenido')
+@php
+    $esSuper = auth()->user()->esSuperusuario();
+    $cols = 4 + ($esSuper ? 1 : 0) + (($puedeEditar || $puedeEliminar) ? 1 : 0);
+@endphp
+
 @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show border-0 mb-4 text-white" style="background-color: rgba(16, 185, 129, 0.2); border-left: 4px solid #10b981 !important;" role="alert">
         <div class="d-flex align-items-center">
-            
             <div>{{ session('success') }}</div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+@endif
+
+@if($errors->any())
+    <div class="alert alert-danger alert-dismissible fade show border-0 mb-4 text-white" style="background-color: rgba(255, 77, 77, 0.2); border-left: 4px solid #ff4d4d !important;" role="alert">
+        <div class="d-flex align-items-center">
+            <div>{{ $errors->first() }}</div>
         </div>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Cerrar"></button>
     </div>
@@ -25,9 +38,7 @@
     <div class="col-12 col-md-6 col-lg-5">
         <div class="input-group search-toolbar">
             <input type="text" id="inputBuscar" class="form-control text-uppercase" placeholder="Escribe para filtrar sala..." autocomplete="off">
-            <button type="button" class="btn btn-link text-muted pe-1 d-none" id="btnLimpiarBuscar">
-                &times;
-            </button>
+            <button type="button" class="btn btn-link text-muted pe-1 d-none" id="btnLimpiarBuscar">&times;</button>
         </div>
     </div>
 
@@ -43,6 +54,9 @@
         <thead>
             <tr>
                 <th style="min-width: 220px;">Nombre Sala</th>
+                @if ($esSuper)
+                <th style="min-width: 180px;">Institución</th>
+                @endif
                 <th style="min-width: 180px;">Programa de Estudio</th>
                 <th style="min-width: 150px;">Fecha Creación</th>
                 <th style="min-width: 150px;">Fecha Modificación</th>
@@ -52,67 +66,73 @@
             </tr>
         </thead>
         <tbody>
-            @forelse ($salas ?? [] as $sala)
-                <tr>
-                    <td>
-                        <div class="brand-chip">
-                            <span class="brand-chip-title">{{ $sala->nombre }}</span>
-                        </div>
-                    </td>
-                    <td>
-                        @if(!empty($sala->programa_estudio_nombre))
-                            <span class="badge-programa">
-                                {{ $sala->programa_estudio_nombre }}
-                            </span>
-                        @else
-                            <span class="text-muted fs-7">General / N/A</span>
+            @if (isset($salas) && count($salas) > 0)
+                @foreach ($salas as $sala)
+                    <tr>
+                        <td>
+                            <div class="brand-chip">
+                                <span class="brand-chip-title">{{ $sala->nombre }}</span>
+                            </div>
+                        </td>
+                        @if ($esSuper)
+                        <td>
+                            @if(!empty($sala->institucion_nombre))
+                                <span class="badge-programa">{{ $sala->institucion_nombre }}</span>
+                            @else
+                                <span class="text-muted fs-7">Sin institución</span>
+                            @endif
+                        </td>
                         @endif
-                    </td>
-                    <td>
-                        <span class="text-fecha">
-                            
-                            {{ !empty($sala->created_at) ? \Carbon\Carbon::parse($sala->created_at)->format('d/m/Y H:i') : '-' }}
-                        </span>
-                    </td>
-                    <td>
-                        <span class="text-fecha">
-                            
-                            {{ !empty($sala->updated_at) ? \Carbon\Carbon::parse($sala->updated_at)->format('d/m/Y H:i') : '-' }}
-                        </span>
-                    </td>
-                    @if ($puedeEditar || $puedeEliminar)
-                    <td class="text-center">
-                        <div class="d-inline-flex gap-1">
-                            @if ($puedeEditar)
-                            <button type="button" class="btn btn-outline-warning btn-action-icon" data-bs-toggle="modal" data-bs-target="#modalEditarSala{{ $sala->id }}" title="Editar Sala">
-                                Editar
-                            </button>
+                        <td>
+                            @if(!empty($sala->programa_estudio_nombre))
+                                <span class="badge-programa">{{ $sala->programa_estudio_nombre }}</span>
+                            @else
+                                <span class="text-muted fs-7">General / N/A</span>
                             @endif
-
-                            @if ($puedeEliminar)
-                            <form action="{{ route('catalogo.destroy', ['catalogo' => 'sala', 'id' => $sala->id]) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Desea eliminar la sala {{ $sala->nombre }}?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-outline-danger btn-action-icon" title="Eliminar Sala">
-                                    Eliminar
+                        </td>
+                        <td>
+                            <span class="text-fecha">
+                                {{ !empty($sala->created_at) ? \Carbon\Carbon::parse($sala->created_at)->format('d/m/Y H:i') : '-' }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="text-fecha">
+                                {{ !empty($sala->updated_at) ? \Carbon\Carbon::parse($sala->updated_at)->format('d/m/Y H:i') : '-' }}
+                            </span>
+                        </td>
+                        @if ($puedeEditar || $puedeEliminar)
+                        <td class="text-center">
+                            <div class="d-inline-flex gap-1">
+                                @if ($puedeEditar)
+                                <button type="button" class="btn btn-outline-warning btn-action-icon" data-bs-toggle="modal" data-bs-target="#modalEditarSala{{ $sala->id }}" title="Editar Sala">
+                                    Editar
                                 </button>
-                            </form>
-                            @endif
-                        </div>
-                    </td>
-                    @endif
-                </tr>
-            @empty
+                                @endif
+
+                                @if ($puedeEliminar)
+                                <form action="{{ route('catalogo.destroy', ['catalogo' => 'sala', 'id' => $sala->id]) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Desea eliminar la sala {{ $sala->nombre }}?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-outline-danger btn-action-icon" title="Eliminar Sala">
+                                        Eliminar
+                                    </button>
+                                </form>
+                                @endif
+                            </div>
+                        </td>
+                        @endif
+                    </tr>
+                @endforeach
+            @else
                 <tr id="rowSinDatos">
-                    <td colspan="{{ ($puedeEditar || $puedeEliminar) ? 5 : 4 }}" class="text-center py-5">
-                        
+                    <td colspan="{{ $cols }}" class="text-center py-5">
                         <h6 class="text-white fw-bold mb-1">No hay salas registradas</h6>
                         @if ($puedeCrear)
                         <p class="text-muted fs-7 mb-3">Haz clic en "Nueva Sala" para agregar la primera.</p>
                         @endif
                     </td>
                 </tr>
-            @endforelse
+            @endif
         </tbody>
     </table>
 </div>
@@ -134,14 +154,31 @@
                     </div>
 
                     <div class="modal-body">
-                        <div class="campo">
+                        <div class="campo mb-3">
                             <label for="nombre">Nombre de la Sala</label>
-                            <input type="text" id="nombre" name="nombre" class="text-uppercase" placeholder="Ej. LABORATORIO 1, AULA 204..." required autofocus>
+                            <input type="text" id="nombre" name="nombre" class="text-uppercase form-control bg-dark text-white border-secondary" placeholder="Ej. LABORATORIO 1, AULA 204..." required autofocus>
                         </div>
 
-                        <div class="campo">
-                            <label for="descripcion">Descripción / Ubicación</label>
-                            <textarea id="descripcion" name="descripcion" rows="4" placeholder="Ingrese una descripción o pabellón"></textarea>
+                        @if(auth()->user()->esSuperusuario() || auth()->user()->tipo_usuario === 'ADMIN_INSTITUCION')
+                        <div class="campo mb-3">
+                            <label for="programa_estudio_id">Programa de Estudio</label>
+                            <select id="programa_estudio_id" name="programa_estudio_id" class="form-select bg-dark text-white border-secondary" required>
+                                <option value="">Seleccione un programa...</option>
+                                @foreach($programasEstudio ?? [] as $prog)
+                                    <option value="{{ $prog->id }}">
+                                        {{ $prog->nombre }}{{ $esSuper && !empty($prog->institucion_nombre) ? ' (' . $prog->institucion_nombre . ')' : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @if (empty($programasEstudio) || count($programasEstudio) === 0)
+                                <small class="text-muted">Aún no hay programas de estudio. Regístrelos en "Mi institución" → Agregar Programa de Estudio.</small>
+                            @endif
+                        </div>
+                        @endif
+
+                        <div class="campo mb-3">
+                            <label for="observacion">Ubicación / Observación</label>
+                            <textarea id="observacion" name="observacion" rows="3" class="form-control bg-dark text-white border-secondary" placeholder="Ej. 2do piso, Pabellón B..."></textarea>
                         </div>
                     </div>
 
@@ -172,14 +209,27 @@
                     </div>
 
                     <div class="modal-body">
-                        <div class="campo">
+                        <div class="campo mb-3">
                             <label for="nombre_{{ $sala->id }}">Nombre de la Sala</label>
-                            <input type="text" id="nombre_{{ $sala->id }}" name="nombre" class="text-uppercase" value="{{ $sala->nombre }}" placeholder="Ingrese el nombre" required>
+                            <input type="text" id="nombre_{{ $sala->id }}" name="nombre" class="text-uppercase form-control bg-dark text-white border-secondary" value="{{ $sala->nombre }}" required>
                         </div>
 
-                        <div class="campo">
-                            <label for="descripcion_{{ $sala->id }}">Descripción / Ubicación</label>
-                            <textarea id="descripcion_{{ $sala->id }}" name="descripcion" rows="4" placeholder="Ingrese una descripción">{{ $sala->descripcion ?? '' }}</textarea>
+                        @if(auth()->user()->esSuperusuario() || auth()->user()->tipo_usuario === 'ADMIN_INSTITUCION')
+                        <div class="campo mb-3">
+                            <label for="programa_estudio_id_{{ $sala->id }}">Programa de Estudio</label>
+                            <select id="programa_estudio_id_{{ $sala->id }}" name="programa_estudio_id" class="form-select bg-dark text-white border-secondary" required>
+                                @foreach($programasEstudio ?? [] as $prog)
+                                    <option value="{{ $prog->id }}" {{ $sala->programa_estudio_id == $prog->id ? 'selected' : '' }}>
+                                        {{ $prog->nombre }}{{ $esSuper && !empty($prog->institucion_nombre) ? ' (' . $prog->institucion_nombre . ')' : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @endif
+
+                        <div class="campo mb-3">
+                            <label for="observacion_{{ $sala->id }}">Ubicación / Observación</label>
+                            <textarea id="observacion_{{ $sala->id }}" name="observacion" rows="3" class="form-control bg-dark text-white border-secondary">{{ $sala->observacion ?? '' }}</textarea>
                         </div>
                     </div>
 
