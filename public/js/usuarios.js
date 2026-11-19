@@ -27,6 +27,14 @@ document.addEventListener('DOMContentLoaded', function () {
             var op = selector.options[selector.selectedIndex];
             if (!op || !op.value) return;
             if (op.dataset.rol) rol.value = op.dataset.rol;
+
+            // Programas sugeridos: aquellos donde la persona ya figura como personal
+            if (op.dataset.programas) {
+                var ids = JSON.parse(op.dataset.programas);
+                modal.querySelectorAll('input[name="programas[]"]').forEach(function (c) {
+                    c.checked = ids.indexOf(parseInt(c.value, 10)) > -1;
+                });
+            }
             username.placeholder = op.dataset.dni ? 'Vacío = ' + op.dataset.dni : 'Vacío = DNI';
         });
     }

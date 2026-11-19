@@ -7,9 +7,10 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BienController;
 use App\Http\Controllers\CatalogoController;
 use App\Http\Controllers\ContextoController;
+use App\Http\Controllers\CuentaController;
 use App\Http\Controllers\InstitucionController;
 use App\Http\Controllers\InventarioController;
-use App\Http\Controllers\PersonalController;
+use App\Http\Controllers\MenuController;
 use App\Http\Controllers\UsuarioController;
 
 /*
@@ -51,68 +52,77 @@ Route::get('/salir', function (Request $request) {
 |--------------------------------------------------------------------------
 | Rutas Protegidas (Requieren Sesión)
 |--------------------------------------------------------------------------
+| Quién entra a cada una lo decide el middleware 'permiso:...'
+| (la matriz de permisos por rol está en App\Support\Permisos).
 */
 Route::middleware(['auth'])->group(function () {
 
-    Route::get('/menu', function () {
-        return view('menu');
-    })->name('menu');
+    Route::get('/menu', [MenuController::class, 'index'])->name('menu');
 
-    // Contexto (Solo superusuario: elegir con qué institución trabajar)
+    // Mi cuenta: cualquier rol puede cambiar su propia contraseña
+    Route::get('mi-cuenta', [CuentaController::class, 'edit'])->name('cuenta.edit');
+    Route::put('mi-cuenta', [CuentaController::class, 'update'])->name('cuenta.update');
+
+    // Contexto: programa de estudio con el que se trabaja (solo los que el usuario tiene asignados)
+    Route::post('contexto/programa', [ContextoController::class, 'programa'])->name('contexto.programa');
+
+    // Contexto: institución activa (solo superusuario)
     Route::post('contexto/institucion', [ContextoController::class, 'institucion'])
         ->middleware('superusuario')
         ->name('contexto.institucion');
 
-    // Almacén: Bienes (CRUD completo)
-    Route::prefix('almacen/bienes')->name('bienes.')->group(function () {
+    // Almacén: Bienes
+    //   ver         -> todos los roles
+    //   registrar   -> superusuario, director, coordinador, asistente
+    //   inactivar   -> superusuario, director, coordinador
+    Route::prefix('almacen/bienes')->name('bienes.')->middleware('permiso:bienes.ver')->group(function () {
         Route::get('/',        [BienController::class, 'index'])->name('index');
-        Route::post('/',       [BienController::class, 'store'])->name('store');
-        Route::put('/{id}',    [BienController::class, 'update'])->name('update');
-        Route::delete('/{id}', [BienController::class, 'destroy'])->name('destroy');
+        Route::post('/',       [BienController::class, 'store'])->middleware('permiso:bienes.registrar')->name('store');
+        Route::put('/{id}',    [BienController::class, 'update'])->middleware('permiso:bienes.registrar')->name('update');
+        Route::delete('/{id}', [BienController::class, 'destroy'])->middleware('permiso:bienes.inactivar')->name('destroy');
     });
 
-    // Almacén: Inventarios
-    Route::prefix('almacen/inventarios')->name('inventarios.')->group(function () {
+    // Almacén: Inventarios (consulta para todos los roles)
+    Route::prefix('almacen/inventarios')->name('inventarios.')->middleware('permiso:inventarios.ver')->group(function () {
         Route::get('/',             [InventarioController::class, 'index'])->name('index');
         Route::get('/{inventario}', [InventarioController::class, 'show'])->name('show');
     });
 
     // Almacén: Tablas / Catálogos auxiliares
-    Route::prefix('almacen/tablas/{catalogo}')->name('catalogo.')->group(function () {
+    // El permiso depende del catálogo y la acción (catalogo.sala.editar, ...): lo valida el controlador.
+    Route::prefix('almacen/tablas/{catalogo}')->name('catalogo.')->middleware('permiso:catalogos.ver')->group(function () {
         Route::get('/',        [CatalogoController::class, 'index'])->name('index');
         Route::post('/',       [CatalogoController::class, 'store'])->name('store');
         Route::put('/{id}',    [CatalogoController::class, 'update'])->name('update');
         Route::delete('/{id}', [CatalogoController::class, 'destroy'])->name('destroy');
     });
 
-    // Usuarios del personal (Admin de institución o superusuario)
+    // Usuarios del personal (director de la institución o superusuario)
     Route::resource('usuarios', UsuarioController::class)
         ->only(['index', 'store', 'update', 'destroy'])
-        ->middleware('administra-usuarios');
+        ->middleware('permiso:usuarios.gestionar');
 
-    // Instituciones (Alta, edición y baja: solo superusuario)
+    // Instituciones (alta, edición y baja: solo superusuario)
     Route::resource('instituciones', InstitucionController::class)
         ->parameters(['instituciones' => 'institucion'])
         ->only(['index', 'store', 'update', 'destroy'])
         ->middleware('superusuario');
 
+    // Ficha de la institución: superusuario y director (todo); coordinador (solo lectura de sus programas)
     Route::get('instituciones/{institucion}', [InstitucionController::class, 'show'])
+        ->middleware('permiso:institucion.ver')
         ->name('instituciones.show');
 
-    // Programas de estudio de una institución
-    Route::post('instituciones/{institucion}/programas', [InstitucionController::class, 'storePrograma'])
-        ->name('instituciones.programas.store');
+    // Programas y personal de la institución: solo superusuario y director
+    Route::middleware('permiso:institucion.gestionar')->group(function () {
+        Route::post('instituciones/{institucion}/programas', [InstitucionController::class, 'storePrograma'])
+            ->name('instituciones.programas.store');
 
-    // Personal asignado a una institución
-    Route::prefix('instituciones/{institucion}/personal')->name('instituciones.personal.')->group(function () {
-        Route::post('/',              [InstitucionController::class, 'storePersonal'])->name('store');
-        Route::put('/{asignacion}',    [InstitucionController::class, 'updatePersonal'])->name('update');
-        Route::delete('/{asignacion}', [InstitucionController::class, 'destroyPersonal'])->name('destroy');
+        Route::prefix('instituciones/{institucion}/personal')->name('instituciones.personal.')->group(function () {
+            Route::post('/',               [InstitucionController::class, 'storePersonal'])->name('store');
+            Route::put('/{asignacion}',    [InstitucionController::class, 'updatePersonal'])->name('update');
+            Route::delete('/{asignacion}', [InstitucionController::class, 'destroyPersonal'])->name('destroy');
+        });
     });
-
-    // Personal general
-    Route::resource('personal', PersonalController::class)
-        ->parameters(['personal' => 'persona'])
-        ->only(['index', 'store', 'update', 'destroy']);
 
 });

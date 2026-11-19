@@ -34,6 +34,35 @@ class ContextoInstitucion
         return -1;   // usuario sin institución y sin ser superusuario: no ve nada (falla cerrado)
     }
 
+    /**
+     * Programa de estudio con el que está trabajando ahora la sesión.
+     * Siempre es uno al que el usuario tiene acceso: si el guardado en sesión ya no es válido
+     * (cambió de institución, le quitaron el acceso, etc.) se vuelve al primero permitido.
+     */
+    public static function programaId(): ?int
+    {
+        $usuario = Auth::user();
+
+        if (! $usuario instanceof Usuario) {
+            return null;
+        }
+
+        $permitidos = $usuario->idsProgramasPermitidos();
+        $guardado   = (int) session('programa_estudio_id');
+
+        if ($guardado && in_array($guardado, $permitidos, true)) {
+            return $guardado;
+        }
+
+        $nuevo = $permitidos[0] ?? null;
+
+        $nuevo
+            ? session(['programa_estudio_id' => $nuevo])
+            : session()->forget('programa_estudio_id');
+
+        return $nuevo;
+    }
+
     /** Regla de validación: el programa debe existir y pertenecer a la institución activa. */
     public static function reglaPrograma(): Exists
     {

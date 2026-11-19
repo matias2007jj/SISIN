@@ -78,6 +78,9 @@
                     </td>
                     <td class="text-center">
                         <div class="d-inline-flex gap-1">
+                            @if ($u->tipo_usuario === \App\Models\Usuario::ADMIN_INSTITUCION && ! auth()->user()->esSuperusuario())
+                                <span class="text-muted fs-7">Lo gestiona el superusuario</span>
+                            @else
                             <button type="button" class="btn btn-outline-warning btn-action-icon"
                                     data-bs-toggle="modal" data-bs-target="#modalRegistro"
                                     data-url="{{ route('usuarios.update', $u) }}"
@@ -90,6 +93,7 @@
                                     @csrf @method('DELETE')
                                     <button type="submit" class="btn btn-outline-danger btn-action-icon">Eliminar</button>
                                 </form>
+                            @endif
                             @endif
                         </div>
                     </td>
@@ -137,9 +141,10 @@
                                         @php
                                             $cargos = $p->asignaciones->pluck('cargo');
                                             $rolSugerido = $cargos->contains('COORDINADOR') ? 'COORDINADOR'
-                                                         : ($cargos->contains('ASISTENTE') ? 'ASISTENTE' : 'CONSULTA');
+                                                         : ($cargos->contains('ASISTENTE') ? 'ASISTENTE' : 'DOCENTE');
+                                            $programasPersona = $p->asignaciones->pluck('programa_estudio_id')->unique()->values();
                                         @endphp
-                                        <option value="{{ $p->id }}" data-dni="{{ $p->dni }}" data-rol="{{ $rolSugerido }}">
+                                        <option value="{{ $p->id }}" data-dni="{{ $p->dni }}" data-rol="{{ $rolSugerido }}" data-programas="{{ $programasPersona->toJson() }}">
                                             {{ $p->nombre_completo }} — {{ $p->dni }}
                                         </option>
                                     @endforeach
@@ -169,7 +174,7 @@
                             <label for="tipo_usuario">Rol</label>
                             <select id="tipo_usuario" name="tipo_usuario" required>
                                 @foreach ($roles as $valor => $etiqueta)
-                                    <option value="{{ $valor }}" @selected($valor === 'CONSULTA')>{{ $etiqueta }}</option>
+                                    <option value="{{ $valor }}" @selected($valor === 'DOCENTE')>{{ $etiqueta }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -183,7 +188,7 @@
                                     <span class="text-muted fs-7">La institución aún no tiene programas.</span>
                                 @endforelse
                             </div>
-                            <small class="text-muted">El administrador de institución accede a todos los programas.</small>
+                            <small class="text-muted">Obligatorio para coordinador, asistente y docente: solo verán datos de estos programas. El administrador de institución accede a todos.</small>
                         </div>
 
                         <div class="js-solo-editar d-none form-check">

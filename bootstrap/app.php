@@ -13,7 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'superusuario' => \App\Http\Middleware\SoloSuperusuario::class,
-            'administra-usuarios' => \App\Http\Middleware\PuedeAdministrarUsuarios::class,
+            'permiso' => \App\Http\Middleware\TienePermiso::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -10,7 +10,17 @@
 @endpush
 
 @section('contenido')
-@php $global = auth()->user()->esSuperusuario() && ! auth()->user()->institucionActiva(); @endphp
+@include('organizacion._alertas')
+
+@php
+    $global = auth()->user()->esSuperusuario() && ! auth()->user()->institucionActiva();
+
+    // Programa: columna visible para quien ve toda la institución (superusuario / director)
+    $columnaPrograma  = $global || $verInstitucion;
+    // Acciones: cada rol ve solo los botones que puede usar (ver App\Support\Permisos)
+    $mostrarAcciones  = ! $global && ($puedeRegistrar || $puedeInactivar);
+    $columnas         = 9 + ($global ? 1 : 0) + ($columnaPrograma ? 1 : 0) - ($mostrarAcciones ? 0 : 1);
+@endphp
 
 <div class="row g-3 align-items-center justify-content-between mb-4">
     <div class="col-12 col-md-5 col-lg-4">
@@ -21,7 +31,7 @@
     </div>
     <div class="col-12 col-md-7 text-md-end d-flex flex-wrap justify-content-md-end align-items-center gap-2">
         <span class="badge-count">Total Registros: <span id="contadorRegistros">{{ count($bienes) }}</span></span>
-        @if (!$global)
+        @if (!$global && $puedeRegistrar)
             <button type="button" class="btn btn-success btn-action-icon" id="btnNuevoBien" style="background-color:#10b981; border:none;">
                 + Nuevo Bien
             </button>
@@ -35,6 +45,8 @@
             <tr>
                 @if ($global)
                     <th>Institución</th>
+                @endif
+                @if ($columnaPrograma)
                     <th>Programa</th>
                 @endif
                 <th>CBI</th>
@@ -45,7 +57,7 @@
                 <th>Marca</th>
                 <th>Modelo</th>
                 <th>Estado</th>
-                @if (!$global)
+                @if ($mostrarAcciones)
                     <th class="text-center">Acciones</th>
                 @endif
             </tr>
@@ -55,6 +67,8 @@
                 <tr class="{{ $b->estado_id == 6 ? 'opacity-50' : '' }}">
                     @if ($global)
                         <td class="text-fecha">{{ $b->institucion_nombre ?? '-' }}</td>
+                    @endif
+                    @if ($columnaPrograma)
                         <td><span class="badge-programa">{{ $b->programa_estudio_nombre ?? '-' }}</span></td>
                     @endif
                     <td class="text-fecha fw-bold">{{ $b->cbi }}</td>
@@ -71,29 +85,36 @@
                             <span class="badge bg-success">{{ $b->estado_nombre }}</span>
                         @endif
                     </td>
-                    @if (!$global)
+                    @if ($mostrarAcciones)
+                        @php $delProgramaActivo = (int) $b->programa_estudio_id === (int) $programaId; @endphp
                         <td class="text-center text-nowrap">
-                            <button type="button" class="btn btn-outline-warning btn-action-icon btn-editar"
-                                data-bien='@json($b)'
-                                data-url="{{ route('bienes.update', $b->id) }}">
-                                Editar
-                            </button>
-
-                            @if ($b->estado_id != 6)
-                                <form action="{{ route('bienes.destroy', $b->id) }}" method="POST" class="d-inline form-desactivar">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-outline-danger btn-action-icon">
-                                        Inactivar
+                            @if (! $delProgramaActivo)
+                                <span class="text-muted fs-7" title="Cambie el programa activo (menú de usuario) para modificar este bien">Otro programa</span>
+                            @else
+                                @if ($puedeRegistrar && ($b->estado_id != 6 || $puedeInactivar))
+                                    <button type="button" class="btn btn-outline-warning btn-action-icon btn-editar"
+                                        data-bien='@json($b)'
+                                        data-url="{{ route('bienes.update', $b->id) }}">
+                                        Editar
                                     </button>
-                                </form>
+                                @endif
+
+                                @if ($puedeInactivar && $b->estado_id != 6)
+                                    <form action="{{ route('bienes.destroy', $b->id) }}" method="POST" class="d-inline form-desactivar">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-outline-danger btn-action-icon">
+                                            Inactivar
+                                        </button>
+                                    </form>
+                                @endif
                             @endif
                         </td>
                     @endif
                 </tr>
             @empty
                 <tr id="rowSinDatos">
-                    <td colspan="{{ $global ? 10 : 9 }}" class="text-center py-5">
+                    <td colspan="{{ $columnas }}" class="text-center py-5">
                         <h6 class="text-white fw-bold mb-1">No hay bienes registrados</h6>
                         <p class="text-muted fs-7 mb-0">Este programa de estudio todavía no tiene bienes.</p>
                     </td>
@@ -103,7 +124,7 @@
     </table>
 </div>
 
-@if (!$global)
+@if (!$global && $puedeRegistrar)
 <div class="modal fade" id="modalBien" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <form id="formBien" method="POST" action="{{ route('bienes.store') }}" data-store-url="{{ route('bienes.store') }}" class="modal-content mi-modal">

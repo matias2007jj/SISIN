@@ -19,7 +19,8 @@ use Illuminate\Validation\ValidationException;
  */
 class UsuarioController extends Controller
 {
-    private const ROLES_ASIGNABLES = ['ADMIN_INSTITUCION', 'COORDINADOR', 'ASISTENTE', 'CONSULTA'];
+    /** Roles que pueden tener los usuarios del personal. ADMIN_INSTITUCION solo lo asigna el superusuario. */
+    private const ROLES_DEL_PERSONAL = [Usuario::COORDINADOR, Usuario::ASISTENTE, Usuario::DOCENTE];
 
     public function index()
     {
@@ -36,7 +37,7 @@ class UsuarioController extends Controller
             ->get();
 
         $programas = ProgramaEstudio::where('activo', true)->orderBy('nombre')->get();
-        $roles     = collect(Usuario::ROLES)->only(self::ROLES_ASIGNABLES);
+        $roles     = collect(Usuario::ROLES)->only($this->rolesAsignables());
         $sinInstitucion = ContextoInstitucion::id() === null;     // superusuario viendo "Todas"
 
         return view('usuarios.index', compact('usuarios', 'personal', 'programas', 'roles', 'sinInstitucion'));
@@ -55,10 +56,10 @@ class UsuarioController extends Controller
             'personal_id'  => ['required', 'integer'],
             'username'     => array_merge(['nullable'], Usuario::reglasUsername()),
             'password'     => ['nullable', 'string', 'min:6', 'max:60'],
-            'tipo_usuario' => ['required', Rule::in(self::ROLES_ASIGNABLES)],
-            'programas'    => ['nullable', 'array'],
+            'tipo_usuario' => ['required', Rule::in($this->rolesAsignables())],
+            'programas'    => [$this->exigeProgramas($request) ? 'required' : 'nullable', 'array'],
             'programas.*'  => ['integer', ContextoInstitucion::reglaPrograma()],
-        ]);
+        ], $this->mensajes());
 
         // Personal::find respeta el scope: solo encuentra personal de esta institución
         $persona = Personal::find($datos['personal_id']);
@@ -103,10 +104,10 @@ class UsuarioController extends Controller
         $datos = $request->validate([
             'username'     => array_merge(['required'], Usuario::reglasUsername($usuario->id)),
             'password'     => ['nullable', 'string', 'min:6', 'max:60'],
-            'tipo_usuario' => ['required', Rule::in(self::ROLES_ASIGNABLES)],
-            'programas'    => ['nullable', 'array'],
+            'tipo_usuario' => ['required', Rule::in($this->rolesAsignables())],
+            'programas'    => [$this->exigeProgramas($request) ? 'required' : 'nullable', 'array'],
             'programas.*'  => ['integer', ContextoInstitucion::reglaPrograma()],
-        ]);
+        ], $this->mensajes());
 
         $activo = $request->boolean('activo');
 
@@ -165,6 +166,35 @@ class UsuarioController extends Controller
     private function propio(Usuario $usuario): void
     {
         abort_unless($this->consulta()->whereKey($usuario->id)->exists(), 404);
+
+        // Las cuentas de administrador de institución las maneja solo el superusuario
+        // (Instituciones > Editar), no otro director.
+        abort_if(
+            $usuario->tipo_usuario === Usuario::ADMIN_INSTITUCION && ! auth()->user()->esSuperusuario(),
+            403,
+            'Solo el superusuario puede modificar cuentas de administrador de institución.'
+        );
+    }
+
+    /** El director asigna coordinador, asistente y docente; el superusuario además administrador. */
+    private function rolesAsignables(): array
+    {
+        return auth()->user()->esSuperusuario()
+            ? array_merge([Usuario::ADMIN_INSTITUCION], self::ROLES_DEL_PERSONAL)
+            : self::ROLES_DEL_PERSONAL;
+    }
+
+    /** Coordinador, asistente y docente necesitan al menos un programa; si no, entrarían y no verían nada. */
+    private function exigeProgramas(Request $request): bool
+    {
+        return in_array($request->input('tipo_usuario'), self::ROLES_DEL_PERSONAL, true);
+    }
+
+    private function mensajes(): array
+    {
+        return [
+            'programas.required' => 'Seleccione al menos un programa de estudio para este rol.',
+        ];
     }
 
     private function sincronizarProgramas(Usuario $usuario, array $ids): void

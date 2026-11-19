@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Scopes\InstitucionScope;
+use App\Support\Permisos;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -17,6 +18,9 @@ class Usuario extends Authenticatable
     use Auditable, SoftDeletes;
 
     public const ADMIN_INSTITUCION = 'ADMIN_INSTITUCION';
+    public const COORDINADOR       = 'COORDINADOR';
+    public const ASISTENTE         = 'ASISTENTE';
+    public const DOCENTE           = 'DOCENTE';
 
     /** Texto que se muestra al usuario para cada tipo_usuario. */
     public const ROLES = [
@@ -24,8 +28,11 @@ class Usuario extends Authenticatable
         'ADMIN_INSTITUCION' => 'Administrador de institución',
         'COORDINADOR'       => 'Coordinador',
         'ASISTENTE'         => 'Asistente',
-        'CONSULTA'          => 'Consulta',
+        'DOCENTE'           => 'Docente',
     ];
+
+    /** Memoria por petición de los programas permitidos (se calcula una sola vez). */
+    private ?array $idsProgramas = null;
 
     protected $table = 'usuarios';
 
@@ -94,7 +101,60 @@ class Usuario extends Authenticatable
     /** Quién puede crear/editar usuarios: el superusuario y el administrador de institución. */
     public function puedeAdministrarUsuarios(): bool
     {
-        return $this->esSuperusuario() || $this->tipo_usuario === self::ADMIN_INSTITUCION;
+        return $this->puede('usuarios.gestionar');
+    }
+
+    /** Un ADMINISTRADOR atado a una institución se trata como director de esa institución. */
+    public function rolEfectivo(): string
+    {
+        return $this->tipo_usuario === 'ADMINISTRADOR' ? self::ADMIN_INSTITUCION : (string) $this->tipo_usuario;
+    }
+
+    /** ¿Tiene este permiso? (ver App\Support\Permisos). El superusuario siempre puede. */
+    public function puede(string $permiso): bool
+    {
+        if ($this->esSuperusuario()) {
+            return true;
+        }
+
+        return in_array($permiso, Permisos::deRol($this->rolEfectivo()), true);
+    }
+
+    /** Superusuario y director ven todos los programas de la institución; el resto, solo los suyos. */
+    public function veTodaLaInstitucion(): bool
+    {
+        return $this->esSuperusuario() || $this->rolEfectivo() === self::ADMIN_INSTITUCION;
+    }
+
+    /** IDs de los programas de estudio activos con los que puede trabajar, ordenados por nombre. */
+    public function idsProgramasPermitidos(): array
+    {
+        if ($this->idsProgramas !== null) {
+            return $this->idsProgramas;
+        }
+
+        // ProgramaEstudio ya trae el filtro de institución (InstitucionScope)
+        $q = ProgramaEstudio::query()
+            ->where('programas_estudio.activo', true)
+            ->orderBy('programas_estudio.nombre');
+
+        if (! $this->veTodaLaInstitucion()) {
+            $q->whereIn('programas_estudio.id', function ($sub) {
+                $sub->select('programa_estudio_id')
+                    ->from('usuario_programa_estudio')
+                    ->where('usuario_id', $this->id)
+                    ->where('acceso', true);
+            });
+        }
+
+        return $this->idsProgramas = $q->pluck('programas_estudio.id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+    }
+
+    public function puedeUsarPrograma(int $programaId): bool
+    {
+        return in_array($programaId, $this->idsProgramasPermitidos(), true);
     }
 
     protected function rolEtiqueta(): Attribute
@@ -132,15 +192,8 @@ class Usuario extends Authenticatable
     /** Programa con el que arranca la sesión. */
     public function programaPorDefecto(): ?ProgramaEstudio
     {
-        $q = ProgramaEstudio::where('activo', true)->orderBy('nombre');   // ya filtrado por institución
+        $id = $this->idsProgramasPermitidos()[0] ?? null;
 
-        if ($this->esSuperusuario() || $this->tipo_usuario === self::ADMIN_INSTITUCION) {
-            return $q->first();
-        }
-
-        return $q->whereHas('usuarios', fn ($u) => $u
-                ->where('usuarios.id', $this->id)
-                ->where('usuario_programa_estudio.acceso', true))
-            ->first();
+        return $id ? ProgramaEstudio::find($id) : null;
     }
 }

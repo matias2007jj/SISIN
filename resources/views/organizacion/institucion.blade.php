@@ -2,8 +2,10 @@
 
 @section('title', 'SISIN - ' . $institucion->nombre)
 @section('titulo', $institucion->nombre)
-@section('boton', 'Agregar Personal')
-@section('modal_id', 'modalRegistro')
+@if ($puedeGestionar)
+    @section('boton', 'Agregar Personal')
+    @section('modal_id', 'modalRegistro')
+@endif
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/grupo.css') }}">
@@ -22,8 +24,12 @@
     </div>
 
     <div class="d-inline-flex flex-wrap gap-2">
-        <a href="{{ route('instituciones.index') }}" class="btn btn-outline-secondary btn-sm">Volver a Instituciones</a>
-        <button type="button" class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalPrograma">Agregar Programa de Estudio</button>
+        @if (auth()->user()->esSuperusuario())
+            <a href="{{ route('instituciones.index') }}" class="btn btn-outline-secondary btn-sm">Volver a Instituciones</a>
+        @endif
+        @if ($puedeGestionar)
+            <button type="button" class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalPrograma">Agregar Programa de Estudio</button>
+        @endif
     </div>
 </div>
 
@@ -51,7 +57,9 @@
                 <th style="min-width: 220px;">Programa de Estudio</th>
                 <th style="width: 140px;">Rol</th>
                 <th style="min-width: 170px;">Contacto</th>
-                <th class="text-center" style="width: 170px;">Acciones</th>
+                @if ($puedeGestionar)
+                    <th class="text-center" style="width: 170px;">Acciones</th>
+                @endif
             </tr>
         </thead>
         <tbody>
@@ -80,6 +88,7 @@
                             <br>{{ $p->email }}
                         @endif
                     </td>
+                    @if ($puedeGestionar)
                     <td class="text-center">
                         <div class="d-inline-flex gap-1">
                             <button type="button" class="btn btn-outline-warning btn-action-icon"
@@ -97,12 +106,15 @@
                             </form>
                         </div>
                     </td>
+                    @endif
                 </tr>
             @empty
                 <tr id="rowSinDatos">
-                    <td colspan="6" class="text-center py-5">
-                        <h6 class="text-white fw-bold mb-1">Esta institución aún no tiene personal</h6>
-                        <p class="text-muted fs-7 mb-0">Haz clic en "Agregar Personal" para registrar coordinadores, docentes o asistentes.</p>
+                    <td colspan="{{ $puedeGestionar ? 6 : 5 }}" class="text-center py-5">
+                        <h6 class="text-white fw-bold mb-1">{{ $puedeGestionar ? 'Esta institución aún no tiene personal' : 'Sus programas aún no tienen personal' }}</h6>
+                        @if ($puedeGestionar)
+                            <p class="text-muted fs-7 mb-0">Haz clic en "Agregar Personal" para registrar coordinadores, docentes o asistentes.</p>
+                        @endif
                     </td>
                 </tr>
             @endforelse
@@ -111,6 +123,7 @@
 </div>
 @endsection
 
+@if ($puedeGestionar)
 @section('modales')
 {{-- Agregar programa de estudio --}}
 <div class="modal fade" id="modalPrograma" tabindex="-1" aria-hidden="true">
@@ -250,6 +263,7 @@
     </div>
 </div>
 @endsection
+@endif
 
 @push('scripts')
 <script src="{{ asset('js/organizacion.js') }}"></script>

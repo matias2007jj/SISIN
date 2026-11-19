@@ -56,7 +56,9 @@
                 <th style="min-width: 180px;">Programa de Estudio</th>
                 <th style="min-width: 150px;">Fecha Creación</th>
                 <th style="min-width: 150px;">Fecha Modificación</th>
+                @if ($puedeEditar || $puedeEliminar)
                 <th class="text-center" style="width: 170px;">Acciones</th>
+                @endif
             </tr>
         </thead>
         <tbody>
@@ -88,12 +90,16 @@
                             {{ !empty($tipo->updated_at) ? \Carbon\Carbon::parse($tipo->updated_at)->format('d/m/Y H:i') : '-' }}
                         </span>
                     </td>
+                    @if ($puedeEditar || $puedeEliminar)
                     <td class="text-center">
                         <div class="d-inline-flex gap-1">
+                            @if ($puedeEditar)
                             <button type="button" class="btn btn-outline-warning btn-action-icon" data-bs-toggle="modal" data-bs-target="#modalEditarTipo{{ $tipo->id }}" title="Editar Tipo">
                                 Editar
                             </button>
+                            @endif
 
+                            @if ($puedeEliminar)
                             <form action="{{ route('catalogo.destroy', ['catalogo' => 'tipo', 'id' => $tipo->id]) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Desea eliminar el tipo {{ $tipo->nombre }}?')">
                                 @csrf
                                 @method('DELETE')
@@ -101,15 +107,19 @@
                                     Eliminar
                                 </button>
                             </form>
+                            @endif
                         </div>
                     </td>
+                    @endif
                 </tr>
             @empty
                 <tr id="rowSinDatos">
-                    <td colspan="5" class="text-center py-5">
+                    <td colspan="{{ ($puedeEditar || $puedeEliminar) ? 5 : 4 }}" class="text-center py-5">
                         
                         <h6 class="text-white fw-bold mb-1">No hay tipos registrados</h6>
+                        @if ($puedeCrear)
                         <p class="text-muted fs-7 mb-3">Haz clic en "Nuevo Tipo" para agregar el primero.</p>
+                        @endif
                     </td>
                 </tr>
             @endforelse

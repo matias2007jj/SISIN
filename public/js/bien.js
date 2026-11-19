@@ -1,4 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Confirmación antes de pasar a INACTIVO (también para roles que no ven el formulario de registro)
+    document.addEventListener('submit', (e) => {
+        const formDesactivar = e.target.closest('.form-desactivar');
+        if (!formDesactivar) return;
+
+        if (!confirm('¿Seguro que deseas pasar este bien a estado INACTIVO?')) {
+            e.preventDefault();
+        }
+    });
+
     const modalEl = document.getElementById('modalBien');
     if (!modalEl) return;
 
@@ -44,13 +54,4 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.show();
     });
 
-    // 3. Confirmación antes de pasar a INACTIVO
-    document.addEventListener('submit', (e) => {
-        const formDesactivar = e.target.closest('.form-desactivar');
-        if (!formDesactivar) return;
-
-        if (!confirm('¿Seguro que deseas pasar este bien a estado INACTIVO?')) {
-            e.preventDefault();
-        }
-    });
 });

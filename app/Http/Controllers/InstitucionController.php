@@ -9,6 +9,7 @@ use App\Models\ProgramaEstudio;
 use App\Models\Scopes\InstitucionScope;
 use App\Models\Usuario;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -26,20 +27,35 @@ class InstitucionController extends Controller
         return view('organizacion.instituciones', compact('instituciones'));
     }
 
-    /** Ficha de la institución: su personal con programa de estudio y cargo. */
+    /**
+     * Ficha de la institución: sus programas y su personal con programa de estudio y cargo.
+     * Superusuario y director ven todo y pueden gestionarlo; el coordinador solo ve (sin editar)
+     * los programas que tiene asignados y el personal de ellos.
+     */
     public function show(Institucion $institucion)
     {
+        /** @var Usuario $user */
+        $user           = Auth::user();
+        $puedeGestionar = $user->puede('institucion.gestionar');
+
+        $programas = $institucion->programas()->orderBy('nombre');
+
+        if (! $user->veTodaLaInstitucion()) {
+            $programas->whereIn('id', $user->idsProgramasPermitidos());
+        }
+
+        $programas = $programas->get();
+
         $asignaciones = Asignacion::with(['personal', 'programaEstudio'])
-            ->whereHas('programaEstudio', fn ($q) => $q->where('institucion_id', $institucion->id))
+            ->whereIn('programa_estudio_id', $programas->pluck('id'))
             ->whereHas('personal')
             ->get()
             ->sortBy(fn ($a) => $a->personal->apellidos . ' ' . $a->personal->nombres)
             ->values();
 
-        $programas = $institucion->programas()->orderBy('nombre')->get();
-        $cargos    = Asignacion::CARGOS;
+        $cargos = Asignacion::CARGOS;
 
-        return view('organizacion.institucion', compact('institucion', 'asignaciones', 'programas', 'cargos'));
+        return view('organizacion.institucion', compact('institucion', 'asignaciones', 'programas', 'cargos', 'puedeGestionar'));
     }
 
     /**
@@ -191,11 +207,19 @@ class InstitucionController extends Controller
             $persona = Personal::withoutGlobalScope(InstitucionScope::class)->withTrashed()->where('dni', $datos['dni'])->first();
 
             if ($persona) {
-                // Ya existe (quizá en otra institución): se reutiliza y se actualizan sus datos
+                // Ya existe (quizá en otra institución): se reutiliza el registro. Sus datos solo se
+                // actualizan si ya es personal de ESTA institución (o estaba eliminada); así un director
+                // no puede pisar los datos de alguien que trabaja en otra institución.
+                $yaEsDeEstaInstitucion = Asignacion::where('personal_id', $persona->id)
+                    ->whereHas('programaEstudio', fn ($q) => $q->where('institucion_id', $institucion->id))
+                    ->exists();
+
                 if ($persona->trashed()) {
                     $persona->restore();
+                    $persona->update($this->datosPersona($datos));
+                } elseif ($yaEsDeEstaInstitucion) {
+                    $persona->update($this->datosPersona($datos));
                 }
-                $persona->update($this->datosPersona($datos));
             } else {
                 $persona = Personal::create($this->datosPersona($datos));
             }
