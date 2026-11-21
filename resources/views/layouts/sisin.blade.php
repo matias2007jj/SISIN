@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Menú Principal - SISIN')</title>
 
+    <link rel="icon" type="image/png" href="{{ asset('img/SISIN_ICONO.png') }}?v=2" />
+    <link rel="shortcut icon" type="image/png" href="{{ asset('img/SISIN_ICONO.png') }}?v=2" />
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">

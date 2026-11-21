@@ -11,19 +11,32 @@
 
     $enAlmacen = request()->routeIs('catalogo.*', 'bienes.*', 'inventarios.*');
     $enCatalogos = request()->routeIs('catalogo.*');
+
+    $iconoUrl = null;
+    foreach (['png', 'jpg', 'jpeg', 'webp', 'svg'] as $ext) {
+        $ruta = "img/SISIN_ICONO.{$ext}";
+        if (file_exists(public_path($ruta))) {
+            $iconoUrl = asset($ruta);
+            break;
+        }
+    }
 @endphp
 
 {{-- Barra superior compacta solo visible en móvil/tablet (< 992px) --}}
 <header class="mobile-topbar d-lg-none">
     <div class="mobile-topbar-bar">
         <a class="navbar-brand fw-bold m-0" href="{{ url('/menu') }}">
-            <span class="brand-logo" aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="#10b981">
-                    <rect x="10" y="2" width="4.5" height="4.5" rx="1" transform="rotate(45 12.25 4.25)" />
-                    <rect x="16" y="8" width="4.5" height="4.5" rx="1" transform="rotate(45 18.25 10.25)" />
-                    <rect x="4" y="8" width="4.5" height="4.5" rx="1" transform="rotate(45 6.25 10.25)" />
-                    <rect x="10" y="14" width="4.5" height="4.5" rx="1" transform="rotate(45 12.25 16.25)" />
-                </svg>
+            <span class="brand-logo" aria-hidden="true" style="width: 32px; height: 32px; background: transparent !important; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                @if ($iconoUrl)
+                    <img src="{{ $iconoUrl }}" alt="Logo SISIN" width="30" height="30" style="width: 30px; height: 30px; object-fit: contain; display: block;">
+                @else
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#10b981">
+                        <rect x="10" y="2" width="4.5" height="4.5" rx="1" transform="rotate(45 12.25 4.25)" />
+                        <rect x="16" y="8" width="4.5" height="4.5" rx="1" transform="rotate(45 18.25 10.25)" />
+                        <rect x="4" y="8" width="4.5" height="4.5" rx="1" transform="rotate(45 6.25 10.25)" />
+                        <rect x="10" y="14" width="4.5" height="4.5" rx="1" transform="rotate(45 12.25 16.25)" />
+                    </svg>
+                @endif
             </span>
             <span>Sistema SISIN</span>
         </a>
@@ -45,13 +58,17 @@
 <aside class="sidebar-sisin" id="sidebarSisin" aria-label="Navegación principal">
     <div class="sidebar-header">
         <a class="navbar-brand m-0" href="{{ url('/menu') }}">
-            <span class="brand-logo" aria-hidden="true">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="#10b981">
-                    <rect x="10" y="2" width="4.5" height="4.5" rx="1" transform="rotate(45 12.25 4.25)" />
-                    <rect x="16" y="8" width="4.5" height="4.5" rx="1" transform="rotate(45 18.25 10.25)" />
-                    <rect x="4" y="8" width="4.5" height="4.5" rx="1" transform="rotate(45 6.25 10.25)" />
-                    <rect x="10" y="14" width="4.5" height="4.5" rx="1" transform="rotate(45 12.25 16.25)" />
-                </svg>
+            <span class="brand-logo" aria-hidden="true" style="width: 36px; height: 36px; background: transparent !important; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                @if ($iconoUrl)
+                    <img src="{{ $iconoUrl }}" alt="Logo SISIN" width="34" height="34" style="width: 34px; height: 34px; object-fit: contain; display: block;">
+                @else
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#10b981">
+                        <rect x="10" y="2" width="4.5" height="4.5" rx="1" transform="rotate(45 12.25 4.25)" />
+                        <rect x="16" y="8" width="4.5" height="4.5" rx="1" transform="rotate(45 18.25 10.25)" />
+                        <rect x="4" y="8" width="4.5" height="4.5" rx="1" transform="rotate(45 6.25 10.25)" />
+                        <rect x="10" y="14" width="4.5" height="4.5" rx="1" transform="rotate(45 12.25 16.25)" />
+                    </svg>
+                @endif
             </span>
             <span class="brand-text">Sistema SISIN</span>
         </a>

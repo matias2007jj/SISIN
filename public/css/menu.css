@@ -450,3 +450,25 @@ body {
 @media (prefers-reduced-motion: reduce) {
     * { transition: none !important; }
 }
+
+.sidebar-sisin .brand-logo,
+.mobile-topbar .brand-logo {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    min-height: 34px !important;
+    padding: 3px;
+    background-color: #ffffff !important;
+    border-radius: 8px;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-sisin .brand-logo img,
+.mobile-topbar .brand-logo img {
+    width: 28px !important;
+    height: 28px !important;
+    object-fit: contain;
+}

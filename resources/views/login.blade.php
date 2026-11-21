@@ -7,7 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}" />
+    <link rel="icon" type="image/png" href="{{ asset('img/SISIN_ICONO.png') }}?v=2" />
+    <link rel="shortcut icon" type="image/png" href="{{ asset('img/SISIN_ICONO.png') }}?v=2" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,18 +19,36 @@
 </head>
 
 <body class="auth-split-body">
+    @php
+        $buscarImg = function (string $nombre) {
+            foreach (['png', 'jpg', 'jpeg', 'webp', 'svg'] as $ext) {
+                $ruta = "img/{$nombre}.{$ext}";
+                if (file_exists(public_path($ruta))) {
+                    return asset($ruta);
+                }
+            }
+            return null;
+        };
+
+        $iconoUrl = $buscarImg('SISIN_ICONO');
+        $logoUrl  = $buscarImg('SISIN_LOGO') ?? $iconoUrl;
+    @endphp
 
     <div class="auth-split-wrapper">
         {{-- Panel izquierdo: Marca + Formulario --}}
         <section class="auth-left-panel">
             <header class="auth-brand">
                 <span class="brand-logo" aria-hidden="true">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#10b981">
-                        <rect x="10" y="2" width="4.5" height="4.5" rx="1" transform="rotate(45 12.25 4.25)"/>
-                        <rect x="16" y="8" width="4.5" height="4.5" rx="1" transform="rotate(45 18.25 10.25)"/>
-                        <rect x="4" y="8" width="4.5" height="4.5" rx="1" transform="rotate(45 6.25 10.25)"/>
-                        <rect x="10" y="14" width="4.5" height="4.5" rx="1" transform="rotate(45 12.25 16.25)"/>
-                    </svg>
+                    @if ($iconoUrl)
+                        <img src="{{ $iconoUrl }}" alt="Logo SISIN">
+                    @else
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="#10b981">
+                            <rect x="10" y="2" width="4.5" height="4.5" rx="1" transform="rotate(45 12.25 4.25)"/>
+                            <rect x="16" y="8" width="4.5" height="4.5" rx="1" transform="rotate(45 18.25 10.25)"/>
+                            <rect x="4" y="8" width="4.5" height="4.5" rx="1" transform="rotate(45 6.25 10.25)"/>
+                            <rect x="10" y="14" width="4.5" height="4.5" rx="1" transform="rotate(45 12.25 16.25)"/>
+                        </svg>
+                    @endif
                 </span>
                 <span class="brand-name">Sistema SISIN</span>
             </header>
@@ -39,7 +58,7 @@
                     <p class="auth-eyebrow">Gestiona tu inventario institucional</p>
                     <h1 class="auth-title">Iniciar sesión en SISIN</h1>
 
-                    <form id="loginForm" novalidate>
+                    <form id="loginForm" onsubmit="return false;" novalidate>
                         <div class="notched-group">
                             <label for="usu" class="notched-label">Usuario o correo</label>
                             <input
@@ -81,7 +100,7 @@
                             </button>
                         </div>
 
-                        <button class="btn btn-sisin-submit" id="btn_acceso" type="submit">
+                        <button class="btn btn-sisin-submit" id="btn_acceso" type="button">
                             Ingresar al sistema
                         </button>
                     </form>
@@ -139,13 +158,11 @@
             </svg>
 
             {{-- Imagen SISIN_LOGO centrada --}}
-            <div class="laptop-showcase">
-                <img
-                    src="{{ asset('img/SISIN_LOGO.png') }}"
-                    alt="Logo Sistema SISIN"
-                    class="sisin-logo-img"
-                >
-            </div>
+            @if ($logoUrl)
+                <div class="laptop-showcase">
+                    <img src="{{ $logoUrl }}" alt="Logo Sistema SISIN" class="sisin-logo-img">
+                </div>
+            @endif
 
             {{-- Indicadores inferiores derechos --}}
             <div class="art-dots" aria-hidden="true">
@@ -157,7 +174,7 @@
         </aside>
     </div>
 
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -165,4 +182,5 @@
     <script src="{{ asset('js/acceso.js') }}"></script>
 
 </body>
+
 </html>
