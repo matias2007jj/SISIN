@@ -24,8 +24,17 @@
     </div>
 @endif
 
+@if($errors->any())
+    <div class="alert alert-danger alert-dismissible fade show border-0 mb-4 text-white" style="background-color: rgba(255, 77, 77, 0.2); border-left: 4px solid #ff4d4d !important;" role="alert">
+        <div class="d-flex align-items-center">
+            <div>{{ $errors->first() }}</div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+@endif
+
 <div class="row g-3 align-items-center justify-content-between mb-4">
-    <div class="col-12 col-md-6 col-lg-5">
+    <div class="col-12 col-xl-5">
         <div class="input-group search-toolbar">
             <input
                 type="text"
@@ -42,8 +51,27 @@
         </div>
     </div>
 
-    <div class="col-12 col-md-6 text-md-end">
-        <span class="badge-count">
+    <div class="col-12 col-xl-7 d-flex flex-wrap align-items-center justify-content-xl-end gap-2">
+        @if ($puedeCrear)
+            <button type="button" class="btn btn-outline-light btn-sm px-3 py-2"
+                    data-bs-toggle="modal" data-bs-target="#modalImportarExcel">
+                Importar Excel
+            </button>
+        @endif
+
+        <a href="{{ route('catalogo.exportar.excel', ['catalogo' => 'grupo']) }}"
+           data-base-url="{{ route('catalogo.exportar.excel', ['catalogo' => 'grupo']) }}"
+           class="btn btn-outline-success btn-sm px-3 py-2 js-btn-exportar">
+            Exportar Excel
+        </a>
+
+        <a href="{{ route('catalogo.exportar.pdf', ['catalogo' => 'grupo']) }}" target="_blank"
+           data-base-url="{{ route('catalogo.exportar.pdf', ['catalogo' => 'grupo']) }}"
+           class="btn btn-outline-danger btn-sm px-3 py-2 js-btn-exportar">
+            Exportar PDF
+        </a>
+
+        <span class="badge-count ms-xl-2">
             Total Registros: <span id="contadorGrupos">{{ count($grupos) }}</span>
         </span>
     </div>
@@ -235,9 +263,51 @@
     </div>
 </div>
 @endforeach
+
+@if ($puedeCrear)
+<div class="modal fade" id="modalImportarExcel" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 bg-transparent">
+            <div class="mi-modal">
+                <form id="formImportarExcel" method="POST" action="{{ route('catalogo.importar.excel', ['catalogo' => 'grupo']) }}" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-header">
+                        <div class="titulo">
+                            <span class="punto"></span>
+                            <h2>Importar Grupos desde Excel</h2>
+                        </div>
+                        <button type="button" class="cerrar" data-bs-dismiss="modal" aria-label="Cerrar">&times;</button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="campo mb-3">
+                            <label for="archivo_excel">Archivo Excel (.xlsx, .xls, .csv)</label>
+                            <input type="file" id="archivo_excel" name="archivo_excel" accept=".xlsx,.xls,.csv" required>
+                        </div>
+
+                        <div class="mb-2">
+                            <small class="text-muted">Columnas: nombre, programa_estudio</small>
+                        </div>
+
+                        <a href="{{ route('catalogo.plantilla.excel', ['catalogo' => 'grupo']) }}" class="btn btn-outline-info btn-sm">
+                            Descargar plantilla Excel
+                        </a>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-cancelar" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-guardar">Importar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
 @endsection
 
 @push('scripts')
     <script src="{{ asset('js/modal.js') }}"></script>
     <script src="{{ asset('js/catalogo.js') }}"></script>
+    <script src="{{ asset('js/exportar.js') }}"></script>
 @endpush

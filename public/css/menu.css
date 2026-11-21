@@ -472,3 +472,102 @@ body {
     height: 28px !important;
     object-fit: contain;
 }
+
+/* ===== Gráfico de Bienes Activos vs Inactivos ===== */
+.dashboard-chart-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 12px;
+    padding: 1.5rem 1.75rem;
+}
+
+.dashboard-chart-title {
+    color: var(--text-light);
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: -.01em;
+}
+
+.dashboard-chart-subtitle {
+    color: var(--text-muted);
+    font-size: .84rem;
+}
+
+.chart-total-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: .4rem .85rem;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    border: 1px solid var(--border-strong);
+    color: var(--accent-green);
+    font-size: .8rem;
+    font-weight: 700;
+}
+
+.chart-canvas-wrapper {
+    position: relative;
+    height: 245px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.estado-stat-box {
+    display: flex;
+    align-items: center;
+    gap: .9rem;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid var(--border-card);
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+}
+
+.estado-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.estado-activo .estado-dot {
+    background-color: #10b981;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.55);
+}
+
+.estado-inactivo .estado-dot {
+    background-color: #ef4444;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.55);
+}
+
+.estado-label {
+    display: block;
+    color: var(--text-muted);
+    font-size: .8rem;
+}
+
+.estado-valor {
+    color: #ffffff;
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.operatividad-box {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-card);
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+}
+
+.operatividad-text {
+    color: var(--text-muted);
+}
+
+.operatividad-progress {
+    height: 8px;
+    background-color: rgba(239, 68, 68, 0.25);
+    border-radius: 999px;
+    overflow: hidden;
+}

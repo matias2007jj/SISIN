@@ -35,15 +35,42 @@
 @endif
 
 <div class="row g-3 align-items-center justify-content-between mb-4">
-    <div class="col-12 col-md-6 col-lg-5">
+    <div class="col-12 col-xl-5">
         <div class="input-group search-toolbar">
-            <input type="text" id="inputBuscar" class="form-control text-uppercase" placeholder="Escribe para filtrar marca..." autocomplete="off">
+            <input
+                type="text"
+                id="inputBuscar"
+                class="form-control text-uppercase"
+                placeholder="Escribe para filtrar marca..."
+                autocomplete="off"
+                data-tabla="#tablaMarcas tbody tr:not(#rowSinDatos)"
+                data-contador="#contadorMarcas"
+            >
             <button type="button" class="btn btn-link text-muted pe-1 d-none" id="btnLimpiarBuscar">&times;</button>
         </div>
     </div>
 
-    <div class="col-12 col-md-6 text-md-end">
-        <span class="badge-count">
+    <div class="col-12 col-xl-7 d-flex flex-wrap align-items-center justify-content-xl-end gap-2">
+        @if ($puedeCrear)
+            <button type="button" class="btn btn-outline-light btn-sm px-3 py-2"
+                    data-bs-toggle="modal" data-bs-target="#modalImportarExcel">
+                Importar Excel
+            </button>
+        @endif
+
+        <a href="{{ route('catalogo.exportar.excel', ['catalogo' => 'marca']) }}"
+           data-base-url="{{ route('catalogo.exportar.excel', ['catalogo' => 'marca']) }}"
+           class="btn btn-outline-success btn-sm px-3 py-2 js-btn-exportar">
+            Exportar Excel
+        </a>
+
+        <a href="{{ route('catalogo.exportar.pdf', ['catalogo' => 'marca']) }}" target="_blank"
+           data-base-url="{{ route('catalogo.exportar.pdf', ['catalogo' => 'marca']) }}"
+           class="btn btn-outline-danger btn-sm px-3 py-2 js-btn-exportar">
+            Exportar PDF
+        </a>
+
+        <span class="badge-count ms-xl-2">
             Total Registros: <span id="contadorMarcas">{{ count($marcas) }}</span>
         </span>
     </div>
@@ -233,43 +260,51 @@
     </div>
 </div>
 @endforeach
+
+@if ($puedeCrear)
+<div class="modal fade" id="modalImportarExcel" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 bg-transparent">
+            <div class="mi-modal">
+                <form id="formImportarExcel" method="POST" action="{{ route('catalogo.importar.excel', ['catalogo' => 'marca']) }}" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-header">
+                        <div class="titulo">
+                            <span class="punto"></span>
+                            <h2>Importar Marcas desde Excel</h2>
+                        </div>
+                        <button type="button" class="cerrar" data-bs-dismiss="modal" aria-label="Cerrar">&times;</button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="campo mb-3">
+                            <label for="archivo_excel">Archivo Excel (.xlsx, .xls, .csv)</label>
+                            <input type="file" id="archivo_excel" name="archivo_excel" accept=".xlsx,.xls,.csv" required>
+                        </div>
+
+                        <div class="mb-2">
+                            <small class="text-muted">Columnas: nombre, programa_estudio</small>
+                        </div>
+
+                        <a href="{{ route('catalogo.plantilla.excel', ['catalogo' => 'marca']) }}" class="btn btn-outline-info btn-sm">
+                            Descargar plantilla Excel
+                        </a>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-cancelar" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-guardar">Importar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/modal.js') }}"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const inputBuscar = document.getElementById('inputBuscar');
-        const btnLimpiar = document.getElementById('btnLimpiarBuscar');
-        const rows = document.querySelectorAll('#tablaMarcas tbody tr:not(#rowSinDatos)');
-        const contador = document.getElementById('contadorMarcas');
-
-        if (inputBuscar) {
-            inputBuscar.addEventListener('keyup', function() {
-                const filter = this.value.toUpperCase().trim();
-                let visibles = 0;
-
-                btnLimpiar.classList.toggle('d-none', filter === '');
-
-                rows.forEach(row => {
-                    const textContent = row.textContent || row.innerText;
-                    if (textContent.toUpperCase().indexOf(filter) > -1) {
-                        row.style.display = "";
-                        visibles++;
-                    } else {
-                        row.style.display = "none";
-                    }
-                });
-
-                if (contador) contador.textContent = visibles;
-            });
-
-            btnLimpiar.addEventListener('click', function() {
-                inputBuscar.value = '';
-                inputBuscar.dispatchEvent(new Event('keyup'));
-                inputBuscar.focus();
-            });
-        }
-    });
-</script>
+    <script src="{{ asset('js/modal.js') }}"></script>
+    <script src="{{ asset('js/catalogo.js') }}"></script>
+    <script src="{{ asset('js/exportar.js') }}"></script>
 @endpush

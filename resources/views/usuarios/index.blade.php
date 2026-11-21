@@ -17,19 +17,39 @@
 
 @if ($sinInstitucion)
     <div class="alerta-sisin error" role="alert">
-        Está viendo todas las instituciones. Para crear un usuario, elija una en el menú de usuario → <strong>Institución activa</strong>.
+        Está viendo todas las instituciones. Para crear o importar usuarios, elija una en el menú de usuario → <strong>Institución activa</strong>.
     </div>
 @endif
 
 <div class="row g-3 align-items-center justify-content-between mb-4">
-    <div class="col-12 col-md-6 col-lg-5">
+    <div class="col-12 col-xl-5">
         <div class="input-group search-toolbar">
             <input type="text" id="inputBuscar" class="form-control text-uppercase" placeholder="Filtrar por nombre, DNI, usuario, rol o programa..." autocomplete="off">
             <button type="button" class="btn btn-link text-muted pe-1 d-none" id="btnLimpiarBuscar">&times;</button>
         </div>
     </div>
-    <div class="col-12 col-md-6 text-md-end">
-        <span class="badge-count">Total Registros: <span id="contadorRegistros">{{ count($usuarios) }}</span></span>
+
+    <div class="col-12 col-xl-7 d-flex flex-wrap align-items-center justify-content-xl-end gap-2">
+        @if (! $sinInstitucion)
+            <button type="button" class="btn btn-outline-light btn-sm px-3 py-2"
+                    data-bs-toggle="modal" data-bs-target="#modalImportarExcel">
+                Importar Excel
+            </button>
+        @endif
+
+        <a href="{{ route('usuarios.exportar.excel') }}"
+           class="btn btn-outline-success btn-sm px-3 py-2">
+            Exportar Excel
+        </a>
+
+        <a href="{{ route('usuarios.exportar.pdf') }}" target="_blank"
+           class="btn btn-outline-danger btn-sm px-3 py-2">
+            Exportar PDF
+        </a>
+
+        <span class="badge-count ms-xl-2">
+            Total Registros: <span id="contadorRegistros">{{ count($usuarios) }}</span>
+        </span>
     </div>
 </div>
 
@@ -37,15 +57,17 @@
     <table class="table table-sisin align-middle" id="tablaRegistros">
         <thead>
             <tr>
-                <th style="min-width: 220px;">Apellidos y Nombres</th>
-                <th style="width: 105px;">DNI</th>
-                <th style="min-width: 150px;">Usuario</th>
-                @if ($sinInstitucion)<th>Institución</th>@endif
-                <th style="width: 145px;">Rol</th>
-                <th style="min-width: 200px;">Programas de estudio</th>
-                <th style="min-width: 160px;">Contacto</th>
+                <th style="min-width: 210px;">Apellidos y Nombres</th>
+                <th style="width: 95px;">DNI</th>
+                <th style="min-width: 155px;">Usuario</th>
+                @if ($sinInstitucion)
+                    <th style="min-width: 230px;">Institución</th>
+                @endif
+                <th style="min-width: 195px;">Rol</th>
+                <th style="min-width: 185px;">Programas de estudio</th>
+                <th style="min-width: 165px;">Contacto</th>
                 <th class="text-center" style="width: 100px;">Estado</th>
-                <th class="text-center" style="width: 170px;">Acciones</th>
+                <th class="text-center" style="width: 175px; min-width: 175px;">Acciones</th>
             </tr>
         </thead>
         <tbody>
@@ -70,10 +92,14 @@
                     <td>
                         <span class="brand-chip-title">{{ $p?->nombre_completo ?? '-' }}</span>
                     </td>
-                    <td class="text-fecha">{{ $p?->dni ?? '-' }}</td>
+                    <td class="text-fecha text-nowrap">{{ $p?->dni ?? '-' }}</td>
                     <td class="text-fecha">{{ $u->username }}</td>
-                    @if ($sinInstitucion)<td class="text-fecha">{{ $u->institucion->nombre ?? '-' }}</td>@endif
-                    <td><span class="badge-rol">{{ $u->rol_etiqueta }}</span></td>
+                    @if ($sinInstitucion)
+                        <td class="text-fecha">{{ $u->institucion->nombre ?? '-' }}</td>
+                    @endif
+                    <td class="text-nowrap">
+                        <span class="badge-rol">{{ $u->rol_etiqueta }}</span>
+                    </td>
                     <td class="text-fecha">
                         @if ($u->tipo_usuario === \App\Models\Usuario::ADMIN_INSTITUCION)
                             Todos
@@ -87,10 +113,10 @@
                             <br>{{ $p->email }}
                         @endif
                     </td>
-                    <td class="text-center">
+                    <td class="text-center text-nowrap">
                         <span class="badge-rol {{ $u->activo ? '' : 'badge-inactivo' }}">{{ $u->activo ? 'ACTIVO' : 'INACTIVO' }}</span>
                     </td>
-                    <td class="text-center">
+                    <td class="text-center text-nowrap">
                         <div class="d-inline-flex gap-1">
                             @if ($u->tipo_usuario === \App\Models\Usuario::ADMIN_INSTITUCION && ! auth()->user()->esSuperusuario())
                                 <span class="text-muted fs-7">Lo gestiona el superusuario</span>
@@ -127,6 +153,7 @@
 @endsection
 
 @section('modales')
+{{-- Modal Crear / Editar Usuario --}}
 <div class="modal fade" id="modalRegistro" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 bg-transparent">
@@ -244,6 +271,49 @@
         </div>
     </div>
 </div>
+
+{{-- Modal Importar Usuarios desde Excel --}}
+@if (! $sinInstitucion)
+<div class="modal fade" id="modalImportarExcel" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 bg-transparent">
+            <div class="mi-modal">
+                <form method="POST" action="{{ route('usuarios.importar.excel') }}" enctype="multipart/form-data">
+                    @csrf
+
+                    <div class="modal-header">
+                        <div class="titulo">
+                            <span class="punto"></span>
+                            <h2>Importar Usuarios desde Excel</h2>
+                        </div>
+                        <button type="button" class="cerrar" data-bs-dismiss="modal" aria-label="Cerrar">&times;</button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="campo mb-3">
+                            <label for="archivo_excel">Archivo Excel (.xlsx, .xls, .csv)</label>
+                            <input type="file" id="archivo_excel" name="archivo_excel" accept=".xlsx,.xls,.csv" required>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-muted">Columnas: apellidos, nombres, dni, celular, email, direccion, username, password, rol</small>
+                        </div>
+
+                        <a href="{{ route('usuarios.plantilla.excel') }}" class="btn btn-outline-info btn-sm">
+                            Descargar plantilla Excel
+                        </a>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-cancelar" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-guardar">Importar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
 @endsection
 
 @push('scripts')

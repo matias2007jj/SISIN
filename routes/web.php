@@ -71,10 +71,22 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::prefix('almacen/tablas/{catalogo}')->name('catalogo.')->middleware('permiso:catalogos.ver')->group(function () {
-        Route::get('/',        [CatalogoController::class, 'index'])->name('index');
-        Route::post('/',       [CatalogoController::class, 'store'])->name('store');
-        Route::put('/{id}',    [CatalogoController::class, 'update'])->name('update');
-        Route::delete('/{id}', [CatalogoController::class, 'destroy'])->name('destroy');
+        Route::get('/',               [CatalogoController::class, 'index'])->name('index');
+        Route::post('/',              [CatalogoController::class, 'store'])->name('store');
+        Route::put('/{id}',           [CatalogoController::class, 'update'])->name('update');
+        Route::delete('/{id}',        [CatalogoController::class, 'destroy'])->name('destroy');
+
+        Route::post('/importar-excel', [CatalogoController::class, 'importarExcel'])->name('importar.excel');
+        Route::get('/plantilla-excel', [CatalogoController::class, 'plantillaExcel'])->name('plantilla.excel');
+        Route::get('/exportar-excel',  [CatalogoController::class, 'exportarExcel'])->name('exportar.excel');
+        Route::get('/exportar-pdf',    [CatalogoController::class, 'exportarPdf'])->name('exportar.pdf');
+    });
+
+    Route::prefix('usuarios')->name('usuarios.')->middleware('permiso:usuarios.gestionar')->group(function () {
+        Route::post('importar-excel', [UsuarioController::class, 'importarExcel'])->name('importar.excel');
+        Route::get('plantilla-excel', [UsuarioController::class, 'plantillaExcel'])->name('plantilla.excel');
+        Route::get('exportar-excel',  [UsuarioController::class, 'exportarExcel'])->name('exportar.excel');
+        Route::get('exportar-pdf',    [UsuarioController::class, 'exportarPdf'])->name('exportar.pdf');
     });
 
     Route::resource('usuarios', UsuarioController::class)

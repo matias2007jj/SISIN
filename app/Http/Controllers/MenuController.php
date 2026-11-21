@@ -19,46 +19,36 @@ class MenuController extends Controller
     public function index()
     {
         /** @var Usuario $user */
-        $user           = Auth::user();
-        $ids            = $user->idsProgramasPermitidos();
-        $verInstitucion = $user->veTodaLaInstitucion();
-        $institucion    = $user->institucionActiva();
-        $global         = $user->esSuperusuario() && ! $institucion;
+        $user           = Auth::user();$ids            = $user->idsProgramasPermitidos();$verInstitucion = $user->veTodaLaInstitucion();$institucion    = $user->institucionActiva();$global         = $user->esSuperusuario() && !$institucion;
 
-        $bienes = Bien::query();
-        $inventarios = Inventario::query()->where('estado_inventario', 'ABIERTO');
+        $bienes = Bien::query();$inventarios = Inventario::query()->where('estado_inventario', 'ABIERTO');
 
         if (! $verInstitucion) {
-            $bienes->whereHas('sala', fn ($q) => $q->whereIn('programa_estudio_id', $ids));
-            $inventarios->whereIn('programa_estudio_id', $ids);
+            $bienes->whereHas('sala', fn ($q) => $q->whereIn('programa_estudio_id',$ids));
+            $inventarios->whereIn('programa_estudio_id',$ids);
         }
 
-        $totalBienes = (clone $bienes)->count();
-        $inactivos   = (clone $bienes)->where('estado_id', self::ESTADO_INACTIVO)->count();
-        $operativos  = $totalBienes - $inactivos;
+        $totalBienes = (clone $bienes)->count();$inactivos   = (clone $bienes)->where('estado_id', self::ESTADO_INACTIVO)->count();$operativos  = $totalBienes -$inactivos;
 
-        if ($global) {
-            $resumen = [
+        if ($global) {$resumen = [
                 ['label' => 'Instituciones',        'value' => Institucion::count()],
                 ['label' => 'Programas de estudio', 'value' => ProgramaEstudio::count()],
                 ['label' => 'Personal registrado',  'value' => Personal::count()],
                 ['label' => 'Bienes operativos',    'value' => $operativos],
             ];
-        } elseif ($verInstitucion) {
-            $resumen = [
+        } elseif ($verInstitucion) {$resumen = [
                 ['label' => 'Programas de estudio', 'value' => count($ids)],
                 ['label' => 'Personal',             'value' => Personal::count()],
                 ['label' => 'Bienes operativos',    'value' => $operativos],
                 ['label' => 'Usuarios',             'value' => $this->totalUsuarios()],
             ];
-        } elseif ($user->puede('institucion.ver')) {       
-            $resumen = [
+        } elseif ($user->puede('institucion.ver')) {$resumen = [
                 ['label' => 'Mis programas',          'value' => count($ids)],
                 ['label' => 'Personal a cargo',       'value' => Asignacion::whereIn('programa_estudio_id', $ids)->distinct()->count('personal_id')],
                 ['label' => 'Bienes operativos',      'value' => $operativos],
                 ['label' => 'Inventarios abiertos',   'value' => $inventarios->count()],
             ];
-        } else {                                          
+        } else {
             $resumen = [
                 ['label' => 'Mis programas',        'value' => count($ids)],
                 ['label' => 'Bienes operativos',    'value' => $operativos],
@@ -71,10 +61,12 @@ class MenuController extends Controller
 
         return view('menu', [
             'resumen'        => $resumen,
-            'accesos'        => $this->accesos($user, $institucion),
+            'accesos'        => $this->accesos($user,$institucion),
             'institucion'    => $institucion,
             'programaActivo' => $programaActivo,
             'global'         => $global,
+            'bienesActivos'  => $operativos,
+            'bienesInactivos'=> $inactivos,
         ]);
     }
 
@@ -82,8 +74,7 @@ class MenuController extends Controller
     {
         $accesos = [];
 
-        if ($user->puede('bienes.ver')) {
-            $accesos[] = [
+        if ($user->puede('bienes.ver')) {$accesos[] = [
                 'titulo' => 'Bienes',
                 'texto'  => $user->puede('bienes.registrar')
                     ? 'Registre, edite y consulte los bienes del programa.'
@@ -92,16 +83,14 @@ class MenuController extends Controller
             ];
         }
 
-        if ($user->puede('inventarios.ver')) {
-            $accesos[] = [
+        if ($user->puede('inventarios.ver')) {$accesos[] = [
                 'titulo' => 'Toma de Inventario',
                 'texto'  => 'Consulte las tomas de inventario realizadas.',
                 'url'    => route('inventarios.index'),
             ];
         }
 
-        if ($user->puede('catalogos.ver')) {
-            $accesos[] = [
+        if ($user->puede('catalogos.ver')) {$accesos[] = [
                 'titulo' => 'Tablas Generales',
                 'texto'  => $user->puede('catalogo.sala.crear')
                     ? 'Salas, grupos, tipos, marcas y modelos del programa.'
@@ -110,15 +99,12 @@ class MenuController extends Controller
             ];
         }
 
-        if ($user->esSuperusuario()) {
-            $accesos[] = [
+        if ($user->esSuperusuario()) {$accesos[] = [
                 'titulo' => 'Instituciones',
                 'texto'  => 'Alta de instituciones y de su usuario administrador.',
                 'url'    => route('instituciones.index'),
             ];
-        } elseif ($user->institucion_id && $user->puede('institucion.ver')) {
-            $gestiona = $user->puede('institucion.gestionar');
-            $accesos[] = [
+        } elseif ($user->institucion_id && $user->puede('institucion.ver')) {$gestiona = $user->puede('institucion.gestionar');$accesos[] = [
                 'titulo' => $gestiona ? 'Mi institución' : 'Mi programa',
                 'texto'  => $gestiona
                     ? 'Programas de estudio y personal de la institución.'
@@ -127,8 +113,7 @@ class MenuController extends Controller
             ];
         }
 
-        if ($user->puedeAdministrarUsuarios()) {
-            $accesos[] = [
+        if ($user->puedeAdministrarUsuarios()) {$accesos[] = [
                 'titulo' => 'Usuarios',
                 'texto'  => 'Cree usuarios para su personal y asígneles rol y programas.',
                 'url'    => route('usuarios.index'),
@@ -143,7 +128,7 @@ class MenuController extends Controller
         $q = Usuario::query()->whereNotNull('institucion_id');
 
         if (($id = ContextoInstitucion::id()) !== null) {
-            $q->where('institucion_id', $id);
+            $q->where('institucion_id',$id);
         }
 
         return $q->count();

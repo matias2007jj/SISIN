@@ -96,6 +96,7 @@ main.plantilla-page {
 }
 
 .table-sisin-wrapper,
+
 .table-sisin {
     --bs-table-bg: #0b1114 !important;
     --bs-table-striped-bg: #0e161a !important;
@@ -115,4 +116,94 @@ main.plantilla-page {
 .table-sisin tbody td {
     background-color: #0b1114 !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+main:has(#tablaRegistros),
+section:has(#tablaRegistros),
+div:has(#tablaRegistros) {
+    max-width: none !important;
+}
+
+div:has(> .table-sisin-wrapper),
+.table-sisin-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+@media (min-width: 992px) {
+    .table-sisin-wrapper {
+        overflow-x: clip !important;
+    }
+
+    #tablaRegistros {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+}
+
+#tablaRegistros th,
+#tablaRegistros td {
+    padding: 0.8rem 0.65rem;
+    vertical-align: middle;
+}
+
+#tablaRegistros th,
+#tablaRegistros .badge,
+#tablaRegistros .badge-rol,
+#tablaRegistros .badge-estado-activo,
+#tablaRegistros .badge-estado-inactivo,
+#tablaRegistros .btn-action-icon {
+    white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+    .search-toolbar {
+        min-width: 390px;
+    }
+}
+
+/* Expande el contenedor principal en todas las vistas con tablas del sistema */
+main:has(.table-sisin),
+section:has(.table-sisin),
+div:has(.table-sisin) {
+    max-width: none !important;
+    width: 100% !important;
+}
+
+div:has(> .table-sisin-wrapper),
+.table-sisin-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+@media (min-width: 992px) {
+    .table-sisin-wrapper {
+        overflow-x: clip !important;
+    }
+
+    .table-sisin {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+}
+
+.table-sisin th,
+.table-sisin td {
+    padding: 0.9rem 1rem;
+    vertical-align: middle;
+}
+
+.table-sisin th,
+.table-sisin .badge,
+.table-sisin .badge-rol,
+.table-sisin .badge-programa,
+.table-sisin .badge-estado-activo,
+.table-sisin .badge-estado-inactivo,
+.table-sisin .btn-action-icon {
+    white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+    .search-toolbar {
+        min-width: 390px;
+    }
 }
