@@ -54,6 +54,7 @@ document.addEventListener('DOMContentLoaded', function () {
         metodo.disabled = !datos;
         modal.querySelector('.js-titulo').textContent = datos ? form.dataset.tituloEditar : form.dataset.tituloNuevo;
         modal.querySelectorAll('.js-solo-nuevo').forEach(function (el) { el.classList.toggle('d-none', !!datos); });
+        modal.querySelectorAll('.js-solo-editar').forEach(function (el) { el.classList.toggle('d-none', !datos); });
 
         if (datos) {
             Object.keys(datos).forEach(function (clave) {

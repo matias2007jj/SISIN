@@ -13,7 +13,6 @@ use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\UsuarioController;
 
-
 Route::get('/', function () {
     return redirect()->route('menu');
 });
@@ -44,13 +43,14 @@ Route::get('/salir', function (Request $request) {
     return redirect()->route('login');
 })->name('salir.index');
 
-
 Route::middleware(['auth'])->group(function () {
 
     Route::get('/menu', [MenuController::class, 'index'])->name('menu');
 
-    Route::get('mi-cuenta', [CuentaController::class, 'edit'])->name('cuenta.edit');
-    Route::put('mi-cuenta', [CuentaController::class, 'update'])->name('cuenta.update');
+    Route::middleware('superusuario')->group(function () {
+        Route::get('mi-cuenta', [CuentaController::class, 'edit'])->name('cuenta.edit');
+        Route::put('mi-cuenta', [CuentaController::class, 'update'])->name('cuenta.update');
+    });
 
     Route::post('contexto/programa', [ContextoController::class, 'programa'])->name('contexto.programa');
 
@@ -81,7 +81,6 @@ Route::middleware(['auth'])->group(function () {
         ->only(['index', 'store', 'update', 'destroy'])
         ->middleware('permiso:usuarios.gestionar');
 
-
     Route::resource('instituciones', InstitucionController::class)
         ->parameters(['instituciones' => 'institucion'])
         ->only(['index', 'store', 'update', 'destroy'])
@@ -94,12 +93,10 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('permiso:institucion.gestionar')->group(function () {
         Route::post('instituciones/{institucion}/programas', [InstitucionController::class, 'storePrograma'])
             ->name('instituciones.programas.store');
-
-        Route::prefix('instituciones/{institucion}/personal')->name('instituciones.personal.')->group(function () {
-            Route::post('/',               [InstitucionController::class, 'storePersonal'])->name('store');
-            Route::put('/{asignacion}',    [InstitucionController::class, 'updatePersonal'])->name('update');
-            Route::delete('/{asignacion}', [InstitucionController::class, 'destroyPersonal'])->name('destroy');
-        });
+        Route::put('instituciones/{institucion}/programas/{programa}', [InstitucionController::class, 'updatePrograma'])
+            ->name('instituciones.programas.update');
+        Route::delete('instituciones/{institucion}/programas/{programa}', [InstitucionController::class, 'destroyPrograma'])
+            ->name('instituciones.programas.destroy');
     });
 
 });

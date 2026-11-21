@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.3
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 19-11-2026 a las 08:20:33
--- Versión del servidor: 10.11.16-MariaDB
--- Versión de PHP: 8.3.36
+-- Tiempo de generación: 21-11-2026 a las 02:24:35
+-- Versión del servidor: 10.4.32-MariaDB
+-- Versión de PHP: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -414,11 +414,9 @@ CREATE TABLE `grupos` (
 --
 
 INSERT INTO `grupos` (`id`, `programa_estudio_id`, `nombre`, `created_by`, `updated_by`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(12, 1, '6', 1, 1, '2026-11-19 05:57:32', '2026-11-19 05:57:32', '2026-11-19 06:06:34'),
 (13, 14, 'PC-1', 10, NULL, '2026-11-19 06:18:52', '2026-11-19 06:18:52', NULL),
 (14, 14, 'PC-2', 10, NULL, '2026-11-19 06:19:04', '2026-11-19 06:19:04', NULL),
 (15, 13, 'ECO', 9, 9, '2026-11-19 06:19:33', '2026-11-19 06:19:33', '2026-11-19 06:19:38'),
-(16, 2, 'COMPUTADORAS', 1, NULL, '2026-11-19 06:21:32', '2026-11-19 06:21:32', NULL),
 (17, 14, 'COMPUTADORAS', 1, NULL, '2026-11-19 06:21:59', '2026-11-19 06:21:59', NULL),
 (18, 17, 'PC-01', 11, NULL, '2026-11-19 07:08:21', '2026-11-19 07:08:21', NULL);
 
@@ -446,13 +444,14 @@ CREATE TABLE `instituciones` (
 --
 
 INSERT INTO `instituciones` (`id`, `ruc`, `nombre`, `tipo`, `direccion`, `created_by`, `updated_by`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, '11111111111', 'IESTP JULIO C. TELLO', 'INSTITUTO', 'Villa El Salvador', NULL, 1, '2026-10-01 04:53:41', '2026-11-19 12:00:52', NULL),
+(1, '11111111111', 'IESTP JULIO C. TELLO', 'INSTITUTO', 'Villa El Salvador', NULL, 1, '2026-10-01 04:53:41', '2026-11-21 04:33:49', '2026-11-21 04:33:49'),
 (2, '20279889208', 'PRISMA', 'COLEGIO', 'AV. VILAUTA NRO. SN SANTA RITA (FRENTE AL CEMENTERIO PARQUE DEL RECUERDO) TACNA - TACNA - CALANA', 1, 1, '2026-11-12 19:34:43', '2026-11-12 20:09:14', NULL),
 (3, '19815689445', 'UNTELS', 'UNIVERSIDAD', 'al frente de las cachangas', 1, NULL, '2026-11-12 20:09:03', '2026-11-12 20:09:03', NULL),
 (5, '33333333333', 'JUAN PABLO', 'INSTITUTO', 'por alla', 1, NULL, '2026-11-18 09:33:13', '2026-11-18 09:33:13', NULL),
 (6, '44444444444', 'MARIA AUXILIADORA', 'COLEGIO', 'AV LAS CASUARINAS', 1, NULL, '2026-11-19 08:47:12', '2026-11-19 08:47:12', NULL),
 (7, '99999999999', 'JORGE BASADRE', 'COLEGIO', 'AV. EL SOL', 1, NULL, '2026-11-19 11:09:58', '2026-11-19 11:09:58', NULL),
-(8, '20517637859', 'IESTP \"LURÍN\"', 'INSTITUTO', 'AA.HH. Villa Alejandro Mz. K Lote 15-16 1era Etapa, Lurín, Perú', 1, 1, '2026-11-19 11:14:17', '2026-11-19 11:59:42', NULL);
+(8, '20517637859', 'IESTP \"LURÍN\"', 'INSTITUTO', 'AA.HH. Villa Alejandro Mz. K Lote 15-16 1era Etapa, Lurín, Perú', 1, 1, '2026-11-19 11:14:17', '2026-11-19 11:59:42', NULL),
+(9, '20330611023', 'INSTITUTO DE EDUCACIÓN SUPERIOR TECNOLÓGICO PÚBLICO JULIO CÉSAR TELLO', 'INSTITUTO', 'Bolivar n° 100, Villa EL Salvador 15834', 1, NULL, '2026-11-21 04:29:26', '2026-11-21 04:29:26', NULL);
 
 -- --------------------------------------------------------
 
@@ -572,12 +571,6 @@ CREATE TABLE `marcas` (
 --
 
 INSERT INTO `marcas` (`id`, `programa_estudio_id`, `nombre`, `created_by`, `updated_by`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, 1, 'AE', NULL, 1, '2026-11-05 03:12:05', '2026-11-19 06:01:30', '2026-11-19 06:01:36'),
-(2, 1, 'DDD', NULL, NULL, '2026-11-05 04:25:28', '2026-11-05 04:25:28', NULL),
-(3, 3, 'AF', NULL, NULL, '2026-11-05 04:43:38', '2026-11-05 04:43:38', NULL),
-(6, 1, 'WWDD', 1, NULL, '2026-11-19 06:01:24', '2026-11-19 06:01:24', NULL),
-(7, 1, 'EPSON', 1, NULL, '2026-11-19 06:43:25', '2026-11-19 06:43:25', NULL),
-(8, 1, 'HP', 1, NULL, '2026-11-19 06:46:14', '2026-11-19 06:46:14', NULL),
 (9, 17, 'ACER', 1, NULL, '2026-11-19 06:48:33', '2026-11-19 06:48:33', NULL);
 
 -- --------------------------------------------------------
@@ -633,8 +626,6 @@ CREATE TABLE `modelos` (
 --
 
 INSERT INTO `modelos` (`id`, `programa_estudio_id`, `nombre`, `created_by`, `updated_by`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(5, 1, 'HP', 1, NULL, '2026-11-19 05:58:35', '2026-11-19 05:58:35', NULL),
-(6, 1, 'LOCO', 1, 1, '2026-11-19 06:01:58', '2026-11-19 06:02:25', '2026-11-19 06:02:29'),
 (7, 17, 'PRODESK', 11, NULL, '2026-11-19 07:06:05', '2026-11-19 07:06:05', NULL);
 
 -- --------------------------------------------------------
@@ -702,8 +693,6 @@ CREATE TABLE `personal_programa_estudio` (
 --
 
 INSERT INTO `personal_programa_estudio` (`id`, `personal_id`, `programa_estudio_id`, `cargo`, `created_at`, `updated_at`) VALUES
-(1, 2, 2, 'DOCENTE', '2026-11-12 18:58:53', '2026-11-12 18:58:53'),
-(2, 3, 2, 'ASISTENTE', '2026-11-12 19:18:47', '2026-11-12 19:18:47'),
 (4, 5, 12, 'COORDINADOR', '2026-11-19 08:49:16', '2026-11-19 08:49:16'),
 (5, 4, 14, 'ASISTENTE', '2026-11-19 11:17:36', '2026-11-19 11:17:36'),
 (6, 6, 13, 'DOCENTE', '2026-11-19 11:18:53', '2026-11-19 11:19:09'),
@@ -738,20 +727,19 @@ CREATE TABLE `programas_estudio` (
 --
 
 INSERT INTO `programas_estudio` (`id`, `institucion_id`, `nombre`, `abreviatura`, `coordinador_id`, `asistente_t1_id`, `asistente_t2_id`, `observacion`, `activo`, `created_by`, `updated_by`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, 1, 'ADMINISTRACIÓN DE EMPRESAS', NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-01 04:53:41', NULL),
-(2, 1, 'DESARROLLO DE SISTEMAS DE INFORMACIÓN', NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-01 04:53:41', NULL),
-(3, 1, 'CONTABILIDAD', NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-01 04:53:41', NULL),
-(4, 1, 'ELECTRICIDAD INDUSTRIAL', NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-01 04:53:41', NULL),
-(5, 1, 'MECANICA AUTOMOTRIZ', NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-01 04:53:41', NULL),
-(6, 1, 'MECANICA DE PRODUCCIÓN', NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-01 04:53:41', NULL),
-(7, 1, 'SECRETARIADO EJECUTIVO', NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-01 04:53:41', NULL),
 (9, 3, 'INGENIERÍA AMBIENTAL', NULL, NULL, NULL, NULL, NULL, 1, 1, NULL, '2026-11-12 20:10:47', '2026-11-12 20:10:47', NULL),
 (12, 6, 'MATEMATICA', 'MAT', 5, NULL, NULL, NULL, 1, 8, NULL, '2026-11-19 08:48:37', '2026-11-19 08:49:16', NULL),
 (13, 7, 'LITERATURA', 'LIT', NULL, NULL, NULL, NULL, 1, 9, NULL, '2026-11-19 11:15:17', '2026-11-19 11:19:09', NULL),
 (14, 8, 'ADMINISTRACION', 'ADMIN', 5, NULL, NULL, NULL, 1, 10, NULL, '2026-11-19 11:16:26', '2026-11-19 11:32:49', NULL),
 (15, 7, 'MATEMATICA', 'MAT', NULL, NULL, NULL, NULL, 1, 9, NULL, '2026-11-19 11:20:45', '2026-11-19 11:20:45', NULL),
 (16, 7, 'COMPUTACION', 'COM', NULL, NULL, NULL, NULL, 1, 9, NULL, '2026-11-19 11:22:50', '2026-11-19 11:22:50', NULL),
-(17, 5, 'COMUNICACION', 'COM', NULL, NULL, NULL, NULL, 1, 6, NULL, '2026-11-19 11:30:34', '2026-11-19 11:30:34', NULL);
+(17, 5, 'COMUNICACION', 'COM', NULL, NULL, NULL, NULL, 1, 6, NULL, '2026-11-19 11:30:34', '2026-11-19 11:30:34', NULL),
+(18, 9, 'DESARROLLO DE SISTEMAS DE INFORMACION', 'DSI', NULL, NULL, NULL, NULL, 1, 14, NULL, '2026-11-21 04:30:09', '2026-11-21 04:30:09', NULL),
+(19, 9, 'ASISTENTE ADMINISTRATIVO', 'ADMIN', NULL, NULL, NULL, NULL, 1, 14, NULL, '2026-11-21 04:30:28', '2026-11-21 04:30:28', NULL),
+(20, 9, 'MECATRONICA AUTOMOTRIZ', 'MECATRONICA', NULL, NULL, NULL, NULL, 1, 14, NULL, '2026-11-21 04:30:52', '2026-11-21 04:30:52', NULL),
+(21, 9, 'CONTABILIDAD', 'CONTA', NULL, NULL, NULL, NULL, 1, 14, NULL, '2026-11-21 04:31:13', '2026-11-21 04:31:13', NULL),
+(22, 9, 'ELECTRICIDAD INDUSTRIAL', NULL, NULL, NULL, NULL, NULL, 1, 14, NULL, '2026-11-21 04:31:39', '2026-11-21 04:31:39', NULL),
+(23, 9, 'MECANICA DE PRODUCCION', NULL, NULL, NULL, NULL, NULL, 1, 14, NULL, '2026-11-21 04:32:07', '2026-11-21 04:32:07', NULL);
 
 -- --------------------------------------------------------
 
@@ -799,14 +787,7 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('4QMBCM0XN5JJS0tWaD5DwDE3epH6ZFGOGqUfyaXA', 5, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/158.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoiQjVsNWxWNmc2TGE3YzlLTEg5VHlGQnpXeVdqSXNhMEJmTjBvMzJiNSI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MzY6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9hbG1hY2VuL2JpZW5lcyI7czo1OiJyb3V0ZSI7czoxMjoiYmllbmVzLmluZGV4Ijt9czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6NTtzOjE3OiJwYXNzd29yZF9oYXNoX3dlYiI7czo2NDoiOTkyYWFlZDI5MzAyYjNhYjE3Y2U2ZDFkNjZmYTg1MTQ3ZjI3ZmRiYmRiMjY1ZDg4NmQwODBlZTc4NjM4YTY5OCI7czoxOToicHJvZ3JhbWFfZXN0dWRpb19pZCI7aTo4O30=', 1795085583),
-('eJnWsgPOFkO1sfLTRZZWqwOzJfie6ax0Jq0Fnm77', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoiSzdjVnhPY0llNVNjWkNKclZvZ3lyWnd6bGhjUzVqdFJVbFVQVXU0dyI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MzA6Imh0dHA6Ly9sb2NhbGhvc3Q6ODAwMC91c3VhcmlvcyI7czo1OiJyb3V0ZSI7czoxNDoidXN1YXJpb3MuaW5kZXgiO31zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToxO3M6MTc6InBhc3N3b3JkX2hhc2hfd2ViIjtzOjY0OiI0ODVlNDRlZGMyYzQ1OGVkZDg2ZWMxOWU0MDAxM2YzODZkNGY4MDFjZGFkZTYzYTg1YzY0NDZkNjJlOGRlMGNiIjtzOjE5OiJwcm9ncmFtYV9lc3R1ZGlvX2lkIjtpOjE0O30=', 1795072741),
-('Ica7oXucCTC6kyWsxo35W5cFJcGy5wI3ly3ypcEd', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoiMVByVVZtalZKYWduU281R0J4REpiRnplcDdFbjZvYmhJcnBJODBsUiI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9hbG1hY2VuL2ludmVudGFyaW9zIjtzOjU6InJvdXRlIjtzOjE3OiJpbnZlbnRhcmlvcy5pbmRleCI7fXM6NTA6ImxvZ2luX3dlYl81OWJhMzZhZGRjMmIyZjk0MDE1ODBmMDE0YzdmNThlYTRlMzA5ODlkIjtpOjE7czoxNzoicGFzc3dvcmRfaGFzaF93ZWIiO3M6NjQ6IjQ4NWU0NGVkYzJjNDU4ZWRkODZlYzE5ZTQwMDEzZjM4NmQ0ZjgwMWNkYWRlNjNhODVjNjQ0NmQ2MmU4ZGUwY2IiO3M6MTk6InByb2dyYW1hX2VzdHVkaW9faWQiO2k6MTQ7fQ==', 1795072833),
-('m5xNM596vSvXINvlerfITiHkt6eG4fvSkJQVINJ5', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoiQXdkTHBuZGVRMUFjc1c3YzJ3UHdjN2Rtc1hSeVlJemo5aTZVVzVnNCI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDI6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9hbG1hY2VuL3RhYmxhcy9ncnVwbyI7czo1OiJyb3V0ZSI7czoxNDoiY2F0YWxvZ28uaW5kZXgiO31zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToxO3M6MTc6InBhc3N3b3JkX2hhc2hfd2ViIjtzOjY0OiI0ODVlNDRlZGMyYzQ1OGVkZDg2ZWMxOWU0MDAxM2YzODZkNGY4MDFjZGFkZTYzYTg1YzY0NDZkNjJlOGRlMGNiIjtzOjE5OiJwcm9ncmFtYV9lc3R1ZGlvX2lkIjtpOjE0O30=', 1795072729),
-('pwtdqUfoDCOpZxZRZLJEqnKRIph9YmJ83rOY4zry', 12, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/158.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoiejFnNEp6NzhaZXF2YnZkQUFtbm9mazZWR2lxWEpsYTJMWGRPNUV6YSI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODAwMC9hbG1hY2VuL3RhYmxhcy9ncnVwbyI7czo1OiJyb3V0ZSI7czoxNDoiY2F0YWxvZ28uaW5kZXgiO31zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToxMjtzOjE3OiJwYXNzd29yZF9oYXNoX3dlYiI7czo2NDoiYWRkOWEyOTY5MmRmNGI5NWI5NzhhMmU0YmMyZjgzYzUxMWIyNWZlMDQyOGFjNzVkYzQ2NjYwZGE1MTMwYWI2NCI7czoxOToicHJvZ3JhbWFfZXN0dWRpb19pZCI7aToxNDt9', 1795072283),
-('qca4qmtxAhvPHNNbrkPXzxRDRb30zb2iPgHHqXQG', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'YTo3OntzOjY6Il90b2tlbiI7czo0MDoiN0hKV2pvUklXNjVzbm1wSFdXREh3bXo1ODhMT2tTTDc4SUJHVXBiNiI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czozOiJ1cmwiO2E6MTp7czo4OiJpbnRlbmRlZCI7czoyNjoiaHR0cDovL2xvY2FsaG9zdDo4MDAwL21lbnUiO31zOjk6Il9wcmV2aW91cyI7YToyOntzOjM6InVybCI7czo0MjoiaHR0cDovL2xvY2FsaG9zdDo4MDAwL2FsbWFjZW4vdGFibGFzL21hcmNhIjtzOjU6InJvdXRlIjtzOjE0OiJjYXRhbG9nby5pbmRleCI7fXM6NTA6ImxvZ2luX3dlYl81OWJhMzZhZGRjMmIyZjk0MDE1ODBmMDE0YzdmNThlYTRlMzA5ODlkIjtpOjE7czoxNzoicGFzc3dvcmRfaGFzaF93ZWIiO3M6NjQ6IjQ4NWU0NGVkYzJjNDU4ZWRkODZlYzE5ZTQwMDEzZjM4NmQ0ZjgwMWNkYWRlNjNhODVjNjQ0NmQ2MmU4ZGUwY2IiO3M6MTk6InByb2dyYW1hX2VzdHVkaW9faWQiO2k6MTQ7fQ==', 1795072776),
-('v3NqVmk90w17fzHZ2IvEEcBFTt9NmVbkRB5G1EyY', 10, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'YTo1OntzOjY6Il90b2tlbiI7czo0MDoiZzJva3pKSUV0aG1DTHpDZjVwcGJCODlKbnhOUXBZOUVuNEJPQU1MdSI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6Mjc6Imh0dHA6Ly9sb2NhbGhvc3Q6ODAwMC9sb2dpbiI7czo1OiJyb3V0ZSI7czo1OiJsb2dpbiI7fXM6NTA6ImxvZ2luX3dlYl81OWJhMzZhZGRjMmIyZjk0MDE1ODBmMDE0YzdmNThlYTRlMzA5ODlkIjtpOjEwO3M6MTc6InBhc3N3b3JkX2hhc2hfd2ViIjtzOjY0OiJlMWVmNTVlYTIwMmYyOTk4MTM5Yjc0NzQ1NTE5NmFiM2E0NzA2OTE1MGI4NzIyZmMwZjRkMzE1MzM4YTUwNTA1Ijt9', 1795068926),
-('zbBV0031J0VbvXVHK2GiThEUU25X46ZoqSYVoPoc', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36', 'YTo3OntzOjY6Il90b2tlbiI7czo0MDoiSFFDRFMwWk9xZlJHT2FOM3ZTYnZOa01wYW94ZWM4MW9sUzJCamxpaCI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6Mjc6Imh0dHA6Ly9sb2NhbGhvc3Q6ODAwMC9sb2dpbiI7czo1OiJyb3V0ZSI7czo1OiJsb2dpbiI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fXM6MzoidXJsIjthOjE6e3M6ODoiaW50ZW5kZWQiO3M6MjY6Imh0dHA6Ly9sb2NhbGhvc3Q6ODAwMC9tZW51Ijt9czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6MTtzOjE3OiJwYXNzd29yZF9oYXNoX3dlYiI7czo2NDoiNDg1ZTQ0ZWRjMmM0NThlZGQ4NmVjMTllNDAwMTNmMzg2ZDRmODAxY2RhZGU2M2E4NWM2NDQ2ZDYyZThkZTBjYiI7czoxOToicHJvZ3JhbWFfZXN0dWRpb19pZCI7aToxO30=', 1795067550);
+('QI4NVPjPccoOzH7D0CXDtlNNhdcOkSidobsTYBGF', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/158.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoiMzNiWWwxWHhteVFsY1o0bnFMMnRZUUxnWmVnM09aWVhvdUg3RUozVyI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MzA6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC91c3VhcmlvcyI7czo1OiJyb3V0ZSI7czoxNDoidXN1YXJpb3MuaW5kZXgiO31zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToxO3M6MTc6InBhc3N3b3JkX2hhc2hfd2ViIjtzOjY0OiIyNWIwNWJjZTZjODg1ODQ3MDVhY2EyYWE2MjJhZTMyZTIxOWQ3ZWM0MzEzMzlkMWZjMDQ2M2MzZWE3ZWZmOTk0IjtzOjE5OiJwcm9ncmFtYV9lc3R1ZGlvX2lkIjtpOjE0O30=', 1795224081);
 
 -- --------------------------------------------------------
 
@@ -830,13 +811,8 @@ CREATE TABLE `tipos` (
 --
 
 INSERT INTO `tipos` (`id`, `programa_estudio_id`, `nombre`, `created_by`, `updated_by`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(5, 1, 'ELO', 1, 1, '2026-11-19 06:00:34', '2026-11-19 06:00:40', '2026-11-19 06:00:44'),
-(6, 1, 'ELOD', 1, NULL, '2026-11-19 06:00:53', '2026-11-19 06:00:53', NULL),
-(7, 1, 'QWER', 1, NULL, '2026-11-19 06:00:59', '2026-11-19 06:00:59', NULL),
-(8, 1, 'ASDFR', 1, NULL, '2026-11-19 06:01:06', '2026-11-19 06:01:06', NULL),
 (9, 14, 'TECLADO', 10, NULL, '2026-11-19 06:21:02', '2026-11-19 06:21:02', NULL),
 (10, 14, 'MONITOR', 10, NULL, '2026-11-19 06:21:10', '2026-11-19 06:21:10', NULL),
-(11, 2, 'MOUSE', 1, NULL, '2026-11-19 06:38:39', '2026-11-19 06:38:39', NULL),
 (12, 17, 'GABINETE', 11, NULL, '2026-11-19 07:06:45', '2026-11-19 07:06:45', NULL);
 
 -- --------------------------------------------------------
@@ -884,17 +860,16 @@ CREATE TABLE `usuarios` (
 
 INSERT INTO `usuarios` (`id`, `username`, `password`, `personal_id`, `institucion_id`, `tipo_usuario`, `activo`, `remember_token`, `created_by`, `updated_by`, `created_at`, `updated_at`, `deleted_at`) VALUES
 (1, 'ADMIN', '$2y$12$oc4wT.3PH/lemn7potgj0ewIEspD/f0jHGsI8sIBULRhivghpgZoC', NULL, NULL, 'ADMINISTRADOR', 1, NULL, NULL, NULL, '2026-10-01 04:53:41', '2026-10-14 09:26:20', NULL),
-(3, 'Tello@gmail.com', '$2y$12$ZNYYCsbiXOtG4ZnGbZ2tjuPdGdWctzqqpwdwJHByy7YQLlMR7r9Da', NULL, 1, 'ADMIN_INSTITUCION', 1, NULL, 1, 1, '2026-11-18 20:03:36', '2026-11-19 08:43:50', '2026-11-19 08:43:50'),
 (4, 'Prisma@edu.pe', '$2y$12$/VYYV/vZEw6Os1oPeqtE/.AterbxbZb8DW3kbWbjEun5ynjNZ8m.6', NULL, 2, 'ADMIN_INSTITUCION', 1, NULL, 1, NULL, '2026-11-18 20:04:11', '2026-11-18 20:04:11', NULL),
 (5, 'untels@gmail.com', '$2y$12$W0DyJCC8769PHPSRANKfP.ez.A72Sw2jxswT/8f9arQktNSWFyMsC', NULL, 3, 'ADMIN_INSTITUCION', 1, NULL, 1, 1, '2026-11-18 20:19:34', '2026-11-19 21:51:57', NULL),
 (6, 'juanp@gmail.com', '$2y$12$bAUnJ4AkjvSFzkwvi9A5euw7OZVNEk00UGPAJrqvtbLbryv2YWxH2', NULL, 5, 'ADMIN_INSTITUCION', 1, NULL, 1, 1, '2026-11-18 09:33:14', '2026-11-19 11:29:53', NULL),
 (7, 'sergio123@gmail.com', '$2y$12$iu7cVPgrmKyKLiXVBXYrBu.XUwnrm0gpUviPfpXDmw2TCOi27JYNG', 4, 5, 'ASISTENTE', 1, NULL, 6, NULL, '2026-11-18 09:39:53', '2026-11-18 09:39:53', NULL),
-(8, 'martin', '$2y$12$HZhKKj6uUabVbQJ.MLvITeB.veeuQ3rXAorcQWh50GLLtugQFocTu', NULL, 6, 'ADMIN_INSTITUCION', 1, NULL, 1, NULL, '2026-11-19 08:47:12', '2026-11-19 08:47:12', NULL),
+(8, 'maria@gmail.com', '$2y$12$bpGUrylUmBztYA2DEBBYwOMtcc0Whkm/yX3AouMlD2XI1G5J4vp16', NULL, 6, 'ADMIN_INSTITUCION', 1, NULL, 1, 1, '2026-11-19 08:47:12', '2026-11-21 05:22:57', NULL),
 (9, 'basadre@gmail.com', '$2y$12$deF6dDLLUwBNwfJ..2iXrOqj6V07/lvgNyJlA1tezHj2wJ8iBAuAW', NULL, 7, 'ADMIN_INSTITUCION', 1, NULL, 1, NULL, '2026-11-19 11:09:58', '2026-11-19 11:09:58', NULL),
 (10, 'lurin123@gmail.com', '$2y$12$UMYQR1etBl0u/F5tmfjPIeTzQRqyXkYWKh4G58keA4tuQVL16sBkW', NULL, 8, 'ADMIN_INSTITUCION', 1, NULL, 1, 1, '2026-11-19 11:14:17', '2026-11-19 12:08:10', NULL),
 (11, 'matias', '$2y$12$RMccRg7cDIm9mSK.mOYv2ObX5dPXXd4Fgkqn2zW5dTeQlyPl2yNAW', 7, 5, 'ADMIN_INSTITUCION', 1, NULL, 6, 1, '2026-11-19 11:31:38', '2026-11-19 12:05:26', NULL),
 (12, 'romulo', '$2y$12$XHGi0ra3cvQtO84wCcsF6OfSI4WPh.PoBI1g4lzttEehlyMu807GK', 5, 8, 'COORDINADOR', 1, NULL, 10, NULL, '2026-11-19 11:33:17', '2026-11-19 11:33:17', NULL),
-(13, '11111111111', '$2y$12$FIDpkjzeKtGlEfRT53z4s.bykoIigxW3tcod5lAVQeDByXU8evYTe', NULL, 1, 'ADMIN_INSTITUCION', 1, NULL, 1, NULL, '2026-11-19 11:59:56', '2026-11-19 11:59:56', NULL);
+(14, 'Tello@gmail.com', '$2y$12$90TQWfGxNkKhzaAHUkaugOebIjXn7ekYVk2c3lvLjZtutCxyXCG2W', NULL, 9, 'ADMIN_INSTITUCION', 1, NULL, 1, NULL, '2026-11-21 04:29:26', '2026-11-21 04:29:26', NULL);
 
 -- --------------------------------------------------------
 
@@ -918,13 +893,6 @@ CREATE TABLE `usuario_programa_estudio` (
 --
 
 INSERT INTO `usuario_programa_estudio` (`id`, `usuario_id`, `programa_estudio_id`, `acceso`, `created_by`, `updated_by`, `created_at`, `updated_at`) VALUES
-(1, 1, 1, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-15 06:39:51'),
-(2, 1, 2, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-15 06:39:51'),
-(3, 1, 3, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-15 06:39:51'),
-(4, 1, 4, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-15 06:39:51'),
-(5, 1, 5, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-15 06:39:51'),
-(6, 1, 6, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-15 06:39:51'),
-(7, 1, 7, 1, NULL, NULL, '2026-10-01 04:53:41', '2026-10-15 06:39:51'),
 (18, 11, 17, 1, NULL, NULL, '2026-11-19 11:31:38', '2026-11-19 12:05:26'),
 (19, 12, 14, 1, NULL, NULL, '2026-11-19 11:33:17', '2026-11-19 11:33:17');
 
@@ -1181,7 +1149,7 @@ ALTER TABLE `grupos`
 -- AUTO_INCREMENT de la tabla `instituciones`
 --
 ALTER TABLE `instituciones`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT de la tabla `inventarios`
@@ -1235,7 +1203,7 @@ ALTER TABLE `personal_programa_estudio`
 -- AUTO_INCREMENT de la tabla `programas_estudio`
 --
 ALTER TABLE `programas_estudio`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT de la tabla `salas`
@@ -1259,7 +1227,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT de la tabla `usuario_programa_estudio`

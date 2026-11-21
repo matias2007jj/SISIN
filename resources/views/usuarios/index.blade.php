@@ -1,6 +1,6 @@
 @extends('plantilla.plantilla')
 
-@section('title', 'SISIN - Usuarios')
+@section('title', 'SISIN - Usuarios y Personal')
 @section('titulo', 'Usuarios')
 @section('boton', 'Nuevo Usuario')
 @section('modal_id', 'modalRegistro')
@@ -24,7 +24,7 @@
 <div class="row g-3 align-items-center justify-content-between mb-4">
     <div class="col-12 col-md-6 col-lg-5">
         <div class="input-group search-toolbar">
-            <input type="text" id="inputBuscar" class="form-control text-uppercase" placeholder="Filtrar por usuario, nombre, DNI o rol..." autocomplete="off">
+            <input type="text" id="inputBuscar" class="form-control text-uppercase" placeholder="Filtrar por nombre, DNI, usuario, rol o programa..." autocomplete="off">
             <button type="button" class="btn btn-link text-muted pe-1 d-none" id="btnLimpiarBuscar">&times;</button>
         </div>
     </div>
@@ -37,33 +37,41 @@
     <table class="table table-sisin align-middle" id="tablaRegistros">
         <thead>
             <tr>
-                <th>Usuario</th>
-                <th style="min-width: 220px;">Persona</th>
+                <th style="min-width: 220px;">Apellidos y Nombres</th>
+                <th style="width: 105px;">DNI</th>
+                <th style="min-width: 150px;">Usuario</th>
                 @if ($sinInstitucion)<th>Institución</th>@endif
-                <th>Rol</th>
-                <th style="min-width: 200px;">Programas con acceso</th>
-                <th class="text-center">Estado</th>
+                <th style="width: 145px;">Rol</th>
+                <th style="min-width: 200px;">Programas de estudio</th>
+                <th style="min-width: 160px;">Contacto</th>
+                <th class="text-center" style="width: 100px;">Estado</th>
                 <th class="text-center" style="width: 170px;">Acciones</th>
             </tr>
         </thead>
         <tbody>
             @forelse ($usuarios as $u)
                 @php
+                    $p = $u->personal;
                     $ids = $u->programas->where('pivot.acceso', true)->pluck('id')->values();
                     $registro = [
+                        'apellidos'    => $p?->apellidos ?? '',
+                        'nombres'      => $p?->nombres ?? '',
+                        'dni'          => $p?->dni ?? '',
+                        'celular'      => $p?->celular ?? '',
+                        'email'        => $p?->email ?? '',
+                        'direccion'    => $p?->direccion ?? '',
                         'username'     => $u->username,
                         'tipo_usuario' => $u->tipo_usuario,
                         'activo'       => $u->activo,
                         'programas'    => $ids,
-                        'persona'      => $u->personal?->nombre_completo ?? $u->username,
                     ];
                 @endphp
                 <tr>
-                    <td class="text-fecha">{{ $u->username }}</td>
                     <td>
-                        {{ $u->personal?->nombre_completo ?? '-' }}
-                        @if ($u->personal)<div class="text-muted fs-7">DNI {{ $u->personal->dni }}</div>@endif
+                        <span class="brand-chip-title">{{ $p?->nombre_completo ?? '-' }}</span>
                     </td>
+                    <td class="text-fecha">{{ $p?->dni ?? '-' }}</td>
+                    <td class="text-fecha">{{ $u->username }}</td>
                     @if ($sinInstitucion)<td class="text-fecha">{{ $u->institucion->nombre ?? '-' }}</td>@endif
                     <td><span class="badge-rol">{{ $u->rol_etiqueta }}</span></td>
                     <td class="text-fecha">
@@ -71,6 +79,12 @@
                             Todos
                         @else
                             {{ $u->programas->where('pivot.acceso', true)->pluck('nombre')->join(', ') ?: 'Sin acceso' }}
+                        @endif
+                    </td>
+                    <td class="text-fecha">
+                        {{ $p?->celular ?: '-' }}
+                        @if ($p?->email)
+                            <br>{{ $p->email }}
                         @endif
                     </td>
                     <td class="text-center">
@@ -81,28 +95,29 @@
                             @if ($u->tipo_usuario === \App\Models\Usuario::ADMIN_INSTITUCION && ! auth()->user()->esSuperusuario())
                                 <span class="text-muted fs-7">Lo gestiona el superusuario</span>
                             @else
-                            <button type="button" class="btn btn-outline-warning btn-action-icon"
-                                    data-bs-toggle="modal" data-bs-target="#modalRegistro"
-                                    data-url="{{ route('usuarios.update', $u) }}"
-                                    data-registro="{{ json_encode($registro, JSON_UNESCAPED_UNICODE) }}">
-                                Editar
-                            </button>
-                            @if ($u->id !== auth()->id())
-                                <form action="{{ route('usuarios.destroy', $u) }}" method="POST" class="d-inline"
-                                      onsubmit="return confirm('¿Eliminar el usuario {{ $u->username }}?')">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="btn btn-outline-danger btn-action-icon">Eliminar</button>
-                                </form>
-                            @endif
+                                <button type="button" class="btn btn-outline-warning btn-action-icon"
+                                        data-bs-toggle="modal" data-bs-target="#modalRegistro"
+                                        data-url="{{ route('usuarios.update', $u) }}"
+                                        data-registro="{{ json_encode($registro, JSON_UNESCAPED_UNICODE) }}">
+                                    Editar
+                                </button>
+                                @if ($u->id !== auth()->id())
+                                    <form action="{{ route('usuarios.destroy', $u) }}" method="POST" class="d-inline"
+                                          onsubmit="return confirm('¿Eliminar a {{ addslashes($p?->nombre_completo ?? $u->username) }}?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-outline-danger btn-action-icon">Eliminar</button>
+                                    </form>
+                                @endif
                             @endif
                         </div>
                     </td>
                 </tr>
             @empty
                 <tr id="rowSinDatos">
-                    <td colspan="{{ $sinInstitucion ? 7 : 6 }}" class="text-center py-5">
+                    <td colspan="{{ $sinInstitucion ? 9 : 8 }}" class="text-center py-5">
                         <h6 class="text-white fw-bold mb-1">No hay usuarios registrados</h6>
-                        <p class="text-muted fs-7 mb-0">Haz clic en "Nuevo Usuario" para darle acceso a una persona del personal.</p>
+                        <p class="text-muted fs-7 mb-0">Haz clic en "Nuevo Usuario" para registrar al personal con su usuario, rol y programas.</p>
                     </td>
                 </tr>
             @endforelse
@@ -113,7 +128,7 @@
 
 @section('modales')
 <div class="modal fade" id="modalRegistro" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 bg-transparent">
             <div class="mi-modal">
                 <form id="formRegistro" method="POST" action="{{ route('usuarios.store') }}"
@@ -131,65 +146,91 @@
                     </div>
 
                     <div class="modal-body">
-                        <div class="js-solo-nuevo">
+                        <div class="js-bloque-personal">
+                            <p class="asignaciones-titulo mb-2">1. Datos Personales</p>
+                            <div class="row g-3 mb-4">
+                                <div class="col-12 col-md-6">
+                                    <div class="campo">
+                                        <label for="apellidos">Apellidos</label>
+                                        <input type="text" id="apellidos" name="apellidos" maxlength="60" class="text-uppercase js-req-personal" required>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div class="campo">
+                                        <label for="nombres">Nombres</label>
+                                        <input type="text" id="nombres" name="nombres" maxlength="60" class="text-uppercase js-req-personal" required>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <div class="campo">
+                                        <label for="dni">DNI</label>
+                                        <input type="text" id="dni" name="dni" maxlength="8" inputmode="numeric" pattern="[0-9]{8}" placeholder="8 dígitos" class="js-req-personal" required>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <div class="campo">
+                                        <label for="celular">Celular</label>
+                                        <input type="text" id="celular" name="celular" maxlength="30">
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <div class="campo">
+                                        <label for="email">Correo</label>
+                                        <input type="email" id="email" name="email" maxlength="100">
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="campo">
+                                        <label for="direccion">Dirección</label>
+                                        <input type="text" id="direccion" name="direccion" maxlength="150">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="asignaciones-titulo mb-2">2. Credenciales y Rol</p>
+                        <div class="row g-3 mb-4">
+                            <div class="col-12 col-md-4">
+                                <div class="campo">
+                                    <label for="username">Usuario</label>
+                                    <input type="text" id="username" name="username" maxlength="100" autocomplete="off" placeholder="Vacío = DNI">
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <div class="campo">
+                                    <label for="password">Contraseña</label>
+                                    <input type="text" id="password" name="password" maxlength="60" autocomplete="new-password"
+                                           placeholder="Vacío = generar automática">
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <div class="campo">
+                                    <label for="tipo_usuario">Rol</label>
+                                    <select id="tipo_usuario" name="tipo_usuario" required>
+                                        @foreach ($roles as $valor => $etiqueta)
+                                            <option value="{{ $valor }}" @selected($valor === 'DOCENTE')>{{ $etiqueta }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="js-bloque-programas">
+                            <p class="asignaciones-titulo mb-2">3. Programas de Estudio con Acceso</p>
                             <div class="campo mb-3">
-                                <label for="personal_id">Persona del personal</label>
-                                <select id="personal_id" name="personal_id">
-                                    <option value="">Seleccione...</option>
-                                    @foreach ($personal as $p)
-                                        @php
-                                            $cargos = $p->asignaciones->pluck('cargo');
-                                            $rolSugerido = $cargos->contains('COORDINADOR') ? 'COORDINADOR'
-                                                         : ($cargos->contains('ASISTENTE') ? 'ASISTENTE' : 'DOCENTE');
-                                            $programasPersona = $p->asignaciones->pluck('programa_estudio_id')->unique()->values();
-                                        @endphp
-                                        <option value="{{ $p->id }}" data-dni="{{ $p->dni }}" data-rol="{{ $rolSugerido }}" data-programas="{{ $programasPersona->toJson() }}">
-                                            {{ $p->nombre_completo }} — {{ $p->dni }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @if ($personal->isEmpty())
-                                    <small class="text-muted">No hay personal sin usuario. Registre primero al personal desde Instituciones (ficha de la institución).</small>
-                                @endif
+                                <div class="lista-programas">
+                                    @forelse ($programas as $prog)
+                                        <label><input type="checkbox" name="programas[]" value="{{ $prog->id }}"> {{ $prog->nombre }}</label>
+                                    @empty
+                                        <span class="text-muted fs-7">La institución aún no tiene programas. Regístrelos primero en Mi institución.</span>
+                                    @endforelse
+                                </div>
+                                <small class="text-muted">Seleccione uno o más programas de estudio a los que tendrá acceso este usuario.</small>
                             </div>
                         </div>
 
-                        <div class="campo mb-3">
-                            <label for="username">Usuario</label>
-                            <input type="text" id="username" name="username" maxlength="100" autocomplete="off" placeholder="Vacío = DNI">
-                        </div>
-
-                        <p class="js-solo-editar d-none text-muted fs-7 mb-3">Persona: <strong class="text-white js-persona"></strong></p>
-
-                        <div class="campo mb-3">
-                            <label for="password">Contraseña</label>
-                            <input type="text" id="password" name="password" maxlength="60" autocomplete="new-password"
-                                   placeholder="Vacío = generar una automática (al editar: no cambiarla)">
-                        </div>
-
-                        <div class="campo mb-3">
-                            <label for="tipo_usuario">Rol</label>
-                            <select id="tipo_usuario" name="tipo_usuario" required>
-                                @foreach ($roles as $valor => $etiqueta)
-                                    <option value="{{ $valor }}" @selected($valor === 'DOCENTE')>{{ $etiqueta }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="campo mb-3">
-                            <label>Programas de estudio con acceso</label>
-                            <div class="lista-programas">
-                                @forelse ($programas as $prog)
-                                    <label><input type="checkbox" name="programas[]" value="{{ $prog->id }}"> {{ $prog->nombre }}</label>
-                                @empty
-                                    <span class="text-muted fs-7">La institución aún no tiene programas.</span>
-                                @endforelse
-                            </div>
-                            <small class="text-muted">Obligatorio para coordinador, asistente y docente: solo verán datos de estos programas. El administrador de institución accede a todos.</small>
-                        </div>
-
-                        <div class="js-solo-editar d-none form-check">
-                            <input class="form-check-input" type="checkbox" id="activo" name="activo" value="1" checked>
+                        <div class="js-solo-editar d-none form-check form-switch mt-3">
+                            <input class="form-check-input" type="checkbox" role="switch" id="activo" name="activo" value="1" checked>
                             <label class="form-check-label text-white" for="activo">Usuario activo (puede iniciar sesión)</label>
                         </div>
                     </div>

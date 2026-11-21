@@ -37,3 +37,30 @@ $(document).ready(function() {
         });
     });
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+    const loginForm = document.getElementById('loginForm');
+    const btnAcceso = document.getElementById('btn_acceso');
+    const togglePass = document.getElementById('togglePass');
+
+    if (loginForm && btnAcceso) {
+        loginForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            btnAcceso.click();
+        });
+    }
+
+    if (togglePass) {
+        togglePass.addEventListener('click', function () {
+            const input = document.getElementById('pass');
+            const eyeOpen = document.getElementById('iconEyeOpen');
+            const eyeClosed = document.getElementById('iconEyeClosed');
+            if (!input || !eyeOpen || !eyeClosed) return;
+
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+            eyeOpen.classList.toggle('d-none', isPassword);
+            eyeClosed.classList.toggle('d-none', !isPassword);
+        });
+    }
+});

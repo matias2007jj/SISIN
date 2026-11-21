@@ -7,6 +7,7 @@ use App\Models\Concerns\DeInstitucion;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Personal extends Model
@@ -20,6 +21,11 @@ class Personal extends Model
     public function asignaciones(): HasMany
     {
         return $this->hasMany(Asignacion::class);
+    }
+
+    public function usuario(): HasOne
+    {
+        return $this->hasOne(Usuario::class, 'personal_id');
     }
 
     protected function nombreCompleto(): Attribute

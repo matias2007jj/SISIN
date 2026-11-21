@@ -2,11 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Asignacion;
 use App\Models\Institucion;
-use App\Models\Personal;
 use App\Models\ProgramaEstudio;
-use App\Models\Scopes\InstitucionScope;
 use App\Models\Usuario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -27,14 +24,15 @@ class InstitucionController extends Controller
         return view('organizacion.instituciones', compact('instituciones'));
     }
 
-   
     public function show(Institucion $institucion)
     {
         /** @var Usuario $user */
         $user           = Auth::user();
         $puedeGestionar = $user->puede('institucion.gestionar');
 
-        $programas = $institucion->programas()->orderBy('nombre');
+        $programas = $institucion->programas()
+            ->with('coordinador')
+            ->orderBy('nombre');
 
         if (! $user->veTodaLaInstitucion()) {
             $programas->whereIn('id', $user->idsProgramasPermitidos());
@@ -42,28 +40,18 @@ class InstitucionController extends Controller
 
         $programas = $programas->get();
 
-        $asignaciones = Asignacion::with(['personal', 'programaEstudio'])
-            ->whereIn('programa_estudio_id', $programas->pluck('id'))
-            ->whereHas('personal')
-            ->get()
-            ->sortBy(fn ($a) => $a->personal->apellidos . ' ' . $a->personal->nombres)
-            ->values();
-
-        $cargos = Asignacion::CARGOS;
-
-        return view('organizacion.institucion', compact('institucion', 'asignaciones', 'programas', 'cargos', 'puedeGestionar'));
+        return view('organizacion.institucion', compact('institucion', 'programas', 'puedeGestionar'));
     }
 
- 
     public function store(Request $request)
     {
         $datos  = $this->validar($request);
         $acceso = $request->validate([
-            'username' => array_merge(['nullable'], Usuario::reglasUsername()),   // p. ej. institucion@gmail.edu.pe
+            'username' => array_merge(['nullable'], Usuario::reglasUsername()),
             'password' => ['nullable', 'string', 'min:6', 'max:60'],
         ]);
 
-        $username = $acceso['username'] ?? $datos['ruc'];       // por defecto, el RUC
+        $username = $acceso['username'] ?? $datos['ruc'];
         $clave    = $acceso['password'] ?? Str::password(10, symbols: false);
 
         if (Usuario::withTrashed()->where('username', $username)->exists()) {
@@ -76,7 +64,7 @@ class InstitucionController extends Controller
 
             Usuario::create([
                 'username'       => $username,
-                'password'       => $clave,                       
+                'password'       => $clave,
                 'institucion_id' => $institucion->id,
                 'tipo_usuario'   => Usuario::ADMIN_INSTITUCION,
                 'activo'         => true,
@@ -85,10 +73,9 @@ class InstitucionController extends Controller
 
         return redirect()->route('instituciones.index')
             ->with('success', 'Institución registrada y usuario de acceso creado correctamente')
-            ->with('credenciales', ['usuario' => $username, 'clave' => $clave]);   
+            ->with('credenciales', ['usuario' => $username, 'clave' => $clave]);
     }
 
-  
     public function update(Request $request, Institucion $institucion)
     {
         $datos = $this->validar($request, $institucion->id);
@@ -115,7 +102,7 @@ class InstitucionController extends Controller
                     $cambios['username'] = $acceso['username'];
                 }
                 if (! empty($acceso['password'])) {
-                    $cambios['password'] = $acceso['password'];    
+                    $cambios['password'] = $acceso['password'];
                 }
                 if ($cambios) {
                     $usuario->update($cambios);
@@ -151,23 +138,23 @@ class InstitucionController extends Controller
     {
         if ($institucion->programas()->exists()) {
             return redirect()->back()
-                ->with('error', 'No se puede eliminar: la institución tiene programas de estudio y personal asignado.');
+                ->with('error', 'No se puede eliminar: la institución tiene programas de estudio asociados.');
         }
 
         DB::transaction(function () use ($institucion) {
-            $institucion->usuarios()->delete();      
+            $institucion->usuarios()->delete();
             $institucion->delete();
         });
 
         return redirect()->route('instituciones.index')->with('success', 'Institución eliminada correctamente');
     }
 
-
     public function storePrograma(Request $request, Institucion $institucion)
     {
         $datos = $request->validate([
             'nombre'      => ['required', 'string', 'max:100'],
             'abreviatura' => ['nullable', 'string', 'max:30'],
+            'observacion' => ['nullable', 'string', 'max:150'],
         ]);
 
         $nombre = mb_strtoupper(trim($datos['nombre']));
@@ -178,98 +165,53 @@ class InstitucionController extends Controller
 
         $institucion->programas()->create([
             'nombre'      => $nombre,
-            'abreviatura' => isset($datos['abreviatura']) ? mb_strtoupper(trim($datos['abreviatura'])) : null,
+            'abreviatura' => ! empty($datos['abreviatura']) ? mb_strtoupper(trim($datos['abreviatura'])) : null,
+            'observacion' => ! empty($datos['observacion']) ? trim($datos['observacion']) : null,
             'activo'      => true,
         ]);
 
         return redirect()->back()->with('success', 'Programa de estudio registrado correctamente');
     }
 
-
-    public function storePersonal(Request $request, Institucion $institucion)
+    public function updatePrograma(Request $request, Institucion $institucion, ProgramaEstudio $programa)
     {
-        $datos = $request->validate($this->reglasPersona($institucion));
+        abort_unless((int) $programa->institucion_id === (int) $institucion->id, 404);
 
-        DB::transaction(function () use ($datos, $institucion) {
-            $persona = Personal::withoutGlobalScope(InstitucionScope::class)->withTrashed()->where('dni', $datos['dni'])->first();
+        $datos = $request->validate([
+            'nombre'      => ['required', 'string', 'max:100'],
+            'abreviatura' => ['nullable', 'string', 'max:30'],
+            'observacion' => ['nullable', 'string', 'max:150'],
+        ]);
 
-            if ($persona) {
-               
-                $yaEsDeEstaInstitucion = Asignacion::where('personal_id', $persona->id)
-                    ->whereHas('programaEstudio', fn ($q) => $q->where('institucion_id', $institucion->id))
-                    ->exists();
+        $nombre = mb_strtoupper(trim($datos['nombre']));
 
-                if ($persona->trashed()) {
-                    $persona->restore();
-                    $persona->update($this->datosPersona($datos));
-                } elseif ($yaEsDeEstaInstitucion) {
-                    $persona->update($this->datosPersona($datos));
-                }
-            } else {
-                $persona = Personal::create($this->datosPersona($datos));
-            }
+        if ($institucion->programas()->where('nombre', $nombre)->where('id', '!=', $programa->id)->exists()) {
+            return redirect()->back()->with('error', 'Ya existe otro programa de estudio con ese nombre en la institución.');
+        }
 
-            $programa = ProgramaEstudio::findOrFail($datos['programa_estudio_id']);
+        $programa->update([
+            'nombre'      => $nombre,
+            'abreviatura' => ! empty($datos['abreviatura']) ? mb_strtoupper(trim($datos['abreviatura'])) : null,
+            'observacion' => ! empty($datos['observacion']) ? trim($datos['observacion']) : null,
+            'activo'      => $request->boolean('activo', true),
+        ]);
 
-            $asignacion = Asignacion::firstOrCreate([
-                'personal_id'         => $persona->id,
-                'programa_estudio_id' => $programa->id,
-                'cargo'               => $datos['cargo'],
-            ]);
-
-            $this->fijarCoordinacion($asignacion);
-        });
-
-        return redirect()->back()->with('success', 'Personal registrado en la institución correctamente');
+        return redirect()->back()->with('success', 'Programa de estudio actualizado correctamente');
     }
 
-    public function updatePersonal(Request $request, Institucion $institucion, Asignacion $asignacion)
+    public function destroyPrograma(Institucion $institucion, ProgramaEstudio $programa)
     {
-        $this->perteneceA($institucion, $asignacion);
+        abort_unless((int) $programa->institucion_id === (int) $institucion->id, 404);
 
-        $datos = $request->validate($this->reglasPersona($institucion, $asignacion->personal_id));
+        if ($programa->salas()->exists() || $programa->inventarios()->exists() || $programa->asignaciones()->exists() || $programa->usuarios()->exists()) {
+            return redirect()->back()
+                ->with('error', 'No se puede eliminar: el programa tiene personal, salas, inventarios o usuarios asociados.');
+        }
 
-        DB::transaction(function () use ($datos, $institucion, $asignacion) {
-            $this->liberarCoordinacion($asignacion);
+        $programa->delete();
 
-            $asignacion->personal->update($this->datosPersona($datos));
-
-            $programa = ProgramaEstudio::findOrFail($datos['programa_estudio_id']);
-
-            $existente = Asignacion::where('personal_id', $asignacion->personal_id)
-                ->where('programa_estudio_id', $programa->id)
-                ->where('cargo', $datos['cargo'])
-                ->where('id', '!=', $asignacion->id)
-                ->first();
-
-            if ($existente) {
-                $asignacion->delete();
-                $asignacion = $existente;
-            } else {
-                $asignacion->update([
-                    'programa_estudio_id' => $programa->id,
-                    'cargo'               => $datos['cargo'],
-                ]);
-            }
-
-            $this->fijarCoordinacion($asignacion);
-        });
-
-        return redirect()->back()->with('success', 'Personal actualizado correctamente');
+        return redirect()->back()->with('success', 'Programa de estudio eliminado correctamente');
     }
-
-    public function destroyPersonal(Institucion $institucion, Asignacion $asignacion)
-    {
-        $this->perteneceA($institucion, $asignacion);
-
-        DB::transaction(function () use ($asignacion) {
-            $this->liberarCoordinacion($asignacion);
-            $asignacion->delete();
-        });
-
-        return redirect()->back()->with('success', 'Se quitó al personal del programa correctamente');
-    }
-
 
     private function validar(Request $request, ?int $id = null): array
     {
@@ -284,67 +226,5 @@ class InstitucionController extends Controller
         $datos['direccion'] = isset($datos['direccion']) ? trim($datos['direccion']) : null;
 
         return $datos;
-    }
-
-    private function reglasPersona(Institucion $institucion, ?int $personalId = null): array
-    {
-        $dni = ['required', 'digits:8'];
-        if ($personalId) {
-            $dni[] = Rule::unique('personal', 'dni')->ignore($personalId);
-        }
-
-        return [
-            'apellidos' => ['required', 'string', 'max:60'],
-            'nombres'   => ['required', 'string', 'max:60'],
-            'dni'       => $dni,
-            'celular'   => ['nullable', 'string', 'max:30'],
-            'email'     => ['nullable', 'email', 'max:100'],
-            'direccion' => ['nullable', 'string', 'max:150'],
-            'cargo'     => ['required', Rule::in(Asignacion::CARGOS)],
-            'programa_estudio_id' => [
-                'required',
-                Rule::exists('programas_estudio', 'id')
-                    ->where('institucion_id', $institucion->id)
-                    ->whereNull('deleted_at'),
-            ],
-        ];
-    }
-
-    private function datosPersona(array $datos): array
-    {
-        return [
-            'apellidos' => mb_strtoupper(trim($datos['apellidos'])),
-            'nombres'   => mb_strtoupper(trim($datos['nombres'])),
-            'dni'       => $datos['dni'],
-            'celular'   => $datos['celular'] ?? null,
-            'email'     => $datos['email'] ?? null,
-            'direccion' => $datos['direccion'] ?? null,
-        ];
-    }
-
-    private function perteneceA(Institucion $institucion, Asignacion $asignacion): void
-    {
-        abort_unless(
-            $asignacion->programaEstudio
-                && (int) $asignacion->programaEstudio->institucion_id === (int) $institucion->id,
-            404
-        );
-    }
-
-    private function fijarCoordinacion(Asignacion $asignacion): void
-    {
-        if ($asignacion->cargo === 'COORDINADOR') {
-            ProgramaEstudio::where('id', $asignacion->programa_estudio_id)
-                ->update(['coordinador_id' => $asignacion->personal_id]);
-        }
-    }
-
-    private function liberarCoordinacion(Asignacion $asignacion): void
-    {
-        if ($asignacion->cargo === 'COORDINADOR') {
-            ProgramaEstudio::where('id', $asignacion->programa_estudio_id)
-                ->where('coordinador_id', $asignacion->personal_id)
-                ->update(['coordinador_id' => null]);
-        }
     }
 }

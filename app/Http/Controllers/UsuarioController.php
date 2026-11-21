@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Asignacion;
 use App\Models\Personal;
 use App\Models\ProgramaEstudio;
+use App\Models\Scopes\InstitucionScope;
 use App\Models\Usuario;
 use App\Support\ContextoInstitucion;
 use Illuminate\Database\Eloquent\Builder;
@@ -13,29 +15,20 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
-
 class UsuarioController extends Controller
 {
     private const ROLES_DEL_PERSONAL = [Usuario::COORDINADOR, Usuario::ASISTENTE, Usuario::DOCENTE];
 
     public function index()
     {
-        $usuarios = $this->consulta()
+        $usuarios =$this->consulta()
             ->with(['personal', 'institucion', 'programas'])
             ->orderBy('username')
             ->get();
 
-        $conUsuario = Usuario::whereNotNull('personal_id')->pluck('personal_id');
-        $personal   = Personal::with('asignaciones')
-            ->whereNotIn('id', $conUsuario)
-            ->orderBy('apellidos')->orderBy('nombres')
-            ->get();
+        $programas      = ProgramaEstudio::where('activo', true)->orderBy('nombre')->get();$roles          = collect(Usuario::ROLES)->only($this->rolesAsignables());$sinInstitucion = ContextoInstitucion::id() === null;
 
-        $programas = ProgramaEstudio::where('activo', true)->orderBy('nombre')->get();
-        $roles     = collect(Usuario::ROLES)->only($this->rolesAsignables());
-        $sinInstitucion = ContextoInstitucion::id() === null;     // superusuario viendo "Todas"
-
-        return view('usuarios.index', compact('usuarios', 'personal', 'programas', 'roles', 'sinInstitucion'));
+        return view('usuarios.index', compact('usuarios', 'programas', 'roles', 'sinInstitucion'));
     }
 
     public function store(Request $request)
@@ -47,84 +40,135 @@ class UsuarioController extends Controller
                 ->with('error', 'Elija primero una institución activa (menú de usuario) para crear usuarios.');
         }
 
-        $datos = $request->validate([
-            'personal_id'  => ['required', 'integer'],
-            'username'     => array_merge(['nullable'], Usuario::reglasUsername()),
-            'password'     => ['nullable', 'string', 'min:6', 'max:60'],
-            'tipo_usuario' => ['required', Rule::in($this->rolesAsignables())],
-            'programas'    => [$this->exigeProgramas($request) ? 'required' : 'nullable', 'array'],
-            'programas.*'  => ['integer', ContextoInstitucion::reglaPrograma()],
-        ], $this->mensajes());
+        $esPersonal = $this->exigeDatosPersonal($request);
 
-        $persona = Personal::find($datos['personal_id']);
+        $personaExistente = $esPersonal &&$request->filled('dni')
+            ? Personal::withoutGlobalScope(InstitucionScope::class)->withTrashed()->where('dni', $request->input('dni'))->first()
+            : null;
 
-        if (! $persona) {
-            throw ValidationException::withMessages(['personal_id' => 'La persona no pertenece a esta institución.']);
+        if ($personaExistente && Usuario::where('personal_id',$personaExistente->id)->exists()) {
+            throw ValidationException::withMessages(['dni' => 'Ya existe un usuario registrado con ese DNI.']);
         }
 
-        if (Usuario::where('personal_id', $persona->id)->exists()) {
-            throw ValidationException::withMessages(['personal_id' => 'Esa persona ya tiene un usuario.']);
-        }
+        $datos = $request->validate($this->reglas($request, null,$personaExistente?->id),
+            $this->mensajes()
+        );
 
-        $username = $datos['username'] ?? $persona->dni;          // por defecto, su DNI
-        $clave    = $datos['password'] ?? Str::password(10, symbols: false);
+        $username = ! empty($datos['username'])
+            ? $datos['username']
+            : ($datos['dni'] ?? Str::lower(Str::random(8)));
+
+        $clave = ! empty($datos['password'])
+            ? $datos['password']
+            : Str::password(10, symbols: false);
 
         if (Usuario::withTrashed()->where('username', $username)->exists()) {
             throw ValidationException::withMessages(['username' => 'Ese nombre de usuario ya está en uso.']);
         }
 
-        DB::transaction(function () use ($datos, $persona, $username, $clave, $institucionId) {
+        DB::transaction(function () use ($datos, $esPersonal,$personaExistente, $username,$clave, $institucionId) {$personalId = null;
+
+            if ($esPersonal) {$camposPersona = $this->datosPersona($datos);
+
+                if ($personaExistente) {
+                    if ($personaExistente->trashed()) {$personaExistente->restore();
+                    }
+                    $personaExistente->update($camposPersona);
+                    $persona =$personaExistente;
+                } else {
+                    $persona = Personal::create($camposPersona);
+                }
+
+                $personalId =$persona->id;
+            }
+
             $usuario = Usuario::create([
                 'username'       => $username,
                 'password'       => $clave,
-                'personal_id'    => $persona->id,
-                'institucion_id' => $institucionId,             
+                'personal_id'    => $personalId,
+                'institucion_id' => $institucionId,
                 'tipo_usuario'   => $datos['tipo_usuario'],
                 'activo'         => true,
             ]);
 
-            $this->sincronizarProgramas($usuario, $datos['programas'] ?? []);
+            $programaIds = $datos['programas'] ?? [];$this->sincronizarProgramas($usuario,$programaIds);
+
+            if ($personalId) {$this->sincronizarAsignaciones($personalId,$institucionId, $datos['tipo_usuario'],$programaIds);
+            }
         });
 
         return redirect()->route('usuarios.index')
-            ->with('success', 'Usuario creado correctamente')
-            ->with('credenciales', ['usuario' => $username, 'clave' => $clave]);
+            ->with('success', 'Personal y usuario registrados correctamente')
+            ->with('credenciales', ['usuario' => $username, 'clave' =>$clave]);
     }
 
-    public function update(Request $request, Usuario $usuario)
+    public function update(Request $request, Usuario$usuario)
     {
         $this->propio($usuario);
 
-        $datos = $request->validate([
-            'username'     => array_merge(['required'], Usuario::reglasUsername($usuario->id)),
-            'password'     => ['nullable', 'string', 'min:6', 'max:60'],
-            'tipo_usuario' => ['required', Rule::in($this->rolesAsignables())],
-            'programas'    => [$this->exigeProgramas($request) ? 'required' : 'nullable', 'array'],
-            'programas.*'  => ['integer', ContextoInstitucion::reglaPrograma()],
-        ], $this->mensajes());
+        $esPersonal = $this->exigeDatosPersonal($request);
 
-        $activo = $request->boolean('activo');
+        $datos = $request->validate($this->reglas($request,$usuario->id, $usuario->personal_id),$this->mensajes()
+        );
 
-        if ($usuario->id === auth()->id() && ($datos['tipo_usuario'] !== $usuario->tipo_usuario || ! $activo)) {
+        $activo =$request->boolean('activo');
+
+      if ($usuario->id === auth()->id() && ($datos['tipo_usuario'] !== $usuario->tipo_usuario || ! $activo)) {
             return redirect()->back()->with('error', 'No puede cambiar su propio rol ni desactivar su propia cuenta.');
         }
 
-        DB::transaction(function () use ($usuario, $datos, $activo) {
+        $credenciales = null;
+
+        DB::transaction(function () use ($usuario, $datos,$esPersonal, $activo, &$credenciales) {
+            $personalId =$usuario->personal_id;
+
+            if ($esPersonal) {$camposPersona = $this->datosPersona($datos);
+
+                if ($usuario->personal) {
+                    $usuario->personal->update($camposPersona);
+                } else {
+                    $persona = Personal::withoutGlobalScope(InstitucionScope::class)
+                        ->withTrashed()
+                        ->where('dni', $datos['dni'])
+                        ->first();
+
+                    if ($persona) {
+                        if ($persona->trashed()) {$persona->restore();
+                        }
+                        $persona->update($camposPersona);
+                    } else {
+                        $persona = Personal::create($camposPersona);
+                    }
+
+                    $personalId =$persona->id;
+                }
+            }
+
             $cambios = [
                 'username'     => $datos['username'],
+                'personal_id'  => $personalId,
                 'tipo_usuario' => $datos['tipo_usuario'],
                 'activo'       => $activo,
             ];
 
-            if (! empty($datos['password'])) {
-                $cambios['password'] = $datos['password'];
+            if (! empty($datos['password'])) {$cambios['password'] = $datos['password'];$credenciales        = ['usuario' => $datos['username'], 'clave' =>$datos['password']];
             }
 
             $usuario->update($cambios);
-            $this->sincronizarProgramas($usuario, $datos['programas'] ?? []);
+
+            $programaIds = $datos['programas'] ?? [];$this->sincronizarProgramas($usuario,$programaIds);
+
+            if ($personalId &&$usuario->institucion_id) {
+                $this->sincronizarAsignaciones($personalId,
+                    (int) $usuario->institucion_id,
+                    $datos['tipo_usuario'],$programaIds
+                );
+            }
         });
 
-        return redirect()->route('usuarios.index')->with('success', 'Usuario actualizado correctamente');
+        $respuesta = redirect()->route('usuarios.index')->with('success', 'Usuario actualizado correctamente');
+
+        return $credenciales ? $respuesta->with('credenciales', $credenciales) :$respuesta;
     }
 
     public function destroy(Usuario $usuario)
@@ -135,17 +179,47 @@ class UsuarioController extends Controller
             return redirect()->back()->with('error', 'No puede eliminar su propia cuenta.');
         }
 
-        $usuario->delete();
+        DB::transaction(function () use ($usuario) {
+            $personalId    =$usuario->personal_id;
+            $institucionId =$usuario->institucion_id;
 
-        return redirect()->route('usuarios.index')->with('success', 'Usuario eliminado correctamente');
+            $usuario->programas()->detach();$usuario->delete();
+
+            if ($personalId) {
+                if ($institucionId) {$programasInst = ProgramaEstudio::withoutGlobalScope(InstitucionScope::class)
+                        ->where('institucion_id', $institucionId)
+                        ->pluck('id');
+
+                    ProgramaEstudio::withoutGlobalScope(InstitucionScope::class)
+                        ->whereIn('id', $programasInst)
+                        ->where('coordinador_id', $personalId)
+                        ->update(['coordinador_id' => null]);
+
+                    Asignacion::where('personal_id', $personalId)
+                        ->whereIn('programa_estudio_id', $programasInst)
+                        ->delete();
+                }
+
+                $tieneOtrosUsuarios = Usuario::where('personal_id',$personalId)->exists();
+                $tieneOtrasAsig     = Asignacion::where('personal_id',$personalId)->exists();
+
+                if (! $tieneOtrosUsuarios && !$tieneOtrasAsig) {
+                    Personal::withoutGlobalScope(InstitucionScope::class)
+                        ->where('id', $personalId)
+                        ->delete();
+                }
+            }
+        });
+
+        return redirect()->route('usuarios.index')->with('success', 'Personal y usuario eliminados correctamente');
     }
 
     private function consulta(): Builder
     {
-        $q = Usuario::query()->whereNotNull('institucion_id');       // nunca los superusuarios
+        $q = Usuario::query()->whereNotNull('institucion_id');
 
         if (($id = ContextoInstitucion::id()) !== null) {
-            $q->where('institucion_id', $id);
+            $q->where('institucion_id',$id);
         }
 
         return $q;
@@ -154,7 +228,6 @@ class UsuarioController extends Controller
     private function propio(Usuario $usuario): void
     {
         abort_unless($this->consulta()->whereKey($usuario->id)->exists(), 404);
-
 
         abort_if(
             $usuario->tipo_usuario === Usuario::ADMIN_INSTITUCION && ! auth()->user()->esSuperusuario(),
@@ -170,9 +243,45 @@ class UsuarioController extends Controller
             : self::ROLES_DEL_PERSONAL;
     }
 
-    private function exigeProgramas(Request $request): bool
+    private function exigeDatosPersonal(Request $request): bool
     {
         return in_array($request->input('tipo_usuario'), self::ROLES_DEL_PERSONAL, true);
+    }
+
+    private function reglas(Request $request, ?int $usuarioId = null, ?int $personalId = null): array
+    {
+        $esPersonal = $this->exigeDatosPersonal($request);
+        $reqPersona =$esPersonal ? 'required' : 'nullable';
+
+        $reglaDni = [$reqPersona, 'digits:8'];
+        if ($personalId) {
+            $reglaDni[] = Rule::unique('personal', 'dni')->ignore($personalId);
+        }
+
+        return [
+            'apellidos'    => [$reqPersona, 'string', 'max:60'],
+            'nombres'      => [$reqPersona, 'string', 'max:60'], 'dni'          =>$reglaDni,
+            'celular'      => ['nullable', 'string', 'max:30'],
+            'email'        => ['nullable', 'email', 'max:100'],
+            'direccion'    => ['nullable', 'string', 'max:150'],
+            'username'     => array_merge([$usuarioId ? 'required' : 'nullable'], Usuario::reglasUsername($usuarioId)),
+            'password'     => ['nullable', 'string', 'min:6', 'max:60'],
+            'tipo_usuario' => ['required', Rule::in($this->rolesAsignables())],
+            'programas'    => [$esPersonal ? 'required' : 'nullable', 'array'],
+            'programas.*'  => ['integer', ContextoInstitucion::reglaPrograma()],
+        ];
+    }
+
+    private function datosPersona(array $datos): array
+    {
+        return [
+            'apellidos' => mb_strtoupper(trim($datos['apellidos'])),
+            'nombres'   => mb_strtoupper(trim($datos['nombres'])),
+            'dni'       => $datos['dni'],
+            'celular'   => $datos['celular'] ?? null,
+            'email'     => $datos['email'] ?? null,
+            'direccion' => $datos['direccion'] ?? null,
+        ];
     }
 
     private function mensajes(): array
@@ -182,10 +291,47 @@ class UsuarioController extends Controller
         ];
     }
 
-    private function sincronizarProgramas(Usuario $usuario, array $ids): void
+    private function sincronizarProgramas(Usuario $usuario, array$ids): void
     {
         $usuario->programas()->sync(
-            collect($ids)->mapWithKeys(fn ($id) => [(int) $id => ['acceso' => true]])->all()
+            collect($ids)->mapWithKeys(fn ($id) => [(int)$id => ['acceso' => true]])->all()
         );
+    }
+
+    private function sincronizarAsignaciones(int $personalId, int$institucionId, string $rol, array$programaIds): void
+    {
+        $ids = collect($programaIds)->map(fn ($id) => (int)$id)->unique()->values()->all();
+
+        $programasInst = ProgramaEstudio::withoutGlobalScope(InstitucionScope::class)
+            ->where('institucion_id', $institucionId)
+            ->pluck('id');
+
+        Asignacion::where('personal_id', $personalId)
+            ->whereIn('programa_estudio_id', $programasInst)
+            ->delete();
+
+        ProgramaEstudio::withoutGlobalScope(InstitucionScope::class)
+            ->whereIn('id', $programasInst)
+            ->where('coordinador_id', $personalId)
+            ->whereNotIn('id', $rol === Usuario::COORDINADOR ? $ids : [])
+            ->update(['coordinador_id' => null]);
+
+        if (! in_array($rol, self::ROLES_DEL_PERSONAL, true)) {
+            return;
+        }
+
+        foreach ($ids as$progId) {
+            Asignacion::create([
+                'personal_id'         => $personalId,
+                'programa_estudio_id' => $progId,
+                'cargo'               => $rol,
+            ]);
+        }
+
+        if ($rol === Usuario::COORDINADOR &&$ids) {
+            ProgramaEstudio::withoutGlobalScope(InstitucionScope::class)
+                ->whereIn('id', $ids)
+                ->update(['coordinador_id' => $personalId]);
+        }
     }
 }
