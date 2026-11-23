@@ -52,17 +52,20 @@ Route::middleware(['auth'])->group(function () {
         Route::put('mi-cuenta', [CuentaController::class, 'update'])->name('cuenta.update');
     });
 
-    Route::post('contexto/programa', [ContextoController::class, 'programa'])->name('contexto.programa');
+    
 
     Route::post('contexto/institucion', [ContextoController::class, 'institucion'])
         ->middleware('superusuario')
         ->name('contexto.institucion');
 
     Route::prefix('almacen/bienes')->name('bienes.')->middleware('permiso:bienes.ver')->group(function () {
-        Route::get('/',        [BienController::class, 'index'])->name('index');
-        Route::post('/',       [BienController::class, 'store'])->middleware('permiso:bienes.registrar')->name('store');
-        Route::put('/{id}',    [BienController::class, 'update'])->middleware('permiso:bienes.registrar')->name('update');
-        Route::delete('/{id}', [BienController::class, 'destroy'])->middleware('permiso:bienes.inactivar')->name('destroy');
+        Route::get('/',                [BienController::class, 'index'])->name('index');
+        Route::post('/',               [BienController::class, 'store'])->middleware('permiso:bienes.registrar')->name('store');
+        Route::post('/importar-excel', [BienController::class, 'importarExcel'])->middleware('permiso:bienes.registrar')->name('importar.excel');
+        Route::get('/plantilla-excel', [BienController::class, 'plantillaExcel'])->name('plantilla.excel');
+        Route::get('/exportar-excel',  [BienController::class, 'exportarExcel'])->name('exportar.excel');
+        Route::put('/{id}',            [BienController::class, 'update'])->middleware('permiso:bienes.registrar')->name('update');
+        Route::delete('/{id}',         [BienController::class, 'destroy'])->middleware('permiso:bienes.inactivar')->name('destroy');
     });
 
     Route::prefix('almacen/inventarios')->name('inventarios.')->middleware('permiso:inventarios.ver')->group(function () {

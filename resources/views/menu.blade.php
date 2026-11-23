@@ -17,9 +17,6 @@
         <p>
             {{ $u->rol_etiqueta }}
             · {{ $institucion->nombre ?? 'Todas las instituciones' }}
-            @if ($programaActivo)
-                · Programa: {{ $programaActivo->nombre }}
-            @endif
         </p>
     </div>
 

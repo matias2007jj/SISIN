@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Bien;
 use App\Models\Usuario;
+use App\Services\BienExcelService;
 use App\Support\ContextoInstitucion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class BienController extends Controller
 {
@@ -146,6 +148,69 @@ class BienController extends Controller
         ]);
 
         return redirect()->route('bienes.index')->with('success', 'El bien pasó a estado INACTIVO.');
+    }
+
+    public function importarExcel(Request $request, BienExcelService $excelService)
+    {
+        $programaId = ContextoInstitucion::programaId();
+
+        if ($programaId === null) {
+            return redirect()->route('bienes.index')
+                ->with('aviso_error', 'Seleccione un programa de estudio activo antes de importar.');
+        }
+
+        $request->validate([
+            'archivo' => [
+                'required',
+                'file',
+                'mimes:xlsx',
+                'mimetypes:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'max:10240',
+            ],
+        ], [
+            'archivo.required'  => 'Debe seleccionar un archivo Excel (.xlsx).',
+            'archivo.mimes'     => 'Solo se permite importar archivos en formato oficial .xlsx.',
+            'archivo.mimetypes' => 'El archivo seleccionado no es un documento Excel (.xlsx) válido.',
+            'archivo.max'       => 'El archivo no debe superar los 10 MB.',
+        ]);
+
+        try {
+            $resumen = $excelService->importar($request->file('archivo'), $programaId);
+        } catch (ValidationException $e) {
+            $detalle = collect($e->errors())->flatten()->implode(' | ');
+            return redirect()->route('bienes.index')->with('aviso_error', $detalle);
+        }
+
+        return redirect()->route('bienes.index')->with(
+            'success',
+            "Importación exitosa: {$resumen['creados']} nuevos y {$resumen['actualizados']} actualizados (Total: {$resumen['total']})."
+        );
+    }
+
+    public function plantillaExcel(BienExcelService $excelService)
+    {
+        return $excelService->descargarPlantilla();
+    }
+
+    public function exportarExcel(BienExcelService $excelService)
+    {
+        /** @var Usuario $user */
+        $user           = Auth::user();
+        $institucion    = $user->institucionActiva();
+        $institucionId  = $institucion?->id;
+        $programaId     = ContextoInstitucion::programaId();
+        $verInstitucion = $user->veTodaLaInstitucion();
+
+        $bienes = DB::select('CALL sp_listar_bienes(?, ?, ?)', [
+            $programaId,
+            $institucionId,
+            $verInstitucion ? 1 : 0,
+        ]);
+
+        return $excelService->exportar($bienes, [
+            'institucion' => $institucion?->nombre ?? 'TODAS LAS INSTITUCIONES',
+            'programa'    => $programaId ? DB::table('programas_estudio')->where('id', $programaId)->value('nombre') : 'TODOS LOS PROGRAMAS',
+        ]);
     }
 
     private function reglas(int $programaId, ?int $ignorarId = null): array

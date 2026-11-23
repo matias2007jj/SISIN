@@ -19,25 +19,6 @@ class ContextoController extends Controller
             $request->session()->put('institucion_id', (int) $datos['institucion_id']);
         }
 
-        $request->session()->forget('programa_estudio_id');
-
         return redirect()->route('menu');
-    }
-
-    public function programa(Request $request)
-    {
-        $datos = $request->validate([
-            'programa_estudio_id' => ['required', 'integer'],
-        ]);
-
-        abort_unless(
-            $request->user()->puedeUsarPrograma((int) $datos['programa_estudio_id']),
-            403,
-            'No tiene acceso a ese programa de estudio.'
-        );
-
-        $request->session()->put('programa_estudio_id', (int) $datos['programa_estudio_id']);
-
-        return redirect()->back();
     }
 }

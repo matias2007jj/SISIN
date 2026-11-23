@@ -57,13 +57,12 @@ class MenuController extends Controller
             ];
         }
 
-        $programaActivo = ($id = ContextoInstitucion::programaId()) ? ProgramaEstudio::find($id) : null;
+/////////////////
 
         return view('menu', [
             'resumen'        => $resumen,
             'accesos'        => $this->accesos($user,$institucion),
             'institucion'    => $institucion,
-            'programaActivo' => $programaActivo,
             'global'         => $global,
             'bienesActivos'  => $operativos,
             'bienesInactivos'=> $inactivos,

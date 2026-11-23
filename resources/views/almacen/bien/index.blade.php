@@ -40,7 +40,16 @@
     </div>
     <div class="col-12 col-md-7 text-md-end d-flex flex-wrap justify-content-md-end align-items-center gap-2">
         <span class="badge-count">Total Registros: <span id="contadorRegistros">{{ count($bienes) }}</span></span>
+
+        <a href="{{ route('bienes.exportar.excel') }}" class="btn btn-outline-success btn-action-icon">
+            Exportar Excel
+        </a>
+
         @if (!$global && $puedeRegistrar)
+            <button type="button" class="btn btn-outline-info btn-action-icon" data-bs-toggle="modal" data-bs-target="#modalImportarBien">
+                Importar Excel
+            </button>
+
             <button type="button" class="btn btn-success btn-action-icon" id="btnNuevoBien" style="background-color:#10b981; border:none;">
                 + Nuevo Bien
             </button>
@@ -176,6 +185,51 @@
 </div>
 
 @if (!$global && $puedeRegistrar)
+{{-- Modal para Importar Excel con Formato Oficial --}}
+<div class="modal fade" id="modalImportarBien" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" action="{{ route('bienes.importar.excel') }}" enctype="multipart/form-data" class="modal-content mi-modal">
+            @csrf
+            <div class="modal-header">
+                <div class="titulo">
+                    <span class="punto"></span>
+                    <h2>Importar Bienes desde Excel</h2>
+                </div>
+                <button type="button" class="cerrar" data-bs-dismiss="modal">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <p class="text-muted mb-3" style="font-size: 0.9rem;">
+                    Solo se aceptan archivos <strong>.xlsx</strong> que respeten exactamente la estructura y encabezados del formato oficial.
+                </p>
+
+                <div class="mb-3">
+                    <a href="{{ route('bienes.plantilla.excel') }}" class="btn btn-outline-success btn-sm">
+                        Descargar Plantilla Oficial (.xlsx)
+                    </a>
+                </div>
+
+                <div class="campo">
+                    <label for="archivoExcelBien">Seleccionar archivo (.xlsx) *</label>
+                    <input
+                        type="file"
+                        name="archivo"
+                        id="archivoExcelBien"
+                        accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        required
+                    >
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-cancelar" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-guardar">Importar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{-- Modal Nuevo / Editar Bien --}}
 <div class="modal fade" id="modalBien" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <form id="formBien" method="POST" action="{{ route('bienes.store') }}" data-store-url="{{ route('bienes.store') }}" class="modal-content mi-modal">
