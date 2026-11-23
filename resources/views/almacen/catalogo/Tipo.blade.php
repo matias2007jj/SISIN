@@ -34,10 +34,18 @@
     </div>
 @endif
 
-<div class="row g-3 align-items-center justify-content-between mb-4">
+<div class="row g-3 align-items-center justify-content-between mb-3">
     <div class="col-12 col-xl-5">
         <div class="input-group search-toolbar">
-            <input type="text" id="inputBuscar" class="form-control text-uppercase" placeholder="Escribe para filtrar tipo..." autocomplete="off">
+            <input
+                type="text"
+                id="inputBuscar"
+                class="form-control text-uppercase"
+                placeholder="Escribe para filtrar tipo..."
+                autocomplete="off"
+                data-tabla="#tablaTipos tbody tr:not(#rowSinDatos)"
+                data-contador="#contadorTipos"
+            >
             <button type="button" class="btn btn-link text-muted pe-1 d-none" id="btnLimpiarBuscar">&times;</button>
         </div>
     </div>
@@ -68,6 +76,8 @@
     </div>
 </div>
 
+@include('almacen.catalogo._filtros')
+
 <div class="table-responsive table-sisin-wrapper">
     <table class="table table-sisin align-middle" id="tablaTipos">
         <thead>
@@ -87,7 +97,7 @@
         <tbody>
             @if (count($tipos) > 0)
                 @foreach ($tipos as $tipo)
-                    <tr>
+                    <tr data-institucion-id="{{ $tipo->institucion_id ?? '' }}" data-programa-id="{{ $tipo->programa_estudio_id ?? '' }}">
                         <td>
                             <div class="brand-chip">
                                 <span class="brand-chip-title">{{ $tipo->nombre }}</span>
@@ -129,7 +139,7 @@
                                 @endif
 
                                 @if ($puedeEliminar)
-                                <form action="{{ route('catalogo.destroy', ['catalogo' => 'tipo', 'id' => $tipo->id]) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Desea eliminar el tipo {{ $tipo->nombre }}?')">
+                                <form action="{{ route('catalogo.destroy', ['catalogo' => 'tipo', 'id' => $tipo->id]) }}" method="POST" class="d-inline" data-confirm="¿Desea eliminar el tipo {{ $tipo->nombre }}?">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-outline-danger btn-action-icon" title="Eliminar Tipo">
@@ -297,6 +307,6 @@
 
 @push('scripts')
     <script src="{{ asset('js/modal.js') }}"></script>
-    <script src="{{ asset('js/tipo.js') }}"></script>
+    <script src="{{ asset('js/catalogo.js') }}"></script>
     <script src="{{ asset('js/exportar.js') }}"></script>
 @endpush

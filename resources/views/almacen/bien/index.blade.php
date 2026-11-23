@@ -7,20 +7,31 @@
     <link rel="stylesheet" href="{{ asset('css/grupo.css') }}">
     <link rel="stylesheet" href="{{ asset('css/organizacion.css') }}">
     <link rel="stylesheet" href="{{ asset('css/modal.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/bien.css') }}">
 @endpush
 
 @section('contenido')
 @include('organizacion._alertas')
 
 @php
-    $global = auth()->user()->esSuperusuario() && ! auth()->user()->institucionActiva();
+    $user   = auth()->user();
+    $global = $user->esSuperusuario() && ! $user->institucionActiva();
 
     $columnaPrograma  = $global || $verInstitucion;
     $mostrarAcciones  = ! $global && ($puedeRegistrar || $puedeInactivar);
     $columnas         = 9 + ($global ? 1 : 0) + ($columnaPrograma ? 1 : 0) - ($mostrarAcciones ? 0 : 1);
+
+    $puedeCrearSala   = $user->puede('catalogo.sala.crear')   || $puedeRegistrar;
+    $puedeCrearGrupo  = $user->puede('catalogo.grupo.crear')  || $puedeRegistrar;
+    $puedeCrearTipo   = $user->puede('catalogo.tipo.crear')   || $puedeRegistrar;
+    $puedeCrearMarca  = $user->puede('catalogo.marca.crear')  || $puedeRegistrar;
+    $puedeCrearModelo = $user->puede('catalogo.modelo.crear') || $puedeRegistrar;
+
+    $mostrarFiltroPrograma = ($global || $verInstitucion) && isset($programasFiltro) && count($programasFiltro) > 0;
+    $mostrarFiltroSala     = isset($salasFiltro) && count($salasFiltro) > 0;
 @endphp
 
-<div class="row g-3 align-items-center justify-content-between mb-4">
+<div class="row g-3 align-items-center justify-content-between mb-3">
     <div class="col-12 col-md-5 col-lg-4">
         <div class="input-group search-toolbar">
             <input type="text" id="inputBuscar" class="form-control text-uppercase" placeholder="Filtrar por CBI, descripción, sala..." autocomplete="off">
@@ -36,6 +47,46 @@
         @endif
     </div>
 </div>
+
+@if ($mostrarFiltroPrograma || $mostrarFiltroSala)
+<div class="row g-3 align-items-end mb-4">
+    @if ($mostrarFiltroPrograma)
+    <div class="col-12 col-md-4 col-lg-3">
+        <label for="filtroProgramaBien" class="form-label text-uppercase fw-semibold mb-1" style="font-size: 0.75rem; color: #94a3b8; letter-spacing: 0.5px;">
+            Programa de Estudios:
+        </label>
+        <select id="filtroProgramaBien" class="form-select form-select-sm bg-dark text-white border-secondary text-uppercase" style="height: 38px;">
+            <option value="">TODOS LOS PROGRAMAS</option>
+            @foreach ($programasFiltro as $prog)
+                <option value="{{ $prog->id }}">{{ $prog->nombre }}</option>
+            @endforeach
+        </select>
+    </div>
+    @endif
+
+    @if ($mostrarFiltroSala)
+    <div class="col-12 col-md-4 col-lg-3">
+        <label for="filtroSalaBien" class="form-label text-uppercase fw-semibold mb-1" style="font-size: 0.75rem; color: #94a3b8; letter-spacing: 0.5px;">
+            Salas:
+        </label>
+        <select id="filtroSalaBien" class="form-select form-select-sm bg-dark text-white border-secondary text-uppercase" style="height: 38px;">
+            <option value="">TODAS LAS SALAS</option>
+            @foreach ($salasFiltro as $s)
+                <option value="{{ $s->id }}" data-programa-id="{{ $s->programa_estudio_id ?? '' }}">
+                    {{ $s->nombre }}
+                </option>
+            @endforeach
+        </select>
+    </div>
+    @endif
+
+    <div class="col-12 col-md-auto">
+        <button type="button" id="btnLimpiarFiltrosBien" class="btn btn-outline-secondary btn-sm px-3 d-none" style="height: 38px;">
+            Limpiar filtros
+        </button>
+    </div>
+</div>
+@endif
 
 <div class="table-responsive table-sisin-wrapper">
     <table class="table table-sisin align-middle" id="tablaRegistros">
@@ -62,7 +113,9 @@
         </thead>
         <tbody>
             @forelse ($bienes as $b)
-                <tr class="{{ $b->estado_id == 6 ? 'opacity-50' : '' }}">
+                <tr class="{{ $b->estado_id == 6 ? 'opacity-50' : '' }}"
+                    data-programa-id="{{ $b->programa_estudio_id ?? '' }}"
+                    data-sala-id="{{ $b->sala_id ?? '' }}">
                     @if ($global)
                         <td class="text-fecha">{{ $b->institucion_nombre ?? '-' }}</td>
                     @endif
@@ -150,52 +203,127 @@
 
                     <div class="col-md-6 campo">
                         <label for="sala_id">Sala *</label>
-                        <select name="sala_id" id="sala_id" required>
-                            <option value="">Seleccione una sala...</option>
-                            @foreach ($salas as $s)
-                                <option value="{{ $s->id }}">{{ $s->nombre }}</option>
-                            @endforeach
-                        </select>
+                        <div class="select-con-boton">
+                            <select name="sala_id" id="sala_id" required>
+                                <option value="">Seleccione una sala...</option>
+                                @foreach ($salas as $s)
+                                    <option value="{{ $s->id }}">{{ $s->nombre }}</option>
+                                @endforeach
+                            </select>
+                            @if ($puedeCrearSala)
+                                <button type="button"
+                                    class="btn btn-outline-success btn-add-rapido js-btn-catalogo-rapido"
+                                    title="Agregar nueva Sala"
+                                    data-catalogo="sala"
+                                    data-titulo="Nueva Sala"
+                                    data-label="Nombre de la Sala"
+                                    data-placeholder="EJ. LABORATORIO 1, AULA 204..."
+                                    data-select="#sala_id"
+                                    data-url="{{ route('catalogo.store', ['catalogo' => 'sala']) }}">
+                                    +
+                                </button>
+                            @endif
+                        </div>
                     </div>
 
                     <div class="col-md-6 campo">
                         <label for="grupo_id">Grupo *</label>
-                        <select name="grupo_id" id="grupo_id" required>
-                            <option value="">Seleccione un grupo...</option>
-                            @foreach ($grupos as $g)
-                                <option value="{{ $g->id }}">{{ $g->nombre }}</option>
-                            @endforeach
-                        </select>
+                        <div class="select-con-boton">
+                            <select name="grupo_id" id="grupo_id" required>
+                                <option value="">Seleccione un grupo...</option>
+                                @foreach ($grupos as $g)
+                                    <option value="{{ $g->id }}">{{ $g->nombre }}</option>
+                                @endforeach
+                            </select>
+                            @if ($puedeCrearGrupo)
+                                <button type="button"
+                                    class="btn btn-outline-success btn-add-rapido js-btn-catalogo-rapido"
+                                    title="Agregar nuevo Grupo"
+                                    data-catalogo="grupo"
+                                    data-titulo="Nuevo Grupo"
+                                    data-label="Nombre del Grupo"
+                                    data-placeholder="INGRESE EL NOMBRE DEL GRUPO"
+                                    data-select="#grupo_id"
+                                    data-url="{{ route('catalogo.store', ['catalogo' => 'grupo']) }}">
+                                    +
+                                </button>
+                            @endif
+                        </div>
                     </div>
 
                     <div class="col-md-4 campo">
                         <label for="tipo_id">Tipo *</label>
-                        <select name="tipo_id" id="tipo_id" required>
-                            <option value="">Seleccione un tipo...</option>
-                            @foreach ($tipos as $t)
-                                <option value="{{ $t->id }}">{{ $t->nombre }}</option>
-                            @endforeach
-                        </select>
+                        <div class="select-con-boton">
+                            <select name="tipo_id" id="tipo_id" required>
+                                <option value="">Seleccione un tipo...</option>
+                                @foreach ($tipos as $t)
+                                    <option value="{{ $t->id }}">{{ $t->nombre }}</option>
+                                @endforeach
+                            </select>
+                            @if ($puedeCrearTipo)
+                                <button type="button"
+                                    class="btn btn-outline-success btn-add-rapido js-btn-catalogo-rapido"
+                                    title="Agregar nuevo Tipo"
+                                    data-catalogo="tipo"
+                                    data-titulo="Nuevo Tipo"
+                                    data-label="Nombre del Tipo"
+                                    data-placeholder="INGRESE EL NOMBRE DEL TIPO"
+                                    data-select="#tipo_id"
+                                    data-url="{{ route('catalogo.store', ['catalogo' => 'tipo']) }}">
+                                    +
+                                </button>
+                            @endif
+                        </div>
                     </div>
 
                     <div class="col-md-4 campo">
                         <label for="marca_id">Marca</label>
-                        <select name="marca_id" id="marca_id">
-                            <option value="">Sin marca</option>
-                            @foreach ($marcas as $m)
-                                <option value="{{ $m->id }}">{{ $m->nombre }}</option>
-                            @endforeach
-                        </select>
+                        <div class="select-con-boton">
+                            <select name="marca_id" id="marca_id">
+                                <option value="">Sin marca</option>
+                                @foreach ($marcas as $m)
+                                    <option value="{{ $m->id }}">{{ $m->nombre }}</option>
+                                @endforeach
+                            </select>
+                            @if ($puedeCrearMarca)
+                                <button type="button"
+                                    class="btn btn-outline-success btn-add-rapido js-btn-catalogo-rapido"
+                                    title="Agregar nueva Marca"
+                                    data-catalogo="marca"
+                                    data-titulo="Nueva Marca"
+                                    data-label="Nombre de la Marca"
+                                    data-placeholder="INGRESE EL NOMBRE DE LA MARCA"
+                                    data-select="#marca_id"
+                                    data-url="{{ route('catalogo.store', ['catalogo' => 'marca']) }}">
+                                    +
+                                </button>
+                            @endif
+                        </div>
                     </div>
 
                     <div class="col-md-4 campo">
                         <label for="modelo_id">Modelo</label>
-                        <select name="modelo_id" id="modelo_id">
-                            <option value="">Sin modelo</option>
-                            @foreach ($modelos as $mo)
-                                <option value="{{ $mo->id }}">{{ $mo->nombre }}</option>
-                            @endforeach
-                        </select>
+                        <div class="select-con-boton">
+                            <select name="modelo_id" id="modelo_id">
+                                <option value="">Sin modelo</option>
+                                @foreach ($modelos as $mo)
+                                    <option value="{{ $mo->id }}">{{ $mo->nombre }}</option>
+                                @endforeach
+                            </select>
+                            @if ($puedeCrearModelo)
+                                <button type="button"
+                                    class="btn btn-outline-success btn-add-rapido js-btn-catalogo-rapido"
+                                    title="Agregar nuevo Modelo"
+                                    data-catalogo="modelo"
+                                    data-titulo="Nuevo Modelo"
+                                    data-label="Nombre del Modelo"
+                                    data-placeholder="INGRESE EL NOMBRE DEL MODELO"
+                                    data-select="#modelo_id"
+                                    data-url="{{ route('catalogo.store', ['catalogo' => 'modelo']) }}">
+                                    +
+                                </button>
+                            @endif
+                        </div>
                     </div>
 
                     <div class="col-md-4 campo">
@@ -226,10 +354,46 @@
         </form>
     </div>
 </div>
+
+{{-- Mini-modal reutilizable para creación rápida de Sala, Grupo, Tipo, Marca o Modelo --}}
+<div class="modal fade" id="modalCatalogoRapido" tabindex="-1" aria-hidden="true" style="z-index: 1065;">
+    <div class="modal-dialog modal-dialog-centered modal-sm" style="max-width: 440px;">
+        <form id="formCatalogoRapido" class="modal-content mi-modal" style="box-shadow: 0 20px 50px rgba(0,0,0,0.85);">
+            <div class="modal-header">
+                <div class="titulo">
+                    <span class="punto"></span>
+                    <h2 id="tituloCatalogoRapido">Nuevo Registro</h2>
+                </div>
+                <button type="button" class="cerrar" data-bs-dismiss="modal">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <div id="errorCatalogoRapido" class="alert alert-danger py-2 px-3 mb-3 d-none" style="font-size: 0.85rem;"></div>
+
+                <div class="campo mb-3">
+                    <label for="nombreCatalogoRapido" id="labelCatalogoRapido">Nombre *</label>
+                    <input type="text" id="nombreCatalogoRapido" name="nombre" maxlength="60" class="text-uppercase" required autocomplete="off">
+                </div>
+
+                <div class="campo d-none" id="grupoObservacionRapido">
+                    <label for="observacionCatalogoRapido">Ubicación / Observación</label>
+                    <input type="text" id="observacionCatalogoRapido" name="observacion" maxlength="200" placeholder="Ej. 2do piso, Pabellón B...">
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-cancelar" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-guardar" id="btnGuardarCatalogoRapido">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
 @endif
 @endsection
 
 @push('scripts')
     <script src="{{ asset('js/organizacion.js') }}"></script>
     <script src="{{ asset('js/bien.js') }}"></script>
+    <script src="{{ asset('js/bien-catalogo-rapido.js') }}"></script>
+    <script src="{{ asset('js/bien-filtros.js') }}?v=2"></script>
 @endpush

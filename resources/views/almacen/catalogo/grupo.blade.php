@@ -33,7 +33,7 @@
     </div>
 @endif
 
-<div class="row g-3 align-items-center justify-content-between mb-4">
+<div class="row g-3 align-items-center justify-content-between mb-3">
     <div class="col-12 col-xl-5">
         <div class="input-group search-toolbar">
             <input
@@ -77,6 +77,8 @@
     </div>
 </div>
 
+@include('almacen.catalogo._filtros')
+
 <div class="table-responsive table-sisin-wrapper">
     <table class="table table-sisin align-middle" id="tablaGrupos">
         <thead>
@@ -96,7 +98,7 @@
         <tbody>
             @if (count($grupos) > 0)
                 @foreach ($grupos as $grupo)
-                    <tr>
+                    <tr data-institucion-id="{{ $grupo->institucion_id ?? '' }}" data-programa-id="{{ $grupo->programa_estudio_id ?? '' }}">
                         <td>
                             <div class="brand-chip">
                                 <span class="brand-chip-title">{{ $grupo->nombre }}</span>

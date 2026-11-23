@@ -12,17 +12,16 @@ use Illuminate\Validation\Rule;
 
 class BienController extends Controller
 {
-
     private const ESTADO_INACTIVO = 6;
 
     public function index()
     {
         /** @var Usuario $user */
-        $user          = Auth::user();
-        $institucionId = $user->institucionActiva()?->id;
-        $programaId    = ContextoInstitucion::programaId();
-
+        $user           = Auth::user();
+        $institucionId  = $user->institucionActiva()?->id;
+        $programaId     = ContextoInstitucion::programaId();
         $verInstitucion = $user->veTodaLaInstitucion();
+        $idsPermitidos  = $user->idsProgramasPermitidos();
 
         $bienes = DB::select('CALL sp_listar_bienes(?, ?, ?)', [
             $programaId,
@@ -30,6 +29,7 @@ class BienController extends Controller
             $verInstitucion ? 1 : 0,
         ]);
 
+        // Listas para los modales (del programa activo)
         $salas   = $programaId ? DB::select('CALL sp_listar_salas(?)', [$programaId]) : [];
         $grupos  = $programaId ? DB::select('CALL sp_listar_grupos(?, 0)', [$programaId]) : [];
         $tipos   = $programaId ? DB::select('CALL sp_listar_tipos(?)', [$programaId]) : [];
@@ -39,11 +39,38 @@ class BienController extends Controller
         $estados = collect(DB::select('CALL sp_listar_estados()'))
             ->where('id', '!=', self::ESTADO_INACTIVO);
 
+        // Listas para los filtros de la tabla
+        $programasFiltro = DB::table('programas_estudio as pe')
+            ->whereIn('pe.id', $idsPermitidos)
+            ->whereNull('pe.deleted_at')
+            ->when($user->esSuperusuario() && $institucionId !== null, fn ($q) => $q->where('pe.institucion_id', $institucionId))
+            ->orderBy('pe.nombre')
+            ->get(['pe.id', 'pe.nombre', 'pe.institucion_id']);
+
+        $salasFiltro = DB::table('salas as s')
+            ->join('programas_estudio as pe', 'pe.id', '=', 's.programa_estudio_id')
+            ->whereNull('s.deleted_at')
+            ->whereNull('pe.deleted_at')
+            ->when($user->esSuperusuario() && $institucionId === null, function ($q) {
+                // Superusuario en vista global: todas las salas
+            }, function ($q) use ($verInstitucion, $idsPermitidos, $programaId) {
+                if ($verInstitucion) {
+                    $q->whereIn('s.programa_estudio_id', $idsPermitidos);
+                } elseif ($programaId !== null) {
+                    $q->where('s.programa_estudio_id', $programaId);
+                } else {
+                    $q->whereRaw('1 = 0');
+                }
+            })
+            ->orderBy('s.nombre')
+            ->get(['s.id', 's.nombre', 's.programa_estudio_id', 'pe.institucion_id']);
+
         $puedeRegistrar = $user->puede('bienes.registrar') && $programaId !== null;
         $puedeInactivar = $user->puede('bienes.inactivar');
 
         return view('almacen.bien.index', compact(
             'bienes', 'salas', 'grupos', 'tipos', 'marcas', 'modelos', 'estados',
+            'programasFiltro', 'salasFiltro',
             'programaId', 'verInstitucion', 'puedeRegistrar', 'puedeInactivar'
         ));
     }
@@ -120,7 +147,6 @@ class BienController extends Controller
 
         return redirect()->route('bienes.index')->with('success', 'El bien pasó a estado INACTIVO.');
     }
-
 
     private function reglas(int $programaId, ?int $ignorarId = null): array
     {

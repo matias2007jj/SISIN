@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 21-11-2026 a las 23:35:03
+-- Tiempo de generación: 23-11-2026 a las 02:39:15
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -352,7 +352,9 @@ INSERT INTO `bienes` (`id`, `sala_id`, `grupo_id`, `cbi`, `tipo_id`, `descripcio
 (32, 58, 44, '2026000027', 38, 'ANALIZADOR DE MOTORES CON PANTALLA TACTIL ROTA', 35, 33, 'SN-BSH-5003', 6, 'PENDIENTE DE BAJA PATRIMONIAL', 14, NULL, '2026-11-21 22:27:29', '2026-11-21 22:27:29', NULL),
 (33, 59, 45, '2026000028', 39, 'COMPUTADORA DE ESCRITORIO CON FUENTE QUEMADA', 36, 34, 'SN-LNV-7005', 6, 'RETIRADA POR CORTOCIRCUITO', 14, NULL, '2026-11-21 22:27:29', '2026-11-21 22:27:29', NULL),
 (34, 60, 45, '2026000029', 40, 'CALCULADORA SUMADORA CON RODILLO DE TINTA SECO', 37, 35, 'SN-CSO-1702', 6, 'DISPLAY CON DIGITOS INCOMPLETOS', 14, NULL, '2026-11-21 22:27:29', '2026-11-21 22:27:29', NULL),
-(35, 62, 48, '2026000030', 42, 'AMOLADORA INDUSTRIAL DE BANCO CON BOBINA QUEMADA', 39, 37, 'SN-MKT-9020', 6, 'DADA DE BAJA POR DESGASTE DE MOTOR', 14, NULL, '2026-11-21 22:27:29', '2026-11-21 22:27:29', NULL);
+(35, 62, 48, '2026000030', 42, 'AMOLADORA INDUSTRIAL DE BANCO CON BOBINA QUEMADA', 39, 37, 'SN-MKT-9020', 6, 'DADA DE BAJA POR DESGASTE DE MOTOR', 14, NULL, '2026-11-21 22:27:29', '2026-11-21 22:27:29', NULL),
+(36, 53, 49, '154544', 34, 'MONITOR', 31, 29, '111111111111111111111111111', 5, NULL, 1, NULL, '2026-11-22 23:55:42', '2026-11-22 23:55:42', NULL),
+(37, 54, 49, '12344', 34, 'MOUSE', 31, 29, '444444444444444', 5, NULL, 1, NULL, '2026-11-22 23:56:13', '2026-11-22 23:56:13', NULL);
 
 -- --------------------------------------------------------
 
@@ -477,7 +479,9 @@ INSERT INTO `grupos` (`id`, `programa_estudio_id`, `nombre`, `created_by`, `upda
 (45, 21, 'COMPUTO CONTABLE', 14, NULL, '2026-11-21 22:23:56', '2026-11-21 22:23:56', NULL),
 (46, 21, 'ARCHIVO DOCUMENTARIO', 14, NULL, '2026-11-21 22:23:56', '2026-11-21 22:23:56', NULL),
 (47, 22, 'TABLEROS Y MEDICION ELECTRICA', 14, NULL, '2026-11-21 22:23:56', '2026-11-21 22:23:56', NULL),
-(48, 23, 'MAQUINARIA METALMECANICA', 14, NULL, '2026-11-21 22:23:56', '2026-11-21 22:23:56', NULL);
+(48, 23, 'MAQUINARIA METALMECANICA', 14, NULL, '2026-11-21 22:23:56', '2026-11-21 22:23:56', NULL),
+(49, 18, 'PC01', 1, NULL, '2026-11-22 23:23:50', '2026-11-22 23:23:50', NULL),
+(50, 18, 'PC03', 15, NULL, '2026-11-23 01:07:17', '2026-11-23 01:07:17', NULL);
 
 -- --------------------------------------------------------
 
@@ -657,7 +661,8 @@ INSERT INTO `marcas` (`id`, `programa_estudio_id`, `nombre`, `created_by`, `upda
 (36, 21, 'LENOVO', 14, NULL, '2026-11-21 22:23:56', '2026-11-21 22:23:56', NULL),
 (37, 21, 'CASIO', 14, NULL, '2026-11-21 22:23:56', '2026-11-21 22:23:56', NULL),
 (38, 22, 'FLUKE', 14, NULL, '2026-11-21 22:23:56', '2026-11-21 22:23:56', NULL),
-(39, 23, 'MAKITA', 14, NULL, '2026-11-21 22:23:56', '2026-11-21 22:23:56', NULL);
+(39, 23, 'MAKITA', 14, NULL, '2026-11-21 22:23:56', '2026-11-21 22:23:56', NULL),
+(40, 18, 'LOGITECH', 15, NULL, '2026-11-23 01:04:36', '2026-11-23 01:04:36', NULL);
 
 -- --------------------------------------------------------
 
@@ -742,7 +747,12 @@ INSERT INTO `modelos` (`id`, `programa_estudio_id`, `nombre`, `created_by`, `upd
 (34, 21, 'THINKCENTRE M70S', 14, NULL, '2026-11-21 22:23:56', '2026-11-21 22:23:56', NULL),
 (35, 21, 'HR-170RC', 14, NULL, '2026-11-21 22:23:56', '2026-11-21 22:23:56', NULL),
 (36, 22, 'FLUKE 87V', 14, NULL, '2026-11-21 22:23:56', '2026-11-21 22:23:56', NULL),
-(37, 23, 'GA9020', 14, NULL, '2026-11-21 22:23:56', '2026-11-21 22:23:56', NULL);
+(37, 23, 'GA9020', 14, NULL, '2026-11-21 22:23:56', '2026-11-21 22:23:56', NULL),
+(38, 18, 'LOGITIK', 15, NULL, '2026-11-23 00:57:59', '2026-11-23 00:57:59', NULL),
+(39, 18, 'LOGITIK', 15, NULL, '2026-11-23 00:58:03', '2026-11-23 00:58:03', NULL),
+(40, 18, 'LOGITIK', 15, NULL, '2026-11-23 00:58:04', '2026-11-23 00:58:04', NULL),
+(41, 18, 'LOGITIK', 15, NULL, '2026-11-23 00:58:13', '2026-11-23 00:58:13', NULL),
+(42, 18, 'LOGITIK', 15, NULL, '2026-11-23 00:58:35', '2026-11-23 00:58:35', NULL);
 
 -- --------------------------------------------------------
 
@@ -786,7 +796,8 @@ INSERT INTO `personal` (`id`, `apellidos`, `nombres`, `dni`, `celular`, `email`,
 (3, 'QUISPE', 'TEO', '54195159', '948994325', 'teo@gmail.com', 'su casa', 1, NULL, '2026-11-12 19:18:47', '2026-11-12 19:18:47', NULL),
 (4, 'VASQUEZ', 'SERGIO', '12345678', '987654321', 'sergio123@gmail.com', 'por alla', 6, NULL, '2026-11-18 09:35:23', '2026-11-18 09:35:23', NULL),
 (5, 'CHAVEZ CONTRERAS', 'ROMULO', '77777777', '902607118', 'romulito@gmail.com', 'jr las fresias 271', NULL, NULL, '2026-11-19 08:49:16', '2026-11-19 08:49:16', NULL),
-(7, 'CHAVEZ', 'MATIAS', '61139756', '902607118', 'matias@gmail.com', 'mz h lt', 6, NULL, '2026-11-19 11:31:04', '2026-11-19 11:31:04', NULL);
+(7, 'CHAVEZ', 'MATIAS', '61139756', '902607118', 'matias@gmail.com', 'mz h lt', 6, NULL, '2026-11-19 11:31:04', '2026-11-19 11:31:04', NULL),
+(8, 'CHAVEZ CONTRERAS', 'LUIS', '88888888', '444444444', 'matias2007jj@gmail.com', 'mz h', 14, NULL, '2026-11-23 04:58:06', '2026-11-23 04:58:06', NULL);
 
 -- --------------------------------------------------------
 
@@ -810,7 +821,8 @@ CREATE TABLE `personal_programa_estudio` (
 INSERT INTO `personal_programa_estudio` (`id`, `personal_id`, `programa_estudio_id`, `cargo`, `created_at`, `updated_at`) VALUES
 (5, 4, 14, 'ASISTENTE', '2026-11-19 11:17:36', '2026-11-19 11:17:36'),
 (7, 7, 17, 'ASISTENTE', '2026-11-19 11:31:04', '2026-11-19 11:31:04'),
-(8, 5, 14, 'COORDINADOR', '2026-11-19 11:32:49', '2026-11-19 11:32:49');
+(8, 5, 14, 'COORDINADOR', '2026-11-19 11:32:49', '2026-11-19 11:32:49'),
+(10, 8, 18, 'COORDINADOR', '2026-11-23 06:06:45', '2026-11-23 06:06:45');
 
 -- --------------------------------------------------------
 
@@ -842,7 +854,7 @@ CREATE TABLE `programas_estudio` (
 INSERT INTO `programas_estudio` (`id`, `institucion_id`, `nombre`, `abreviatura`, `coordinador_id`, `asistente_t1_id`, `asistente_t2_id`, `observacion`, `activo`, `created_by`, `updated_by`, `created_at`, `updated_at`, `deleted_at`) VALUES
 (14, 8, 'ADMINISTRACION', 'ADMIN', 5, NULL, NULL, NULL, 1, 10, NULL, '2026-11-19 11:16:26', '2026-11-19 11:32:49', NULL),
 (17, 5, 'COMUNICACION', 'COM', NULL, NULL, NULL, NULL, 1, 6, NULL, '2026-11-19 11:30:34', '2026-11-19 11:30:34', NULL),
-(18, 9, 'DESARROLLO DE SISTEMAS DE INFORMACION', 'DSI', NULL, NULL, NULL, NULL, 1, 14, NULL, '2026-11-21 04:30:09', '2026-11-21 04:30:09', NULL),
+(18, 9, 'DESARROLLO DE SISTEMAS DE INFORMACION', 'DSI', 8, NULL, NULL, NULL, 1, 14, NULL, '2026-11-21 04:30:09', '2026-11-23 06:06:45', NULL),
 (19, 9, 'ASISTENTE ADMINISTRATIVO', 'ADMIN', NULL, NULL, NULL, NULL, 1, 14, NULL, '2026-11-21 04:30:28', '2026-11-21 04:30:28', NULL),
 (20, 9, 'MECATRONICA AUTOMOTRIZ', 'MECATRONICA', NULL, NULL, NULL, NULL, 1, 14, NULL, '2026-11-21 04:30:52', '2026-11-21 04:30:52', NULL),
 (21, 9, 'CONTABILIDAD', 'CONTA', NULL, NULL, NULL, NULL, 1, 14, NULL, '2026-11-21 04:31:13', '2026-11-21 04:31:13', NULL),
@@ -903,7 +915,8 @@ INSERT INTO `salas` (`id`, `programa_estudio_id`, `nombre`, `observacion`, `crea
 (59, 21, 'LABORATORIO CONTABLE Y TRIBUTARIO', 'Pabellón Contabilidad - Aula 201', 14, NULL, '2026-11-21 22:23:56', '2026-11-21 22:23:56', NULL),
 (60, 21, 'AULA DE AUDITORIA FINANCIERA', 'Pabellón Contabilidad - Aula 202', 14, NULL, '2026-11-21 22:23:56', '2026-11-21 22:23:56', NULL),
 (61, 22, 'TALLER DE INSTALACIONES ELECTRICAS', 'Nave Industrial 2', 14, NULL, '2026-11-21 22:23:56', '2026-11-21 22:23:56', NULL),
-(62, 23, 'TALLER DE TORNO Y FRESADORA', 'Nave Industrial 3', 14, NULL, '2026-11-21 22:23:56', '2026-11-21 22:23:56', NULL);
+(62, 23, 'TALLER DE TORNO Y FRESADORA', 'Nave Industrial 3', 14, NULL, '2026-11-21 22:23:56', '2026-11-21 22:23:56', NULL),
+(63, 18, 'LABORATORIO 3', NULL, 15, NULL, '2026-11-23 01:10:21', '2026-11-23 01:10:21', NULL);
 
 -- --------------------------------------------------------
 
@@ -925,7 +938,8 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('a3gDZUHxEOOyXKCvhMeDjHPuw4txN5pc4yUbnL47', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/158.0.0.0 Safari/537.36', 'YTo4OntzOjY6Il90b2tlbiI7czo0MDoiMjBBMHlDeU50SEdaWG00bU1iOXI0ZHZhSDRNRkV4Y1AyUFVEa044NyI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MzY6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9hbG1hY2VuL2JpZW5lcyI7czo1OiJyb3V0ZSI7czoxMjoiYmllbmVzLmluZGV4Ijt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czozOiJ1cmwiO2E6MTp7czo4OiJpbnRlbmRlZCI7czoyNjoiaHR0cDovLzEyNy4wLjAuMTo4MDAwL21lbnUiO31zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToxO3M6MTc6InBhc3N3b3JkX2hhc2hfd2ViIjtzOjY0OiIyNWIwNWJjZTZjODg1ODQ3MDVhY2EyYWE2MjJhZTMyZTIxOWQ3ZWM0MzEzMzlkMWZjMDQ2M2MzZWE3ZWZmOTk0IjtzOjE0OiJpbnN0aXR1Y2lvbl9pZCI7aTo4O3M6MTk6InByb2dyYW1hX2VzdHVkaW9faWQiO2k6MTQ7fQ==', 1795300411);
+('I1AdZYf7nYKdZeoi9rakj4Spkm3s0uoQmTMO8jLW', 6, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/158.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoiTnN1S2RWWUpNOEw4VDNFUEN6UlF2ZlVLaExSdGx0NU1wTkM1cWlLQyI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MzY6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9hbG1hY2VuL2JpZW5lcyI7czo1OiJyb3V0ZSI7czoxMjoiYmllbmVzLmluZGV4Ijt9czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6NjtzOjE3OiJwYXNzd29yZF9oYXNoX3dlYiI7czo2NDoiZjk3NDA5ZTg0ZWU1ZmVhZTNiZDZlZDAzMjZjZTVmMDdkY2I5MDFlY2QzNTNkNTRjMmY4NmE4MGNmNmM0YjliMiI7czoxOToicHJvZ3JhbWFfZXN0dWRpb19pZCI7aToxNzt9', 1795397924),
+('P8BDoPA9hXlEg4Vuni5Go0UtgH2QCL7Ix46gF21e', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/158.0.0.0 Safari/537.36', 'YTo3OntzOjY6Il90b2tlbiI7czo0MDoiQmJYUDA4UXhEeGt2RWpqVXdPNFBFbHlxaXhDdHdyWlNHaVY5Q1NXNCI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6Mjc6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9sb2dpbiI7czo1OiJyb3V0ZSI7czo1OiJsb2dpbiI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fXM6MzoidXJsIjthOjE6e3M6ODoiaW50ZW5kZWQiO3M6MjY6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9tZW51Ijt9czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6MTtzOjE3OiJwYXNzd29yZF9oYXNoX3dlYiI7czo2NDoiNDg1ZTQ0ZWRjMmM0NThlZGQ4NmVjMTllNDAwMTNmMzg2ZDRmODAxY2RhZGU2M2E4NWM2NDQ2ZDYyZThkZTBjYiI7czoxOToicHJvZ3JhbWFfZXN0dWRpb19pZCI7aToxNDt9', 1795388173);
 
 -- --------------------------------------------------------
 
@@ -1034,7 +1048,8 @@ INSERT INTO `usuarios` (`id`, `username`, `password`, `personal_id`, `institucio
 (10, 'lurin123@gmail.com', '$2y$12$UMYQR1etBl0u/F5tmfjPIeTzQRqyXkYWKh4G58keA4tuQVL16sBkW', NULL, 8, 'ADMIN_INSTITUCION', 1, NULL, 1, 1, '2026-11-19 11:14:17', '2026-11-19 12:08:10', NULL),
 (11, 'matias', '$2y$12$RMccRg7cDIm9mSK.mOYv2ObX5dPXXd4Fgkqn2zW5dTeQlyPl2yNAW', 7, 5, 'ADMIN_INSTITUCION', 1, NULL, 6, 1, '2026-11-19 11:31:38', '2026-11-19 12:05:26', NULL),
 (12, 'romulo', '$2y$12$XHGi0ra3cvQtO84wCcsF6OfSI4WPh.PoBI1g4lzttEehlyMu807GK', 5, 8, 'COORDINADOR', 1, NULL, 10, NULL, '2026-11-19 11:33:17', '2026-11-19 11:33:17', NULL),
-(14, 'Tello@gmail.com', '$2y$12$90TQWfGxNkKhzaAHUkaugOebIjXn7ekYVk2c3lvLjZtutCxyXCG2W', NULL, 9, 'ADMIN_INSTITUCION', 1, NULL, 1, NULL, '2026-11-21 04:29:26', '2026-11-21 04:29:26', NULL);
+(14, 'Tello@gmail.com', '$2y$12$90TQWfGxNkKhzaAHUkaugOebIjXn7ekYVk2c3lvLjZtutCxyXCG2W', NULL, 9, 'ADMIN_INSTITUCION', 1, NULL, 1, NULL, '2026-11-21 04:29:26', '2026-11-21 04:29:26', NULL),
+(15, 'luis', '$2y$12$sbzaSGRn4Z0sHuIDcU79KekWx9lqqgM2/82OM8qviRoykdTTUuUKq', 8, 9, 'COORDINADOR', 1, NULL, 14, 1, '2026-11-23 04:58:06', '2026-11-23 06:06:45', NULL);
 
 -- --------------------------------------------------------
 
@@ -1059,7 +1074,8 @@ CREATE TABLE `usuario_programa_estudio` (
 
 INSERT INTO `usuario_programa_estudio` (`id`, `usuario_id`, `programa_estudio_id`, `acceso`, `created_by`, `updated_by`, `created_at`, `updated_at`) VALUES
 (18, 11, 17, 1, NULL, NULL, '2026-11-19 11:31:38', '2026-11-19 12:05:26'),
-(19, 12, 14, 1, NULL, NULL, '2026-11-19 11:33:17', '2026-11-19 11:33:17');
+(19, 12, 14, 1, NULL, NULL, '2026-11-19 11:33:17', '2026-11-19 11:33:17'),
+(20, 15, 18, 1, NULL, NULL, '2026-11-23 04:58:06', '2026-11-23 06:06:45');
 
 --
 -- Índices para tablas volcadas
@@ -1290,7 +1306,7 @@ ALTER TABLE `usuario_programa_estudio`
 -- AUTO_INCREMENT de la tabla `bienes`
 --
 ALTER TABLE `bienes`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- AUTO_INCREMENT de la tabla `estados`
@@ -1308,7 +1324,7 @@ ALTER TABLE `failed_jobs`
 -- AUTO_INCREMENT de la tabla `grupos`
 --
 ALTER TABLE `grupos`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
 
 --
 -- AUTO_INCREMENT de la tabla `instituciones`
@@ -1338,7 +1354,7 @@ ALTER TABLE `jobs`
 -- AUTO_INCREMENT de la tabla `marcas`
 --
 ALTER TABLE `marcas`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT de la tabla `migrations`
@@ -1350,19 +1366,19 @@ ALTER TABLE `migrations`
 -- AUTO_INCREMENT de la tabla `modelos`
 --
 ALTER TABLE `modelos`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
 
 --
 -- AUTO_INCREMENT de la tabla `personal`
 --
 ALTER TABLE `personal`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT de la tabla `personal_programa_estudio`
 --
 ALTER TABLE `personal_programa_estudio`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT de la tabla `programas_estudio`
@@ -1374,7 +1390,7 @@ ALTER TABLE `programas_estudio`
 -- AUTO_INCREMENT de la tabla `salas`
 --
 ALTER TABLE `salas`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=64;
 
 --
 -- AUTO_INCREMENT de la tabla `tipos`
@@ -1392,13 +1408,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT de la tabla `usuario_programa_estudio`
 --
 ALTER TABLE `usuario_programa_estudio`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- Restricciones para tablas volcadas

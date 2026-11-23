@@ -3,18 +3,24 @@ document.addEventListener('DOMContentLoaded', function () {
     var input    = document.getElementById('inputBuscar');
     var limpiar  = document.getElementById('btnLimpiarBuscar');
     var contador = document.getElementById('contadorRegistros');
-    var filas    = document.querySelectorAll('#tablaRegistros tbody tr:not(#rowSinDatos)');
 
     function filtrar() {
-        var texto = input.value.toUpperCase().trim();
+        var texto = (input ? input.value : '').toUpperCase().trim();
         var visibles = 0;
 
-        limpiar.classList.toggle('d-none', texto === '');
+        if (limpiar) {
+            limpiar.classList.toggle('d-none', texto === '');
+        }
+
+        var filas = document.querySelectorAll('#tablaRegistros tbody tr:not(#rowSinDatos):not(#rowSinCoincidencias)');
 
         filas.forEach(function (fila) {
-            var coincide = fila.textContent.toUpperCase().indexOf(texto) > -1;
-            fila.style.display = coincide ? '' : 'none';
-            if (coincide) visibles++;
+            var coincideTexto = fila.textContent.toUpperCase().indexOf(texto) > -1;
+            var ocultaPorCombo = fila.classList.contains('fila-oculta-filtro');
+            var mostrar = coincideTexto && !ocultaPorCombo;
+
+            fila.style.display = mostrar ? '' : 'none';
+            if (mostrar) visibles++;
         });
 
         if (contador) contador.textContent = visibles;
@@ -22,11 +28,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (input) {
         input.addEventListener('keyup', filtrar);
-        limpiar.addEventListener('click', function () {
-            input.value = '';
-            filtrar();
-            input.focus();
-        });
+        input.addEventListener('input', filtrar);
+        if (limpiar) {
+            limpiar.addEventListener('click', function () {
+                input.value = '';
+                filtrar();
+                input.focus();
+            });
+        }
     }
 
     /* ---------- Doble clic en una fila para abrir su ficha ---------- */

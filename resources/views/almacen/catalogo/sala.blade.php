@@ -34,7 +34,7 @@
     </div>
 @endif
 
-<div class="row g-3 align-items-center justify-content-between mb-4">
+<div class="row g-3 align-items-center justify-content-between mb-3">
     <div class="col-12 col-xl-5">
         <div class="input-group search-toolbar">
             <input
@@ -76,6 +76,8 @@
     </div>
 </div>
 
+@include('almacen.catalogo._filtros')
+
 <div class="table-responsive table-sisin-wrapper">
     <table class="table table-sisin align-middle" id="tablaSalas">
         <thead>
@@ -95,7 +97,7 @@
         <tbody>
             @if (isset($salas) && count($salas) > 0)
                 @foreach ($salas as $sala)
-                    <tr>
+                    <tr data-institucion-id="{{ $sala->institucion_id ?? '' }}" data-programa-id="{{ $sala->programa_estudio_id ?? '' }}">
                         <td>
                             <div class="brand-chip">
                                 <span class="brand-chip-title">{{ $sala->nombre }}</span>
@@ -137,7 +139,7 @@
                                 @endif
 
                                 @if ($puedeEliminar)
-                                <form action="{{ route('catalogo.destroy', ['catalogo' => 'sala', 'id' => $sala->id]) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Desea eliminar la sala {{ $sala->nombre }}?')">
+                                <form action="{{ route('catalogo.destroy', ['catalogo' => 'sala', 'id' => $sala->id]) }}" method="POST" class="d-inline" data-confirm="¿Desea eliminar la sala {{ $sala->nombre }}?">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-outline-danger btn-action-icon" title="Eliminar Sala">
