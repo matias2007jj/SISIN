@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Bien;
 use App\Models\Sala;
 use App\Models\Usuario;
+use App\Services\BienExcelService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -85,7 +86,7 @@ class BienController extends Controller
             ->whereNull('s.deleted_at')
             ->whereNull('pe.deleted_at')
             ->when($user->esSuperusuario() && $institucionId === null, function ($q) {
-                // Superusuario global: todas las salas
+                // Superusuario global
             }, function ($q) use ($idsPermitidos) {
                 $q->whereIn('s.programa_estudio_id', $idsPermitidos ?: [-1]);
             })
@@ -180,6 +181,131 @@ class BienController extends Controller
         ]);
 
         return redirect()->route('bienes.index')->with('success', 'El bien pasó a estado INACTIVO.');
+    }
+
+    public function exportarExcel(Request $request, BienExcelService $excelService)
+    {
+        [$bienes, $nombrePrograma] = $this->consultaExportacion($request);
+
+        return $excelService->exportar($bienes, [
+            'programa' => $nombrePrograma,
+        ]);
+    }
+
+    public function exportarPdf(Request $request)
+    {
+        
+        [$bienes, $nombrePrograma] = $this->consultaExportacion($request);
+
+        $salasUnicas = $bienes->pluck('sala_nombre')->filter()->unique();
+        $tituloSala  = $salasUnicas->count() === 1
+            ? (string) $salasUnicas->first()
+            : $nombrePrograma;
+
+        return view('almacen.bien.pdf', [
+            'bienes'         => $bienes,
+            'nombrePrograma' => $nombrePrograma,
+            'tituloSala'     => $tituloSala,
+            'fechaHoy'       => date('d/m/Y'),
+        ]);
+
+        return $this->exportarExcel($request);
+    }
+
+    public function importarExcel(Request $request, BienExcelService $excelService)
+    {
+        /** @var Usuario $user */
+        $user          = Auth::user();
+        $idsPermitidos = $user->idsProgramasPermitidos();
+
+        abort_unless(
+            $user->puede('bienes.registrar') && ! empty($idsPermitidos),
+            403,
+            'No tiene permisos o programas de estudio asignados para importar bienes.'
+        );
+
+        $request->validate([
+            'archivo' => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:15360'],
+        ], [
+            'archivo.required' => 'Debe seleccionar un archivo Excel o CSV.',
+            'archivo.mimes'    => 'El archivo debe tener extensión .xlsx, .xls o .csv.',
+        ]);
+
+        $programaId = (int) ($request->input('programa_estudio_id') ?: $idsPermitidos[0]);
+        abort_unless($user->puedeUsarPrograma($programaId), 403, 'No tiene acceso al programa de estudio seleccionado.');
+
+        $resultado = $excelService->importar($request->file('archivo'), $programaId);
+
+        return redirect()->route('bienes.index')->with(
+            'success',
+            "Importación completada: {$resultado['creados']} bienes creados y {$resultado['actualizados']} actualizados."
+        );
+    }
+
+    public function plantillaExcel(BienExcelService $excelService)
+    {
+        return $excelService->descargarPlantilla();
+    }
+
+    private function consultaExportacion(Request $request): array
+    {
+        /** @var Usuario $user */
+        $user          = Auth::user();
+        $institucionId = $user->institucionActiva()?->id;
+        $idsPermitidos = $user->idsProgramasPermitidos();
+        $buscar        = mb_strtoupper(trim((string) $request->input('buscar', '')), 'UTF-8');
+
+        $bienes = DB::table('bienes as b')
+            ->join('salas as s', 'b.sala_id', '=', 's.id')
+            ->join('programas_estudio as pe', 's.programa_estudio_id', '=', 'pe.id')
+            ->join('estados as e', 'b.estado_id', '=', 'e.id')
+            ->leftJoin('marcas as m', 'b.marca_id', '=', 'm.id')
+            ->leftJoin('modelos as mo', 'b.modelo_id', '=', 'mo.id')
+            ->whereNull('b.deleted_at')
+            ->when($user->esSuperusuario() && $institucionId === null, function ($q) {
+                // Vista global
+            }, function ($q) use ($idsPermitidos) {
+                $q->whereIn('s.programa_estudio_id', $idsPermitidos ?: [-1]);
+            })
+            ->when($request->filled('programa_estudio_id'), fn ($q) => $q->where('s.programa_estudio_id', (int) $request->input('programa_estudio_id')))
+            ->when($request->filled('sala_id'), fn ($q) => $q->where('b.sala_id', (int) $request->input('sala_id')))
+            ->when($buscar !== '', function ($q) use ($buscar) {
+                $like = '%' . $buscar . '%';
+                $q->where(function ($sub) use ($like) {
+                    $sub->whereRaw('UPPER(b.cbi) LIKE ?', [$like])
+                        ->orWhereRaw('UPPER(b.descripcion) LIKE ?', [$like])
+                        ->orWhereRaw('UPPER(s.nombre) LIKE ?', [$like])
+                        ->orWhereRaw('UPPER(COALESCE(m.nombre, "")) LIKE ?', [$like])
+                        ->orWhereRaw('UPPER(COALESCE(mo.nombre, "")) LIKE ?', [$like]);
+                });
+            })
+            ->select(
+                'b.id',
+                'b.cbi',
+                'b.descripcion',
+                'b.serie_medida',
+                'b.otras_especificaciones',
+                'b.sala_id',
+                's.nombre as sala_nombre',
+                's.programa_estudio_id',
+                'pe.nombre as programa_estudio_nombre',
+                'm.nombre as marca_nombre',
+                'mo.nombre as modelo_nombre',
+                'b.estado_id',
+                'e.nombre as estado_nombre'
+            )
+            ->orderBy('s.nombre')
+            ->orderBy('b.id')
+            ->get();
+
+        $nombrePrograma = (string) ($bienes->first()->programa_estudio_nombre ?? '');
+        if ($nombrePrograma === '' && ! empty($idsPermitidos)) {
+            $nombrePrograma = (string) DB::table('programas_estudio')
+                ->where('id', $idsPermitidos[0])
+                ->value('nombre');
+        }
+
+        return [$bienes, $nombrePrograma ?: 'OFICINA DE CÓMPUTO'];
     }
 
     private function catalogoPermitido(string $tabla, array $idsPermitidos)

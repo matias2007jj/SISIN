@@ -36,3 +36,38 @@
 tr.fila-oculta-filtro {
     display: none !important;
 }
+
+.btn-nuevo-bien {
+    background-color: #10b981 !important;
+    border: none !important;
+}
+
+.bien-filter-label {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    letter-spacing: 0.5px;
+}
+
+.bien-filter-control {
+    height: 38px;
+}
+
+.bien-import-desc {
+    font-size: 0.9rem;
+}
+
+.modal-catalogo-rapido {
+    z-index: 1065;
+}
+
+.modal-catalogo-rapido-dialog {
+    max-width: 440px;
+}
+
+.modal-catalogo-rapido-content {
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85);
+}
+
+.error-catalogo-rapido {
+    font-size: 0.85rem;
+}

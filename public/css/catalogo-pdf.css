@@ -1,0 +1,227 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #1f2937;
+    background: #e5e7eb;
+    padding: 24px;
+}
+
+.toolbar-print {
+    max-width: 920px;
+    margin: 0 auto 16px auto;
+    background: #111827;
+    color: #f9fafb;
+    padding: 12px 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+.toolbar-print span {
+    font-size: 13px;
+    color: #d1d5db;
+}
+
+.toolbar-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-print {
+    background: #10b981;
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.btn-print:hover {
+    background: #059669;
+}
+
+.btn-close-tab {
+    background: transparent;
+    color: #e5e7eb;
+    border: 1px solid #4b5563;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.btn-close-tab:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.hoja {
+    max-width: 920px;
+    margin: 0 auto;
+    background: #ffffff;
+    padding: 36px 40px;
+    border-radius: 8px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 3px solid #065f46;
+    padding-bottom: 16px;
+    margin-bottom: 18px;
+}
+
+.header-left .sistema {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    color: #059669;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.header-left h1 {
+    font-size: 22px;
+    font-weight: 800;
+    color: #111827;
+    letter-spacing: 0.3px;
+}
+
+.header-left .institucion {
+    font-size: 13px;
+    color: #4b5563;
+    margin-top: 4px;
+    font-weight: 600;
+}
+
+.header-right {
+    text-align: right;
+    font-size: 12px;
+    color: #4b5563;
+    line-height: 1.6;
+}
+
+.badge-total {
+    display: inline-block;
+    margin-top: 6px;
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+.filtros-bar {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 12px;
+    color: #374151;
+    margin-bottom: 18px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+thead th {
+    background: #065f46;
+    color: #ffffff;
+    text-align: left;
+    padding: 10px 12px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+thead th.center,
+tbody td.center {
+    text-align: center;
+}
+
+th.col-num {
+    width: 45px;
+}
+
+th.col-fecha {
+    width: 115px;
+}
+
+tbody tr:nth-child(even) {
+    background: #f9fafb;
+}
+
+tbody td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #e5e7eb;
+    color: #1f2937;
+    vertical-align: middle;
+}
+
+tbody td.empty-row {
+    padding: 24px;
+    color: #6b7280;
+}
+
+.nombre-celda {
+    font-weight: 700;
+    color: #111827;
+}
+
+.pill-programa {
+    display: inline-block;
+    background: #ecfdf5;
+    color: #065f46;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.footer {
+    margin-top: 24px;
+    padding-top: 12px;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #6b7280;
+}
+
+@page {
+    size: A4 portrait;
+    margin: 14mm;
+}
+
+@media print {
+    body {
+        background: #ffffff;
+        padding: 0;
+    }
+
+    .toolbar-print {
+        display: none !important;
+    }
+
+    .hoja {
+        max-width: none;
+        box-shadow: none;
+        padding: 0;
+        border-radius: 0;
+    }
+}

@@ -13,94 +13,37 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+use PhpOffice\PhpSpreadsheet\Worksheet\MemoryDrawing;
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
+use PhpOffice\PhpSpreadsheet\Worksheet\SheetView;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class BienExcelService
 {
-    private const ESTADO_INACTIVO   = 6;
-    private const FILA_ENCABEZADOS  = 13;
-    private const FILA_INICIO_DATOS = 14;
+    private const ESTADO_INACTIVO = 6;
 
-    /**
-     * Firma estructural exacta de las 12 columnas (A:L) del formato oficial.
-     */
-    private const COLUMNAS_ESPERADAS = [
-        'A' => ['N°', 'Nº'],
-        'B' => ['INV 2025', '2025'],
-        'C' => ['INV 2024', '2024'],
-        'D' => ['INV 2023', '2023'],
-        'E' => ['CODIGO PATRIMONIAL', 'COD. PATRI.'],
-        'F' => ['CBI'],
-        'G' => ['DESCRIPCIÓN DEL BIEN', 'DESCRIPCION DEL BIEN'],
-        'H' => ['MARCA'],
-        'I' => ['MODELO'],
-        'J' => ['SERIE/MEDIDA', 'SERIE / MEDIDA'],
-        'K' => ['ESTADO'],
-        'L' => ['OTRAS ESPECIFICACIONES'],
-    ];
-
-    /**
-     * Valida estrictamente el formato oficial en todas las pestañas e importa los bienes.
-     */
     public function importar(UploadedFile $archivo, int $programaId): array
     {
-        $reader = IOFactory::createReader('Xlsx');
-        $reader->setReadDataOnly(true);
-        $spreadsheet = $reader->load($archivo->getRealPath());
+        $filasJson = request()->input('filas_json');
+        $registros = [];
 
-        $hojasValidadas    = [];
-        $erroresEstructura = [];
-
-        foreach ($spreadsheet->getAllSheets() as $hoja) {
-            $tituloHoja = $hoja->getTitle();
-            $filaHeader = $this->detectarFilaEncabezados($hoja);
-
-            if ($filaHeader === null) {
-                $erroresEstructura[] = "Hoja '{$tituloHoja}': no se encontró la fila oficial de encabezados (N° hasta OTRAS ESPECIFICACIONES).";
-                continue;
+        if (is_string($filasJson) && trim($filasJson) !== '') {
+            $decodificado = json_decode($filasJson, true);
+            if (! is_array($decodificado) || empty($decodificado)) {
+                throw ValidationException::withMessages([
+                    'archivo' => 'No se encontraron registros válidos con CBI en el archivo seleccionado.',
+                ]);
             }
-
-            // Verificar que no existan columnas no permitidas a la derecha de L
-            $ultimaColumnaPermitida = Coordinate::columnIndexFromString('L');
-            $ultimaColumnaArchivo   = Coordinate::columnIndexFromString($hoja->getHighestDataColumn($filaHeader));
-
-            if ($ultimaColumnaArchivo > $ultimaColumnaPermitida) {
-                $erroresEstructura[] = "Hoja '{$tituloHoja}': contiene columnas adicionales a la derecha de la columna L.";
-                continue;
-            }
-
-            // Verificar firma institucional superior (DOCENTE RESPONSABLE y SALA)
-            $infoCabecera = $this->extraerCabeceraInstitucional($hoja, $filaHeader);
-            if (! $infoCabecera['tieneDocente'] || ! $infoCabecera['tieneSala']) {
-                $erroresEstructura[] = "Hoja '{$tituloHoja}': faltan las etiquetas institucionales de cabecera (DOCENTE RESPONSABLE / SALA).";
-                continue;
-            }
-
-            $salaNombre = $infoCabecera['sala'] !== ''
-                ? $infoCabecera['sala']
-                : mb_strtoupper(trim($tituloHoja), 'UTF-8');
-
-            $hojasValidadas[] = [
-                'hoja'       => $hoja,
-                'titulo'     => $tituloHoja,
-                'filaInicio' => $filaHeader + 1,
-                'salaNombre' => mb_substr($salaNombre, 0, 60),
-            ];
-        }
-
-        if (! empty($erroresEstructura) || empty($hojasValidadas)) {
-            throw ValidationException::withMessages([
-                'archivo' => array_merge(
-                    ['El archivo no cumple con el formato oficial de inventario:'],
-                    $erroresEstructura
-                ),
-            ]);
+            $registros = $decodificado;
+        } else {
+            $registros = $this->parsearCsvNativo($archivo);
         }
 
         $creados      = 0;
@@ -109,7 +52,7 @@ class BienExcelService
         $usuarioId    = Auth::id();
 
         DB::transaction(function () use (
-            $hojasValidadas, $programaId, $usuarioId,
+            $registros, $programaId, $usuarioId,
             &$creados, &$actualizados, &$erroresFilas
         ) {
             $grupoPorDefecto = Grupo::where('programa_estudio_id', $programaId)->whereNull('deleted_at')->orderBy('id')->first()
@@ -119,110 +62,100 @@ class BienExcelService
                 ?? Tipo::firstOrCreate(['nombre' => 'EQUIPO / MOBILIARIO', 'programa_estudio_id' => $programaId]);
 
             $estadoPorDefecto = Estado::where('id', '!=', self::ESTADO_INACTIVO)->orderBy('id')->first();
+            $cacheSalas       = [];
 
-            foreach ($hojasValidadas as $itemHoja) {
-                /** @var Worksheet $hoja */
-                $hoja       = $itemHoja['hoja'];
-                $tituloHoja = $itemHoja['titulo'];
-                $filaInicio = $itemHoja['filaInicio'];
-                $salaNombre = $itemHoja['salaNombre'];
-                $ultimaFila = $hoja->getHighestDataRow();
+            foreach ($registros as $reg) {
+                $hoja        = (string) ($reg['hoja'] ?? 'INVENTARIO');
+                $fila        = (int) ($reg['fila'] ?? 0);
+                $salaNombre  = mb_substr(mb_strtoupper(trim((string) ($reg['sala'] ?? $hoja)), 'UTF-8'), 0, 60);
+                $cbi         = mb_strtoupper(trim((string) ($reg['cbi'] ?? '')), 'UTF-8');
+                $descripcion = mb_strtoupper(trim((string) ($reg['descripcion'] ?? '')), 'UTF-8');
 
-                $sala = Sala::firstOrCreate([
-                    'nombre'              => $salaNombre,
-                    'programa_estudio_id' => $programaId,
-                ]);
+                if ($cbi === '' || in_array($cbi, ['S/N', 'S/C', '-'], true)) {
+                    continue;
+                }
 
-                for ($fila = $filaInicio; $fila <= $ultimaFila; $fila++) {
-                    $colA        = trim((string) $hoja->getCell("A{$fila}")->getValue());
-                    $cbi         = mb_strtoupper(trim((string) $hoja->getCell("F{$fila}")->getValue()), 'UTF-8');
-                    $descripcion = mb_strtoupper(trim((string) $hoja->getCell("G{$fila}")->getValue()), 'UTF-8');
+                if (mb_strlen($cbi) > 10) {
+                    $erroresFilas[] = "Hoja '{$hoja}', fila {$fila}: el CBI '{$cbi}' supera los 10 caracteres.";
+                    continue;
+                }
 
-                    // Detener al llegar a la leyenda final de estado o nota legal
-                    if (
-                        str_starts_with($colA, 'ESTADO') ||
-                        str_starts_with($colA, 'NOTA') ||
-                        str_starts_with($descripcion, 'ESTADO:') ||
-                        str_starts_with($descripcion, 'NOTA')
-                    ) {
-                        break;
-                    }
+                if ($descripcion === '') {
+                    $erroresFilas[] = "Hoja '{$hoja}', fila {$fila}: la DESCRIPCIÓN DEL BIEN es obligatoria.";
+                    continue;
+                }
+                $descripcion = mb_substr($descripcion, 0, 100);
 
-                    // Ignorar filas vacías, separadores de bloque (ej. "MAQUINA 001" en D) o ítems sin CBI ("S/N", "S/C")
-                    if ($cbi === '' || in_array($cbi, ['S/N', 'S/C', '-'], true)) {
+                if ($salaNombre === '') {
+                    $salaNombre = 'SALA GENERAL';
+                }
+
+                if (! isset($cacheSalas[$salaNombre])) {
+                    $cacheSalas[$salaNombre] = Sala::firstOrCreate([
+                        'nombre'              => $salaNombre,
+                        'programa_estudio_id' => $programaId,
+                    ]);
+                }
+                $sala = $cacheSalas[$salaNombre];
+
+                $marca  = $this->obtenerOCrearCatalogoPrograma(Marca::class, (string) ($reg['marca'] ?? ''), $programaId);
+                $modelo = $this->obtenerOCrearCatalogoPrograma(Modelo::class, (string) ($reg['modelo'] ?? ''), $programaId);
+
+                $serieRaw = mb_strtoupper(trim((string) ($reg['serie'] ?? '')), 'UTF-8');
+                $serie    = ($serieRaw === '' || in_array($serieRaw, ['S/SERIE', 'S/N', '-'], true))
+                    ? null
+                    : mb_substr($serieRaw, 0, 100);
+
+                $otrasRaw = mb_strtoupper(trim((string) ($reg['otras'] ?? '')), 'UTF-8');
+                $otras    = $otrasRaw !== '' ? mb_substr($otrasRaw, 0, 100) : null;
+
+                $estadoId = $this->resolverEstado($reg['estado'] ?? '', $estadoPorDefecto?->id);
+                if (! $estadoId) {
+                    $erroresFilas[] = "Hoja '{$hoja}', fila {$fila}: estado inválido.";
+                    continue;
+                }
+
+                $bienExistente = Bien::with('sala')
+                    ->where('cbi', $cbi)
+                    ->whereNull('deleted_at')
+                    ->first();
+
+                if ($bienExistente) {
+                    if ((int) $bienExistente->sala?->programa_estudio_id !== $programaId) {
+                        $erroresFilas[] = "Hoja '{$hoja}', fila {$fila}: el CBI '{$cbi}' ya pertenece a otro programa de estudio.";
                         continue;
                     }
 
-                    if (mb_strlen($cbi) > 10) {
-                        $erroresFilas[] = "Hoja '{$tituloHoja}', fila {$fila}: el CBI '{$cbi}' supera los 10 caracteres.";
-                        continue;
-                    }
-
-                    if ($descripcion === '') {
-                        $erroresFilas[] = "Hoja '{$tituloHoja}', fila {$fila}: la DESCRIPCIÓN DEL BIEN (columna G) es obligatoria.";
-                        continue;
-                    }
-                    $descripcion = mb_substr($descripcion, 0, 100);
-
-                    $marca  = $this->obtenerOCrearCatalogoPrograma(Marca::class, (string) $hoja->getCell("H{$fila}")->getValue(), $programaId);
-                    $modelo = $this->obtenerOCrearCatalogoPrograma(Modelo::class, (string) $hoja->getCell("I{$fila}")->getValue(), $programaId);
-
-                    $serieRaw = mb_strtoupper(trim((string) $hoja->getCell("J{$fila}")->getValue()), 'UTF-8');
-                    $serie    = ($serieRaw === '' || in_array($serieRaw, ['S/SERIE', 'S/N', '-'], true))
-                        ? null
-                        : mb_substr($serieRaw, 0, 100);
-
-                    $otrasRaw = mb_strtoupper(trim((string) $hoja->getCell("L{$fila}")->getValue()), 'UTF-8');
-                    $otras    = $otrasRaw !== '' ? mb_substr($otrasRaw, 0, 100) : null;
-
-                    $estadoId = $this->resolverEstado($hoja->getCell("K{$fila}")->getValue(), $estadoPorDefecto?->id);
-                    if (! $estadoId) {
-                        $erroresFilas[] = "Hoja '{$tituloHoja}', fila {$fila}: estado inválido en columna K.";
-                        continue;
-                    }
-
-                    $bienExistente = Bien::with('sala')
-                        ->where('cbi', $cbi)
-                        ->whereNull('deleted_at')
-                        ->first();
-
-                    if ($bienExistente) {
-                        if ((int) $bienExistente->sala?->programa_estudio_id !== $programaId) {
-                            $erroresFilas[] = "Hoja '{$tituloHoja}', fila {$fila}: el CBI '{$cbi}' ya pertenece a otro programa de estudio.";
-                            continue;
-                        }
-
-                        DB::statement('CALL sp_actualizar_bien(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
-                            $bienExistente->id,
-                            $sala->id,
-                            $bienExistente->grupo_id ?: $grupoPorDefecto->id,
-                            $cbi,
-                            $bienExistente->tipo_id ?: $tipoPorDefecto->id,
-                            $descripcion,
-                            $marca?->id,
-                            $modelo?->id,
-                            $serie,
-                            $estadoId,
-                            $otras,
-                            $usuarioId,
-                        ]);
-                        $actualizados++;
-                    } else {
-                        DB::statement('CALL sp_guardar_bien(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
-                            $sala->id,
-                            $grupoPorDefecto->id,
-                            $cbi,
-                            $tipoPorDefecto->id,
-                            $descripcion,
-                            $marca?->id,
-                            $modelo?->id,
-                            $serie,
-                            $estadoId,
-                            $otras,
-                            $usuarioId,
-                        ]);
-                        $creados++;
-                    }
+                    DB::statement('CALL sp_actualizar_bien(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+                        $bienExistente->id,
+                        $sala->id,
+                        $bienExistente->grupo_id ?: $grupoPorDefecto->id,
+                        $cbi,
+                        $bienExistente->tipo_id ?: $tipoPorDefecto->id,
+                        $descripcion,
+                        $marca?->id,
+                        $modelo?->id,
+                        $serie,
+                        $estadoId,
+                        $otras,
+                        $usuarioId,
+                    ]);
+                    $actualizados++;
+                } else {
+                    DB::statement('CALL sp_guardar_bien(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+                        $sala->id,
+                        $grupoPorDefecto->id,
+                        $cbi,
+                        $tipoPorDefecto->id,
+                        $descripcion,
+                        $marca?->id,
+                        $modelo?->id,
+                        $serie,
+                        $estadoId,
+                        $otras,
+                        $usuarioId,
+                    ]);
+                    $creados++;
                 }
             }
 
@@ -238,64 +171,211 @@ class BienExcelService
         ];
     }
 
-    /**
-     * Exporta los bienes conservando el diseño completo: logos, recuadro de título,
-     * tabla de datos, leyenda de estados, nota legal y bloque de 3 firmas al pie.
-     */
     public function exportar(iterable $bienes, array $metadatos = []): StreamedResponse
     {
-        $spreadsheet = IOFactory::load($this->rutaPlantilla());
-        $hoja        = $spreadsheet->getSheet(0);
-        $listaBienes = collect($bienes);
-
-        foreach ($hoja->getMergeCells() as $rangoExistente) {
-            [$inicioEx] = Coordinate::rangeBoundaries($rangoExistente);
-            if ($inicioEx[1] >= self::FILA_INICIO_DATOS) {
-                $hoja->unmergeCells($rangoExistente);
-            }
-        }
-
-        $this->renderizarEncabezadoSuperior($hoja, $listaBienes, $metadatos);
-
-        $filaActual      = self::FILA_INICIO_DATOS;
-        $rangoEstiloBase = 'A' . self::FILA_INICIO_DATOS . ':L' . self::FILA_INICIO_DATOS;
-        $altoFilaBase    = $hoja->getRowDimension(self::FILA_INICIO_DATOS)->getRowHeight();
-        $item            = 1;
-
-        foreach ($listaBienes as $b) {
-            if ($filaActual > self::FILA_INICIO_DATOS) {
-                $hoja->insertNewRowBefore($filaActual, 1);
-                $hoja->duplicateStyle(
-                    $hoja->getStyle($rangoEstiloBase),
-                    "A{$filaActual}:L{$filaActual}"
-                );
-                if ($altoFilaBase > 0) {
-                    $hoja->getRowDimension($filaActual)->setRowHeight($altoFilaBase);
-                }
-            }
-
-            $hoja->setCellValue("A{$filaActual}", $item++);
-            $hoja->setCellValue("B{$filaActual}", 'S/N');
-            $hoja->setCellValue("C{$filaActual}", 'S/N');
-            $hoja->setCellValue("D{$filaActual}", 'S/N');
-            $hoja->setCellValue("E{$filaActual}", 'S/N');
-            $hoja->setCellValue("F{$filaActual}", $b->cbi ?? '');
-            $hoja->setCellValue("G{$filaActual}", $b->descripcion ?? '');
-            $hoja->setCellValue("H{$filaActual}", $b->marca_nombre ?: 'S/M');
-            $hoja->setCellValue("I{$filaActual}", $b->modelo_nombre ?: 'S/M');
-            $hoja->setCellValue("J{$filaActual}", $b->serie_medida ?: 'S/SERIE');
-            $hoja->setCellValue("K{$filaActual}", $b->estado_id ?? 2);
-            $hoja->setCellValue("L{$filaActual}", $b->otras_especificaciones ?? '');
-
-            $filaActual++;
-        }
-
-        $this->renderizarPieYFirmas($hoja, max($filaActual, self::FILA_INICIO_DATOS + 1));
-
+        $listaBienes   = collect($bienes);
         $nombreArchivo = 'INVENTARIO_BIENES_' . date('Y_m_d_His') . '.xlsx';
 
+        return $this->generarDesdePlantillaOficial($listaBienes, $metadatos, $nombreArchivo);
+    }
+
+    public function descargarPlantilla(): StreamedResponse
+    {
+        return $this->generarDesdePlantillaOficial(
+            collect([]),
+            ['programa' => 'OFICINA DE CÓMPUTO'],
+            'PLANTILLA_INVENTARIO_OFICIAL.xlsx'
+        );
+    }
+
+    private function generarDesdePlantillaOficial($listaBienes, array $metadatos, string $nombreArchivo): StreamedResponse
+    {
+        $rutaPlantilla = storage_path('app/plantillas/formato_inventario.xlsx');
+        abort_unless(file_exists($rutaPlantilla), 500, 'No se encontró la plantilla oficial en storage/app/plantillas/formato_inventario.xlsx');
+
+        $spreadsheet = IOFactory::load($rutaPlantilla);
+        $sheet       = $spreadsheet->getActiveSheet();
+
+        // Vista Normal (quita las marcas de agua grises "Página 1 / Página 2" y líneas azules)
+        $sheet->getSheetView()->setView(SheetView::SHEETVIEW_NORMAL);
+
+        $salasUnicas = $listaBienes->pluck('sala_nombre')->filter()->unique();
+        $tituloSala  = $salasUnicas->count() === 1
+            ? (string) $salasUnicas->first()
+            : (string) ($metadatos['programa'] ?? 'OFICINA DE CÓMPUTO');
+
+        $tituloSalaUpper = mb_strtoupper($tituloSala, 'UTF-8');
+        $fechaHoy        = date('d/m/Y');
+
+        if (array_key_exists('A3:L3', $sheet->getMergeCells())) {
+            $sheet->unmergeCells('A3:L3');
+        }
+
+        // Anchos de columna equilibrados
+        $sheet->getColumnDimension('G')->setWidth(35);
+        $sheet->getColumnDimension('H')->setWidth(16);
+        $sheet->getColumnDimension('J')->setWidth(25);
+        $sheet->getColumnDimension('L')->setWidth(42);
+
+        // Construir tarjeta única con marco redondeado + escudo J.C. Tello + texto I.E.S.T.P. JULIO CÉSAR TELLO
+        $textoEnImagen = $this->construirTarjetaInstituto($sheet);
+
+        if (! $textoEnImagen) {
+            $sheet->mergeCells('H2:H5');
+            $sheet->setCellValue('H2', "I.E.S.T.P.\nJULIO CÉSAR\nTELLO");
+            $sheet->getStyle('H2:H5')->applyFromArray([
+                'font'      => ['name' => 'Times New Roman', 'size' => 10, 'bold' => true],
+                'alignment' => [
+                    'horizontal' => Alignment::HORIZONTAL_CENTER,
+                    'vertical'   => Alignment::VERTICAL_CENTER,
+                    'wrapText'   => true,
+                ],
+            ]);
+        }
+
+        // Recuadro gris superior derecho: INVENTARIO DE ...
+        $sheet->mergeCells('J1:L5');
+        $sheet->setCellValue('J1', 'INVENTARIO DE ' . $tituloSalaUpper);
+        $sheet->getStyle('J1:L5')->applyFromArray([
+            'font'      => ['name' => 'Arial', 'size' => 14, 'bold' => true],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical'   => Alignment::VERTICAL_CENTER,
+                'wrapText'   => true,
+            ],
+            'fill'      => [
+                'fillType'   => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'D9D9D9'],
+            ],
+            'borders'   => [
+                'outline' => [
+                    'borderStyle' => Border::BORDER_MEDIUM,
+                    'color'       => ['rgb' => '404040'],
+                ],
+            ],
+        ]);
+
+        // Fecha de entrega (G11) y Sala (J11:L11)
+        $sheet->setCellValue('G11', $fechaHoy);
+        $sheet->setCellValue('J11', $tituloSalaUpper);
+
+        $nombreHoja = preg_replace('/[\\\\\\/\\?\\*\\[\\]:]/', '', $tituloSalaUpper) ?: 'INVENTARIO';
+        $sheet->setTitle(mb_substr($nombreHoja, 0, 31));
+
+        // Rellenar filas de bienes clonando el estilo de la fila 14 y activando wrapText
+        $estiloFilaBase = $sheet->getStyle('A14:L14');
+        $filaActual     = 14;
+
+        if ($listaBienes->isEmpty()) {
+            $sheet->setCellValue('A14', 1);
+            $sheet->getStyle('A14:L14')->getAlignment()->setWrapText(true);
+            $filaActual = 15;
+        } else {
+            $item = 1;
+            foreach ($listaBienes as $b) {
+                if ($filaActual > 14) {
+                    $sheet->duplicateStyle($estiloFilaBase, "A{$filaActual}:L{$filaActual}");
+                }
+
+                $desc  = (string) ($b->descripcion ?? '');
+                $otras = (string) ($b->otras_especificaciones ?? '');
+                $cbi   = (string) ($b->cbi ?? '');
+
+                $lineas = max(
+                    1,
+                    (int) ceil(mb_strlen($desc) / 31),
+                    (int) ceil(mb_strlen($otras) / 38)
+                );
+                $sheet->getRowDimension($filaActual)->setRowHeight(max(20, $lineas * 15));
+
+                $sheet->setCellValue("A{$filaActual}", $item++);
+                $sheet->setCellValue("B{$filaActual}", 'S/N');
+                $sheet->setCellValue("C{$filaActual}", 'S/N');
+                $sheet->setCellValue("D{$filaActual}", 'S/N');
+                $sheet->setCellValue("E{$filaActual}", 'S/N');
+
+                if (ctype_digit($cbi) && ! str_starts_with($cbi, '0')) {
+                    $sheet->setCellValueExplicit("F{$filaActual}", (int) $cbi, DataType::TYPE_NUMERIC);
+                } else {
+                    $sheet->setCellValueExplicit("F{$filaActual}", $cbi, DataType::TYPE_STRING);
+                }
+
+                $sheet->setCellValue("G{$filaActual}", $desc);
+                $sheet->setCellValue("H{$filaActual}", (string) ($b->marca_nombre ?: 'S/M'));
+                $sheet->setCellValue("I{$filaActual}", (string) ($b->modelo_nombre ?: 'S/M'));
+                $sheet->setCellValueExplicit("J{$filaActual}", (string) ($b->serie_medida ?: 'S/SERIE'), DataType::TYPE_STRING);
+                $sheet->setCellValue("K{$filaActual}", (int) ($b->estado_id ?? 2));
+                $sheet->setCellValue("L{$filaActual}", $otras);
+
+                $filaActual++;
+            }
+
+            $ultimaFilaDatos = $filaActual - 1;
+            $sheet->getStyle("A14:L{$ultimaFilaDatos}")->getAlignment()->setWrapText(true);
+        }
+
+        // Pie: Leyenda de estados, Nota legal y bloque de 3 firmas
+        $filaLeyenda = $filaActual + 1;
+        $sheet->mergeCells("F{$filaLeyenda}:L{$filaLeyenda}");
+        $sheet->setCellValue("F{$filaLeyenda}", 'ESTADO: 1= NUEVO, 2=BUENO, 3=REGULAR, 4= MALO   SIN MARCA=S/M, SIN NUMERO= S/N, SIN SERIE =S/SERIE');
+        $sheet->getStyle("F{$filaLeyenda}")->applyFromArray([
+            'font'      => ['name' => 'Times New Roman', 'size' => 9, 'bold' => false],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+        ]);
+
+        $filaNota        = $filaLeyenda + 2;
+        $tieneImagenNota = false;
+        foreach ($sheet->getDrawingCollection() as $drawing) {
+            if ($drawing->getName() === 'Picture 2' || str_starts_with($drawing->getCoordinates(), 'F8')) {
+                $drawing->setCoordinates("F{$filaNota}");
+                if (method_exists($drawing, 'setCoordinates2')) {
+                    $drawing->setCoordinates2('L' . ($filaNota + 2));
+                }
+                $tieneImagenNota = true;
+            }
+        }
+
+        if (! $tieneImagenNota) {
+            $sheet->mergeCells("F{$filaNota}:L" . ($filaNota + 2));
+            $sheet->setCellValue("F{$filaNota}", 'NOTA : En caso de robo, extravío o deterioro, el servidor deberá dar cuenta a su jefe adjuntando la correspondiente denuncia policial del hecho, caso contrario asumirá la responsabilidad de reparación y/o reposición del bien.');
+            $sheet->getStyle("F{$filaNota}:L" . ($filaNota + 2))->applyFromArray([
+                'font'      => ['name' => 'Arial', 'size' => 10, 'bold' => true],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+            ]);
+        }
+
+        $filaFirmasLaterales = $filaNota + 5;
+        $sheet->mergeCells("B{$filaFirmasLaterales}:F" . ($filaFirmasLaterales + 2));
+        $sheet->setCellValue("B{$filaFirmasLaterales}", "----------------------------------------------\nGutierrez Chura Luis Alberto\nAsistente de Computación e informática\nTurno Nocturno");
+        $sheet->getStyle("B{$filaFirmasLaterales}:F" . ($filaFirmasLaterales + 2))->applyFromArray([
+            'font'      => ['name' => 'Times New Roman', 'size' => 10, 'bold' => true],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+        ]);
+
+        $sheet->mergeCells("J{$filaFirmasLaterales}:L" . ($filaFirmasLaterales + 2));
+        $sheet->setCellValue("J{$filaFirmasLaterales}", "-----------------------------------------------\nSegundo Teodulo Sanchez Rodriguez\nAsistente de Computación e informática\nTurno Diurno");
+        $sheet->getStyle("J{$filaFirmasLaterales}:L" . ($filaFirmasLaterales + 2))->applyFromArray([
+            'font'      => ['name' => 'Times New Roman', 'size' => 10, 'bold' => true],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+        ]);
+
+        $filaFirmaCentral = $filaFirmasLaterales + 3;
+        $sheet->mergeCells("G{$filaFirmaCentral}:I" . ($filaFirmaCentral + 2));
+        $sheet->setCellValue("G{$filaFirmaCentral}", "-------------------------------------------\nMg. Miguel Mauro Culi Janampa\nCoordinador del Area Académica Computación e Informática");
+        $sheet->getStyle("G{$filaFirmaCentral}:I" . ($filaFirmaCentral + 2))->applyFromArray([
+            'font'      => ['name' => 'Times New Roman', 'size' => 10, 'bold' => true],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+        ]);
+
+        $sheet->getPageSetup()
+            ->setOrientation(PageSetup::ORIENTATION_LANDSCAPE)
+            ->setPaperSize(PageSetup::PAPERSIZE_A4)
+            ->setFitToWidth(1)
+            ->setFitToHeight(0);
+        $sheet->setShowGridLines(true);
+
         return response()->streamDownload(function () use ($spreadsheet) {
-            $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+            $writer = new Xlsx($spreadsheet);
             $writer->save('php://output');
         }, $nombreArchivo, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -303,245 +383,187 @@ class BienExcelService
     }
 
     /**
-     * Busca entre las filas 7 y 16 la fila exacta que coincide con las 12 columnas oficiales.
+     * Genera una única imagen PNG con el marco redondeado, el escudo del I.E.S.T.P. Julio César Tello
+     * y el texto institucional centrado dentro del marco, evitando que se superpongan o desalineen.
      */
-    private function detectarFilaEncabezados(Worksheet $hoja): ?int
+    private function construirTarjetaInstituto($sheet): bool
     {
-        for ($fila = 7; $fila <= 16; $fila++) {
-            $coincide = true;
+        if (! function_exists('imagecreatetruecolor')) {
+            return false;
+        }
 
-            foreach (self::COLUMNAS_ESPERADAS as $columna => $titulosValidos) {
-                $valorCelda = $this->normalizarTexto((string) $hoja->getCell("{$columna}{$fila}")->getValue());
-                $validos    = array_map(fn ($t) => $this->normalizarTexto($t), $titulosValidos);
+        $drawings    = $sheet->getDrawingCollection();
+        $logoBin     = null;
+        $indicesQuitar = [];
 
-                if (! in_array($valorCelda, $validos, true)) {
-                    $coincide = false;
-                    break;
-                }
+        foreach ($drawings as $idx => $drawing) {
+            if (! ($drawing instanceof Drawing)) {
+                continue;
             }
+            $nombre = $drawing->getName();
+            $coord  = $drawing->getCoordinates();
 
-            if ($coincide) {
-                return $fila;
+            if ($nombre === '13 Imagen' || $coord === 'G2') {
+                $data = @file_get_contents($drawing->getPath());
+                if ($data !== false) {
+                    $logoBin = $data;
+                }
+                $indicesQuitar[] = $idx;
+            } elseif ($nombre === '7 Imagen' || $coord === 'F1') {
+                $indicesQuitar[] = $idx;
             }
         }
 
-        return null;
-    }
+        rsort($indicesQuitar);
+        foreach ($indicesQuitar as $idx) {
+            unset($drawings[$idx]);
+        }
 
-    /**
-     * Verifica la existencia de las etiquetas institucionales y extrae el nombre de la Sala.
-     */
-    private function extraerCabeceraInstitucional(Worksheet $hoja, int $filaHeader): array
-    {
-        $tieneDocente = false;
-        $tieneSala    = false;
-        $salaValor    = '';
+        $w   = 600;
+        $h   = 172;
+        $img = imagecreatetruecolor($w, $h);
+        imagealphablending($img, false);
+        imagesavealpha($img, true);
 
-        for ($r = 1; $r < $filaHeader; $r++) {
-            for ($c = 1; $c <= 12; $c++) {
-                $col   = Coordinate::stringFromColumnIndex($c);
-                $texto = $this->normalizarTexto((string) $hoja->getCell("{$col}{$r}")->getValue());
+        $transparente = imagecolorallocatealpha($img, 255, 255, 255, 127);
+        imagefill($img, 0, 0, $transparente);
+        imagealphablending($img, true);
 
-                if ($texto === 'DOCENTE RESPONSABLE') {
-                    $tieneDocente = true;
-                }
+        $bordeColor = imagecolorallocate($img, 38, 38, 38);
+        $blanco     = imagecolorallocate($img, 255, 255, 255);
+        $negro      = imagecolorallocate($img, 0, 0, 0);
 
-                if ($texto === 'SALA') {
-                    $tieneSala = true;
-                    // Buscar el valor de la sala en las celdas inmediatas a la derecha (ej. J11)
-                    for ($cNext = $c + 1; $cNext <= 12; $cNext++) {
-                        $colNext = Coordinate::stringFromColumnIndex($cNext);
-                        $val     = mb_strtoupper(trim((string) $hoja->getCell("{$colNext}{$r}")->getValue()), 'UTF-8');
-                        if ($val !== '') {
-                            $salaValor = $val;
-                            break;
-                        }
-                    }
-                }
+        // Marco exterior redondeado (#262626) y relleno blanco interior
+        $this->dibujarRectanguloRedondeado($img, 0, 0, $w - 1, $h - 1, 28, $bordeColor);
+        $this->dibujarRectanguloRedondeado($img, 4, 4, $w - 5, $h - 5, 24, $blanco);
+
+        // Pegar escudo J.C. Tello a la izquierda dentro del recuadro
+        if ($logoBin !== null) {
+            $logoSrc = @imagecreatefromstring($logoBin);
+            if ($logoSrc) {
+                $logoSize = 132;
+                imagecopyresampled(
+                    $img,
+                    $logoSrc,
+                    26,
+                    (int) (($h - $logoSize) / 2),
+                    0,
+                    0,
+                    $logoSize,
+                    $logoSize,
+                    imagesx($logoSrc),
+                    imagesy($logoSrc)
+                );
+                imagedestroy($logoSrc);
             }
         }
 
-        return [
-            'tieneDocente' => $tieneDocente,
-            'tieneSala'    => $tieneSala,
-            'sala'         => $salaValor,
+        // Buscar fuente TrueType en Windows o Linux para escribir el nombre dentro de la tarjeta
+        $fuentesPosibles = [
+            'C:\\Windows\\Fonts\\timesbd.ttf',
+            'C:\\Windows\\Fonts\\arialbd.ttf',
+            '/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf',
+            '/usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf',
         ];
-    }
 
-    private function renderizarEncabezadoSuperior(Worksheet $hoja, $listaBienes, array $metadatos): void
-    {
-        $this->descombinarSiSolapa($hoja, 'H2:I5');
-        $hoja->mergeCells('H2:I5');
-        $hoja->setCellValue('H2', "I.E.S.T.P.\nJULIO CESAR\nTELLO");
-        $hoja->getStyle('H2:I5')->applyFromArray([
-            'font'      => ['name' => 'Calibri', 'size' => 10, 'bold' => true],
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical'   => Alignment::VERTICAL_CENTER,
-                'wrapText'   => true,
-            ],
-        ]);
-
-        $salasUnicas = $listaBienes->pluck('sala_nombre')->filter()->unique();
-        $tituloSala  = $salasUnicas->count() === 1
-            ? $salasUnicas->first()
-            : ($metadatos['programa'] ?? 'OFICINA DE CÓMPUTO');
-
-        $this->descombinarSiSolapa($hoja, 'J2:L5');
-        $hoja->mergeCells('J2:L5');
-        $hoja->setCellValue('J2', 'INVENTARIO DE ' . mb_strtoupper((string) $tituloSala, 'UTF-8'));
-        $hoja->getStyle('J2:L5')->applyFromArray([
-            'font'      => ['name' => 'Calibri', 'size' => 13, 'bold' => true],
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical'   => Alignment::VERTICAL_CENTER,
-                'wrapText'   => true,
-            ],
-            'fill' => [
-                'fillType'   => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => 'D9D9D9'],
-            ],
-            'borders' => [
-                'outline' => [
-                    'borderStyle' => Border::BORDER_MEDIUM,
-                    'color'       => ['rgb' => '595959'],
-                ],
-            ],
-        ]);
-
-        $hoja->setCellValue('G11', date('d/m/Y'));
-        $hoja->setCellValue('J11', $tituloSala);
-    }
-
-    private function renderizarPieYFirmas(Worksheet $hoja, int $filaInicioPie): void
-    {
-        $maxFilaPrevia = $hoja->getHighestRow();
-        for ($r = $filaInicioPie; $r <= $maxFilaPrevia; $r++) {
-            for ($c = 1; $c <= 12; $c++) {
-                $col = Coordinate::stringFromColumnIndex($c);
-                $hoja->setCellValue("{$col}{$r}", null);
+        $fuente = null;
+        foreach ($fuentesPosibles as $rutaFuente) {
+            if (file_exists($rutaFuente)) {
+                $fuente = $rutaFuente;
+                break;
             }
         }
 
-        $filaLeyenda = $filaInicioPie + 2;
-        $hoja->mergeCells("F{$filaLeyenda}:L{$filaLeyenda}");
-        $hoja->setCellValue(
-            "F{$filaLeyenda}",
-            'ESTADO: 1= NUEVO, 2=BUENO, 3=REGULAR, 4= MALO   SIN MARCA=S/M, SIN NUMERO= S/N, SIN SERIE =S/SERIE'
-        );
-        $hoja->getStyle("F{$filaLeyenda}")->applyFromArray([
-            'font'      => ['name' => 'Calibri', 'size' => 9, 'bold' => false],
-            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
-        ]);
+        $textoDibujado = false;
+        if ($fuente !== null && function_exists('imagettftext')) {
+            $lineas   = ['I.E.S.T.P.', 'JULIO CÉSAR', 'TELLO'];
+            $fontSize = 19;
+            $gap      = 12;
+            $alturas  = [];
+            $anchos   = [];
 
-        $filaNotaInicio = $filaInicioPie + 4;
-        $filaNotaFin    = $filaInicioPie + 6;
-        $hoja->mergeCells("F{$filaNotaInicio}:L{$filaNotaFin}");
-        $hoja->setCellValue(
-            "F{$filaNotaInicio}",
-            'NOTA : En caso de robo, extravío o deterioro, el servidor deberá dar cuenta a su jefe adjuntando la correspondiente denuncia policial del hecho, caso contrario asumirá la responsabilidad de reparación y/o reposición del bien.'
-        );
-        $hoja->getStyle("F{$filaNotaInicio}:L{$filaNotaFin}")->applyFromArray([
-            'font'      => ['name' => 'Calibri', 'size' => 10, 'bold' => true],
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_LEFT,
-                'vertical'   => Alignment::VERTICAL_CENTER,
-                'wrapText'   => true,
-            ],
-        ]);
-
-        $filaFirmaLatIni = $filaInicioPie + 10;
-        $filaFirmaLatFin = $filaInicioPie + 13;
-
-        $hoja->mergeCells("B{$filaFirmaLatIni}:F{$filaFirmaLatFin}");
-        $hoja->setCellValue(
-            "B{$filaFirmaLatIni}",
-            "----------------------------------------------\n" .
-            "Gutierrez Chura Luis Alberto\n" .
-            "Asistente de Computación e informática\n" .
-            "Turno Nocturno"
-        );
-        $hoja->getStyle("B{$filaFirmaLatIni}:F{$filaFirmaLatFin}")->applyFromArray([
-            'font'      => ['name' => 'Calibri', 'size' => 10, 'bold' => true],
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical'   => Alignment::VERTICAL_CENTER,
-                'wrapText'   => true,
-            ],
-        ]);
-
-        $hoja->mergeCells("J{$filaFirmaLatIni}:L{$filaFirmaLatFin}");
-        $hoja->setCellValue(
-            "J{$filaFirmaLatIni}",
-            "-----------------------------------------------\n" .
-            "Segundo Teodulo Sanchez Rodriguez\n" .
-            "Asistente de Computación e informática\n" .
-            "Turno Diurno"
-        );
-        $hoja->getStyle("J{$filaFirmaLatIni}:L{$filaFirmaLatFin}")->applyFromArray([
-            'font'      => ['name' => 'Calibri', 'size' => 10, 'bold' => true],
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical'   => Alignment::VERTICAL_CENTER,
-                'wrapText'   => true,
-            ],
-        ]);
-
-        $filaFirmaCenIni = $filaInicioPie + 14;
-        $filaFirmaCenFin = $filaInicioPie + 16;
-        $hoja->mergeCells("G{$filaFirmaCenIni}:I{$filaFirmaCenFin}");
-        $hoja->setCellValue(
-            "G{$filaFirmaCenIni}",
-            "-------------------------------------------\n" .
-            "Mg. Miguel Mauro Culi Janampa\n" .
-            "Coordinador del Area Académica Computación e Informática"
-        );
-        $hoja->getStyle("G{$filaFirmaCenIni}:I{$filaFirmaCenFin}")->applyFromArray([
-            'font'      => ['name' => 'Calibri', 'size' => 10, 'bold' => true],
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical'   => Alignment::VERTICAL_CENTER,
-                'wrapText'   => true,
-            ],
-        ]);
-    }
-
-    private function descombinarSiSolapa(Worksheet $hoja, string $rangoObjetivo): void
-    {
-        [$inicioObj, $finObj] = Coordinate::rangeBoundaries($rangoObjetivo);
-
-        foreach ($hoja->getMergeCells() as $rangoExistente) {
-            [$inicioEx, $finEx] = Coordinate::rangeBoundaries($rangoExistente);
-            $solapaCols  = $inicioObj[0] <= $finEx[0] && $finObj[0] >= $inicioEx[0];
-            $solapaFilas = $inicioObj[1] <= $finEx[1] && $finObj[1] >= $inicioEx[1];
-
-            if ($solapaCols && $solapaFilas) {
-                $hoja->unmergeCells($rangoExistente);
+            foreach ($lineas as $linea) {
+                $box       = imagettfbbox($fontSize, 0, $fuente, $linea);
+                $anchos[]  = abs($box[2] - $box[0]);
+                $alturas[] = abs($box[7] - $box[1]);
             }
+
+            $altoTotal = array_sum($alturas) + $gap * (count($lineas) - 1);
+            $y         = (int) (($h - $altoTotal) / 2) + $alturas[0];
+            $centroX   = 385;
+
+            foreach ($lineas as $i => $linea) {
+                $x = (int) ($centroX - ($anchos[$i] / 2));
+                imagettftext($img, $fontSize, 0, $x, $y, $negro, $fuente, $linea);
+                if (isset($alturas[$i + 1])) {
+                    $y += $alturas[$i + 1] + $gap;
+                }
+            }
+            $textoDibujado = true;
         }
+
+        $mem = new MemoryDrawing();
+        $mem->setName('TarjetaInstituto');
+        $mem->setImageResource($img);
+        $mem->setRenderingFunction(MemoryDrawing::RENDERING_PNG);
+        $mem->setMimeType(MemoryDrawing::MIMETYPE_PNG);
+        $mem->setCoordinates('G1');
+        $mem->setOffsetX(22);
+        $mem->setOffsetY(6);
+        $mem->setWidth(300);
+        $mem->setHeight(86);
+
+        $drawings[] = $mem;
+
+        return $textoDibujado;
     }
 
-    public function descargarPlantilla()
+    private function dibujarRectanguloRedondeado($img, int $x1, int $y1, int $x2, int $y2, int $radio, int $color): void
     {
-        return response()->download(
-            $this->rutaPlantilla(),
-            'PLANTILLA_INVENTARIO_OFICIAL.xlsx',
-            ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
-        );
+        imagefilledrectangle($img, $x1 + $radio, $y1, $x2 - $radio, $y2, $color);
+        imagefilledrectangle($img, $x1, $y1 + $radio, $x2, $y2 - $radio, $color);
+
+        $diametro = $radio * 2;
+        imagefilledellipse($img, $x1 + $radio, $y1 + $radio, $diametro, $diametro, $color);
+        imagefilledellipse($img, $x2 - $radio, $y1 + $radio, $diametro, $diametro, $color);
+        imagefilledellipse($img, $x1 + $radio, $y2 - $radio, $diametro, $diametro, $color);
+        imagefilledellipse($img, $x2 - $radio, $y2 - $radio, $diametro, $diametro, $color);
     }
 
-    private function rutaPlantilla(): string
+    private function parsearCsvNativo(UploadedFile $archivo): array
     {
-        $ruta = storage_path('app/plantillas/formato_inventario.xlsx');
-        abort_unless(file_exists($ruta), 500, 'No se encontró la plantilla oficial en storage/app/plantillas/formato_inventario.xlsx.');
+        $handle = fopen($archivo->getRealPath(), 'r');
+        if (! $handle) {
+            throw ValidationException::withMessages(['archivo' => 'No se pudo leer el archivo subido.']);
+        }
 
-        return $ruta;
-    }
+        $registros = [];
+        $numFila   = 0;
 
-    private function normalizarTexto(string $texto): string
-    {
-        $texto = preg_replace('/\s+/', ' ', trim($texto));
-        return mb_strtoupper($texto, 'UTF-8');
+        while (($cols = fgetcsv($handle, 0, ',')) !== false) {
+            $numFila++;
+            if (count($cols) === 1 && str_contains((string) $cols[0], ';')) {
+                $cols = str_getcsv((string) $cols[0], ';');
+            }
+            if ($numFila <= 13 || count($cols) < 7) {
+                continue;
+            }
+            $registros[] = [
+                'hoja'        => 'CSV',
+                'fila'        => $numFila,
+                'sala'        => 'SALA GENERAL',
+                'cbi'         => $cols[5] ?? '',
+                'descripcion' => $cols[6] ?? '',
+                'marca'       => $cols[7] ?? '',
+                'modelo'      => $cols[8] ?? '',
+                'serie'       => $cols[9] ?? '',
+                'estado'      => $cols[10] ?? '',
+                'otras'       => $cols[11] ?? '',
+            ];
+        }
+        fclose($handle);
+
+        return $registros;
     }
 
     private function resolverEstado(mixed $valorCelda, ?int $defaultId): ?int

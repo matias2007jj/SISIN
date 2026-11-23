@@ -41,8 +41,17 @@
     <div class="col-12 col-md-7 text-md-end d-flex flex-wrap justify-content-md-end align-items-center gap-2">
         <span class="badge-count">Total Registros: <span id="contadorRegistros">{{ count($bienes) }}</span></span>
 
-        <a href="{{ route('bienes.exportar.excel') }}" class="btn btn-outline-success btn-action-icon">
+        <a href="{{ route('bienes.exportar.excel') }}"
+           data-base-url="{{ route('bienes.exportar.excel') }}"
+           class="btn btn-outline-success btn-action-icon js-btn-exportar-bien">
             Exportar Excel
+        </a>
+
+        <a href="{{ route('bienes.exportar.pdf') }}"
+           data-base-url="{{ route('bienes.exportar.pdf') }}"
+           target="_blank"
+           class="btn btn-outline-danger btn-action-icon js-btn-exportar-bien">
+            Exportar PDF
         </a>
 
         @if (!$global && $puedeRegistrar)
@@ -50,7 +59,7 @@
                 Importar Excel
             </button>
 
-            <button type="button" class="btn btn-success btn-action-icon" id="btnNuevoBien" style="background-color:#10b981; border:none;">
+            <button type="button" class="btn btn-success btn-action-icon btn-nuevo-bien" id="btnNuevoBien">
                 + Nuevo Bien
             </button>
         @endif
@@ -61,10 +70,10 @@
 <div class="row g-3 align-items-end mb-4">
     @if ($mostrarFiltroPrograma)
     <div class="col-12 col-md-4 col-lg-3">
-        <label for="filtroProgramaBien" class="form-label text-uppercase fw-semibold mb-1" style="font-size: 0.75rem; color: #94a3b8; letter-spacing: 0.5px;">
+        <label for="filtroProgramaBien" class="form-label text-uppercase fw-semibold mb-1 bien-filter-label">
             Programa de Estudios:
         </label>
-        <select id="filtroProgramaBien" class="form-select form-select-sm bg-dark text-white border-secondary text-uppercase" style="height: 38px;">
+        <select id="filtroProgramaBien" class="form-select form-select-sm bg-dark text-white border-secondary text-uppercase bien-filter-control">
             <option value="">TODOS LOS PROGRAMAS</option>
             @foreach ($programasFiltro as $prog)
                 <option value="{{ $prog->id }}">{{ $prog->nombre }}</option>
@@ -75,10 +84,10 @@
 
     @if ($mostrarFiltroSala)
     <div class="col-12 col-md-4 col-lg-3">
-        <label for="filtroSalaBien" class="form-label text-uppercase fw-semibold mb-1" style="font-size: 0.75rem; color: #94a3b8; letter-spacing: 0.5px;">
+        <label for="filtroSalaBien" class="form-label text-uppercase fw-semibold mb-1 bien-filter-label">
             Salas:
         </label>
-        <select id="filtroSalaBien" class="form-select form-select-sm bg-dark text-white border-secondary text-uppercase" style="height: 38px;">
+        <select id="filtroSalaBien" class="form-select form-select-sm bg-dark text-white border-secondary text-uppercase bien-filter-control">
             <option value="">TODAS LAS SALAS</option>
             @foreach ($salasFiltro as $s)
                 <option value="{{ $s->id }}" data-programa-id="{{ $s->programa_estudio_id ?? '' }}">
@@ -90,7 +99,7 @@
     @endif
 
     <div class="col-12 col-md-auto">
-        <button type="button" id="btnLimpiarFiltrosBien" class="btn btn-outline-secondary btn-sm px-3 d-none" style="height: 38px;">
+        <button type="button" id="btnLimpiarFiltrosBien" class="btn btn-outline-secondary btn-sm px-3 d-none bien-filter-control">
             Limpiar filtros
         </button>
     </div>
@@ -183,7 +192,7 @@
 {{-- Modal para Importar Excel con Formato Oficial --}}
 <div class="modal fade" id="modalImportarBien" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <form method="POST" action="{{ route('bienes.importar.excel') }}" enctype="multipart/form-data" class="modal-content mi-modal">
+        <form id="formImportarBienExcel" method="POST" action="{{ route('bienes.importar.excel') }}" enctype="multipart/form-data" class="modal-content mi-modal">
             @csrf
             <div class="modal-header">
                 <div class="titulo">
@@ -194,23 +203,23 @@
             </div>
 
             <div class="modal-body">
-                <p class="text-muted mb-3" style="font-size: 0.9rem;">
-                    Solo se aceptan archivos <strong>.xlsx</strong> que respeten exactamente la estructura y encabezados del formato oficial.
+                <p class="text-muted mb-3 bien-import-desc">
+                    Acepta archivos <strong>.xlsx</strong>, <strong>.xls</strong> o <strong>.csv</strong> con el formato oficial de inventario (incluyendo múltiples pestañas de laboratorios).
                 </p>
 
                 <div class="mb-3">
                     <a href="{{ route('bienes.plantilla.excel') }}" class="btn btn-outline-success btn-sm">
-                        Descargar Plantilla Oficial (.xlsx)
+                        Descargar Plantilla Oficial
                     </a>
                 </div>
 
                 <div class="campo">
-                    <label for="archivoExcelBien">Seleccionar archivo (.xlsx) *</label>
+                    <label for="archivoExcelBien">Seleccionar archivo (.xlsx, .xls, .csv) *</label>
                     <input
                         type="file"
                         name="archivo"
                         id="archivoExcelBien"
-                        accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        accept=".xlsx,.xls,.csv"
                         required
                     >
                 </div>
@@ -405,9 +414,9 @@
 </div>
 
 {{-- Mini-modal reutilizable para creación rápida de Sala, Grupo, Tipo, Marca o Modelo --}}
-<div class="modal fade" id="modalCatalogoRapido" tabindex="-1" aria-hidden="true" style="z-index: 1065;">
-    <div class="modal-dialog modal-dialog-centered modal-sm" style="max-width: 440px;">
-        <form id="formCatalogoRapido" class="modal-content mi-modal" style="box-shadow: 0 20px 50px rgba(0,0,0,0.85);">
+<div class="modal fade modal-catalogo-rapido" id="modalCatalogoRapido" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm modal-catalogo-rapido-dialog">
+        <form id="formCatalogoRapido" class="modal-content mi-modal modal-catalogo-rapido-content">
             <div class="modal-header">
                 <div class="titulo">
                     <span class="punto"></span>
@@ -417,7 +426,7 @@
             </div>
 
             <div class="modal-body">
-                <div id="errorCatalogoRapido" class="alert alert-danger py-2 px-3 mb-3 d-none" style="font-size: 0.85rem;"></div>
+                <div id="errorCatalogoRapido" class="alert alert-danger py-2 px-3 mb-3 d-none error-catalogo-rapido"></div>
 
                 <div class="campo mb-3">
                     <label for="nombreCatalogoRapido" id="labelCatalogoRapido">Nombre *</label>
@@ -444,5 +453,152 @@
     <script src="{{ asset('js/organizacion.js') }}"></script>
     <script src="{{ asset('js/bien.js') }}"></script>
     <script src="{{ asset('js/bien-catalogo-rapido.js') }}"></script>
-    <script src="{{ asset('js/bien-filtros.js') }}?v=2"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const selProg = document.getElementById('filtroProgramaBien');
+        const selSala = document.getElementById('filtroSalaBien');
+        const txtBusq = document.getElementById('inputBuscar');
+        const btnsExp = document.querySelectorAll('.js-btn-exportar-bien');
+
+        function actualizarEnlacesExportar() {
+            btnsExp.forEach((btn) => {
+                const base = btn.dataset.baseUrl;
+                if (!base) return;
+                const url = new URL(base, window.location.origin);
+                if (selProg && selProg.value) url.searchParams.set('programa_estudio_id', selProg.value);
+                if (selSala && selSala.value) url.searchParams.set('sala_id', selSala.value);
+                if (txtBusq && txtBusq.value.trim()) url.searchParams.set('buscar', txtBusq.value.trim());
+                btn.href = url.toString();
+            });
+        }
+
+        if (selProg) selProg.addEventListener('change', actualizarEnlacesExportar);
+        if (selSala) selSala.addEventListener('change', actualizarEnlacesExportar);
+        if (txtBusq) txtBusq.addEventListener('input', actualizarEnlacesExportar);
+
+        const formImportar = document.getElementById('formImportarBienExcel');
+        if (!formImportar) return;
+
+        const inputArchivo = formImportar.querySelector('input[type="file"]');
+        const inputJson = document.createElement('input');
+        inputJson.type = 'hidden';
+        inputJson.name = 'filas_json';
+        formImportar.appendChild(inputJson);
+
+        const norm = (v) => String(v ?? '').replace(/\s+/g, ' ').trim().toUpperCase();
+
+        const COLS_VALIDAS = {
+            0: ['N°', 'Nº'],
+            1: ['INV 2025', '2025'],
+            2: ['INV 2024', '2024'],
+            3: ['INV 2023', '2023'],
+            4: ['CODIGO PATRIMONIAL', 'COD. PATRI.'],
+            5: ['CBI'],
+            6: ['DESCRIPCIÓN DEL BIEN', 'DESCRIPCION DEL BIEN'],
+            7: ['MARCA'],
+            8: ['MODELO'],
+            9: ['SERIE/MEDIDA', 'SERIE / MEDIDA'],
+            10: ['ESTADO'],
+            11: ['OTRAS ESPECIFICACIONES'],
+        };
+
+        formImportar.addEventListener('submit', async (e) => {
+            const archivo = inputArchivo?.files?.[0];
+            if (!archivo || archivo.name.toLowerCase().endsWith('.csv')) return;
+
+            e.preventDefault();
+
+            try {
+                const buffer = await archivo.arrayBuffer();
+                const wb = XLSX.read(buffer, { type: 'array' });
+                const registros = [];
+                const errores = [];
+
+                wb.SheetNames.forEach((nombreHoja) => {
+                    const ws = wb.Sheets[nombreHoja];
+                    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+                    let filaHeader = -1;
+                    for (let r = 6; r <= Math.min(16, rows.length - 1); r++) {
+                        const row = rows[r] || [];
+                        let ok = true;
+                        for (let c = 0; c <= 11; c++) {
+                            if (!COLS_VALIDAS[c].includes(norm(row[c]))) {
+                                ok = false;
+                                break;
+                            }
+                        }
+                        if (ok) { filaHeader = r; break; }
+                    }
+
+                    if (filaHeader === -1) {
+                        errores.push(`Hoja "${nombreHoja}": no coincide con las 12 columnas oficiales (N° a OTRAS ESPECIFICACIONES).`);
+                        return;
+                    }
+
+                    let tieneDocente = false;
+                    let salaNombre = '';
+                    for (let r = 0; r < filaHeader; r++) {
+                        const row = rows[r] || [];
+                        for (let c = 0; c <= 11; c++) {
+                            const txt = norm(row[c]);
+                            if (txt === 'DOCENTE RESPONSABLE') tieneDocente = true;
+                            if (txt === 'SALA') {
+                                for (let k = c + 1; k <= 11; k++) {
+                                    if (norm(row[k]) !== '') { salaNombre = String(row[k]).trim(); break; }
+                                }
+                            }
+                        }
+                    }
+
+                    if (!tieneDocente) {
+                        errores.push(`Hoja "${nombreHoja}": falta la etiqueta institucional "DOCENTE RESPONSABLE".`);
+                        return;
+                    }
+
+                    if (!salaNombre) salaNombre = nombreHoja.trim();
+
+                    for (let r = filaHeader + 1; r < rows.length; r++) {
+                        const row = rows[r] || [];
+                        const colA = norm(row[0]);
+                        const cbi  = norm(row[5]);
+                        const desc = String(row[6] ?? '').trim();
+
+                        if (colA.startsWith('ESTADO') || colA.startsWith('NOTA') || norm(desc).startsWith('ESTADO:')) break;
+                        if (!cbi || ['S/N', 'S/C', '-'].includes(cbi)) continue;
+
+                        registros.push({
+                            hoja: nombreHoja,
+                            fila: r + 1,
+                            sala: salaNombre,
+                            cbi: cbi,
+                            descripcion: desc,
+                            marca: String(row[7] ?? '').trim(),
+                            modelo: String(row[8] ?? '').trim(),
+                            serie: String(row[9] ?? '').trim(),
+                            estado: String(row[10] ?? '').trim(),
+                            otras: String(row[11] ?? '').trim(),
+                        });
+                    }
+                });
+
+                if (errores.length > 0) {
+                    alert('El archivo no cumple con el formato oficial:\n\n' + errores.join('\n'));
+                    return;
+                }
+
+                if (registros.length === 0) {
+                    alert('No se encontraron registros con CBI válido para importar.');
+                    return;
+                }
+
+                inputJson.value = JSON.stringify(registros);
+                formImportar.submit();
+            } catch (err) {
+                alert('Error al leer el archivo Excel: ' + err.message);
+            }
+        });
+    });
+    </script>
 @endpush

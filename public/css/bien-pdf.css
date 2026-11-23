@@ -1,0 +1,252 @@
+@page {
+    size: A4 landscape;
+    margin: 8mm;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 9pt;
+    color: #000;
+    background: #fff;
+    margin: 0;
+    padding: 12px;
+}
+
+.barra-acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #cbd5e1;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.btn-pdf {
+    background: #0f766e;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.btn-cerrar {
+    background: #475569;
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+@media print {
+    body { padding: 0; }
+    .no-print { display: none !important; }
+}
+
+.cabecera-top {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    margin-bottom: 10px;
+}
+
+.cabecera-top td {
+    vertical-align: middle;
+}
+
+.col-top-izq {
+    width: 34%;
+    padding-left: 4%;
+}
+
+.col-top-centro {
+    width: 39%;
+    text-align: center;
+}
+
+.col-top-der {
+    width: 27%;
+    text-align: center;
+}
+
+.logo-drelm {
+    height: 76px;
+    width: auto;
+}
+
+.instituto-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    border: 1.5px solid #404040;
+    border-radius: 16px;
+    background: #fff;
+    padding: 7px 24px;
+    min-width: 245px;
+}
+
+.logo-jct {
+    height: 58px;
+    width: auto;
+}
+
+.instituto-texto {
+    text-align: center;
+    font-weight: bold;
+    font-size: 9.5pt;
+    line-height: 1.25;
+}
+
+.titulo-gris {
+    background: #d9d9d9;
+    border: 1.5px solid #404040;
+    border-radius: 14px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13pt;
+    font-weight: bold;
+    text-align: center;
+    padding: 15px 10px;
+    line-height: 1.25;
+}
+
+.meta-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    margin-bottom: 10px;
+    font-size: 9pt;
+}
+
+.meta-sep td {
+    height: 6px;
+}
+
+.meta-col-lbl-izq {
+    width: 34%;
+    padding-left: 8%;
+    font-weight: bold;
+}
+
+.meta-col-val-1 {
+    width: 21%;
+}
+
+.meta-col-val-2 {
+    width: 8%;
+}
+
+.meta-col-lbl-der {
+    width: 10%;
+    text-align: center;
+    font-weight: bold;
+}
+
+.meta-col-val-der {
+    width: 27%;
+}
+
+.meta-box {
+    border: 2px solid #000;
+    font-weight: bold;
+    text-align: center;
+    padding: 4px 6px;
+    line-height: 1.2;
+}
+
+.tabla-inventario {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 8pt;
+    border: 2px solid #000;
+}
+
+.tabla-inventario th,
+.tabla-inventario td {
+    border: 1px solid #000;
+    padding: 3px 4px;
+    vertical-align: middle;
+    word-wrap: break-word;
+}
+
+.tabla-inventario th {
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 2px solid #000;
+    padding: 5px 3px;
+}
+
+.th-gris    { background: #bfbfbf; }
+.th-naranja { background: #e46c0a; }
+.th-crema   { background: #fcd5b6; }
+.th-verde   { background: #9bbb59; }
+.th-celeste { background: #c7daf1; }
+.th-azul    { background: #4f81bd; }
+.th-estado  { background: #c0c0c0; }
+.th-oliva   { background: #948a54; }
+
+.col-nro    { width: 3%; }
+.col-inv    { width: 5%; }
+.col-pat    { width: 9%; }
+.col-cbi    { width: 7%; }
+.col-desc   { width: 21%; }
+.col-marca  { width: 8%; }
+.col-modelo { width: 10%; }
+.col-serie  { width: 11%; }
+.col-estado { width: 4%; }
+.col-otras  { width: 12%; }
+
+.tc { text-align: center; }
+.tl { text-align: left; }
+.celda-vacia { padding: 14px; }
+
+.leyenda {
+    text-align: center;
+    font-size: 8.5pt;
+    margin-top: 8px;
+}
+
+.nota-legal {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 8.5pt;
+    font-weight: bold;
+    margin: 8px 6% 24px 27%;
+    text-align: left;
+    line-height: 1.25;
+}
+
+.firmas {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    margin-top: 18px;
+    font-size: 9pt;
+    font-weight: bold;
+    text-align: center;
+}
+
+.firmas td {
+    vertical-align: top;
+    padding: 4px 8px;
+}
+
+.firma-lateral { width: 33%; }
+.firma-central { width: 34%; padding-top: 42px !important; }
+
+.linea-firma {
+    border-top: 1px dashed #000;
+    width: 245px;
+    margin: 0 auto;
+    padding-top: 4px;
+    line-height: 1.25;
+}

@@ -96,6 +96,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (inputBuscar) {
             inputBuscar.addEventListener('keyup', filtrarFilas);
+            inputBuscar.addEventListener('input', filtrarFilas);
         }
 
         if (btnLimpiar) {

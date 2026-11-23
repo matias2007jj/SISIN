@@ -17,37 +17,20 @@
 
 @if ($sinInstitucion)
     <div class="alerta-sisin error" role="alert">
-        Está viendo todas las instituciones. Para crear o importar usuarios, elija una en el menú de usuario → <strong>Institución activa</strong>.
+        Está viendo todas las instituciones. Para crear usuarios, elija una en el menú de usuario → <strong>Institución activa</strong>.
     </div>
 @endif
 
 <div class="row g-3 align-items-center justify-content-between mb-4">
-    <div class="col-12 col-xl-5">
+    <div class="col-12 col-md-6 col-lg-5">
         <div class="input-group search-toolbar">
             <input type="text" id="inputBuscar" class="form-control text-uppercase" placeholder="Filtrar por nombre, DNI, usuario, rol o programa..." autocomplete="off">
             <button type="button" class="btn btn-link text-muted pe-1 d-none" id="btnLimpiarBuscar">&times;</button>
         </div>
     </div>
 
-    <div class="col-12 col-xl-7 d-flex flex-wrap align-items-center justify-content-xl-end gap-2">
-        @if (! $sinInstitucion)
-            <button type="button" class="btn btn-outline-light btn-sm px-3 py-2"
-                    data-bs-toggle="modal" data-bs-target="#modalImportarExcel">
-                Importar Excel
-            </button>
-        @endif
-
-        <a href="{{ route('usuarios.exportar.excel') }}"
-           class="btn btn-outline-success btn-sm px-3 py-2">
-            Exportar Excel
-        </a>
-
-        <a href="{{ route('usuarios.exportar.pdf') }}" target="_blank"
-           class="btn btn-outline-danger btn-sm px-3 py-2">
-            Exportar PDF
-        </a>
-
-        <span class="badge-count ms-xl-2">
+    <div class="col-12 col-md-6 text-md-end">
+        <span class="badge-count">
             Total Registros: <span id="contadorRegistros">{{ count($usuarios) }}</span>
         </span>
     </div>
@@ -179,25 +162,37 @@
                                 <div class="col-12 col-md-6">
                                     <div class="campo">
                                         <label for="apellidos">Apellidos</label>
-                                        <input type="text" id="apellidos" name="apellidos" maxlength="60" class="text-uppercase js-req-personal" required>
+                                        <input type="text" id="apellidos" name="apellidos" maxlength="60"
+                                               pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúüñ' -]+"
+                                               title="Solo se permiten letras y espacios (sin números)"
+                                               class="text-uppercase js-req-personal" required>
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <div class="campo">
                                         <label for="nombres">Nombres</label>
-                                        <input type="text" id="nombres" name="nombres" maxlength="60" class="text-uppercase js-req-personal" required>
+                                        <input type="text" id="nombres" name="nombres" maxlength="60"
+                                               pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúüñ' -]+"
+                                               title="Solo se permiten letras y espacios (sin números)"
+                                               class="text-uppercase js-req-personal" required>
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-4">
                                     <div class="campo">
                                         <label for="dni">DNI</label>
-                                        <input type="text" id="dni" name="dni" maxlength="8" inputmode="numeric" pattern="[0-9]{8}" placeholder="8 dígitos" class="js-req-personal" required>
+                                        <input type="text" id="dni" name="dni" maxlength="8" minlength="8"
+                                               inputmode="numeric" pattern="[0-9]{8}"
+                                               title="El DNI debe tener exactamente 8 dígitos numéricos"
+                                               placeholder="8 dígitos" class="js-req-personal" required>
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-4">
                                     <div class="campo">
                                         <label for="celular">Celular</label>
-                                        <input type="text" id="celular" name="celular" maxlength="30">
+                                        <input type="text" id="celular" name="celular" maxlength="9" minlength="9"
+                                               inputmode="numeric" pattern="[0-9]{9}"
+                                               title="El celular debe tener exactamente 9 dígitos numéricos"
+                                               placeholder="9 dígitos">
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-4">
@@ -271,49 +266,6 @@
         </div>
     </div>
 </div>
-
-{{-- Modal Importar Usuarios desde Excel --}}
-@if (! $sinInstitucion)
-<div class="modal fade" id="modalImportarExcel" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 bg-transparent">
-            <div class="mi-modal">
-                <form method="POST" action="{{ route('usuarios.importar.excel') }}" enctype="multipart/form-data">
-                    @csrf
-
-                    <div class="modal-header">
-                        <div class="titulo">
-                            <span class="punto"></span>
-                            <h2>Importar Usuarios desde Excel</h2>
-                        </div>
-                        <button type="button" class="cerrar" data-bs-dismiss="modal" aria-label="Cerrar">&times;</button>
-                    </div>
-
-                    <div class="modal-body">
-                        <div class="campo mb-3">
-                            <label for="archivo_excel">Archivo Excel (.xlsx, .xls, .csv)</label>
-                            <input type="file" id="archivo_excel" name="archivo_excel" accept=".xlsx,.xls,.csv" required>
-                        </div>
-
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <small class="text-muted">Columnas: apellidos, nombres, dni, celular, email, direccion, username, password, rol</small>
-                        </div>
-
-                        <a href="{{ route('usuarios.plantilla.excel') }}" class="btn btn-outline-info btn-sm">
-                            Descargar plantilla Excel
-                        </a>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-cancelar" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-guardar">Importar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-@endif
 @endsection
 
 @push('scripts')
