@@ -146,28 +146,23 @@
                         @endif
                     </td>
                     @if ($mostrarAcciones)
-                        @php $delProgramaActivo = (int) $b->programa_estudio_id === (int) $programaId; @endphp
                         <td class="text-center text-nowrap">
-                            @if (! $delProgramaActivo)
-                                <span class="text-muted fs-7" title="Cambie el programa activo (menú de usuario) para modificar este bien">Otro programa</span>
-                            @else
-                                @if ($puedeRegistrar && ($b->estado_id != 6 || $puedeInactivar))
-                                    <button type="button" class="btn btn-outline-warning btn-action-icon btn-editar"
-                                        data-bien='@json($b)'
-                                        data-url="{{ route('bienes.update', $b->id) }}">
-                                        Editar
-                                    </button>
-                                @endif
+                            @if ($puedeRegistrar && ($b->estado_id != 6 || $puedeInactivar))
+                                <button type="button" class="btn btn-outline-warning btn-action-icon btn-editar"
+                                    data-bien='@json($b)'
+                                    data-url="{{ route('bienes.update', $b->id) }}">
+                                    Editar
+                                </button>
+                            @endif
 
-                                @if ($puedeInactivar && $b->estado_id != 6)
-                                    <form action="{{ route('bienes.destroy', $b->id) }}" method="POST" class="d-inline form-desactivar">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-outline-danger btn-action-icon">
-                                            Inactivar
-                                        </button>
-                                    </form>
-                                @endif
+                            @if ($puedeInactivar && $b->estado_id != 6)
+                                <form action="{{ route('bienes.destroy', $b->id) }}" method="POST" class="d-inline form-desactivar">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-outline-danger btn-action-icon">
+                                        Inactivar
+                                    </button>
+                                </form>
                             @endif
                         </td>
                     @endif

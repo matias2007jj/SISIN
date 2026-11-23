@@ -3,14 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bien;
+use App\Models\Sala;
 use App\Models\Usuario;
-use App\Services\BienExcelService;
-use App\Support\ContextoInstitucion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 
 class BienController extends Controller
 {
@@ -21,27 +19,60 @@ class BienController extends Controller
         /** @var Usuario $user */
         $user           = Auth::user();
         $institucionId  = $user->institucionActiva()?->id;
-        $programaId     = ContextoInstitucion::programaId();
         $verInstitucion = $user->veTodaLaInstitucion();
         $idsPermitidos  = $user->idsProgramasPermitidos();
 
-        $bienes = DB::select('CALL sp_listar_bienes(?, ?, ?)', [
-            $programaId,
-            $institucionId,
-            $verInstitucion ? 1 : 0,
-        ]);
+        $bienes = DB::table('bienes as b')
+            ->join('salas as s', 'b.sala_id', '=', 's.id')
+            ->join('programas_estudio as pe', 's.programa_estudio_id', '=', 'pe.id')
+            ->join('instituciones as i', 'pe.institucion_id', '=', 'i.id')
+            ->join('grupos as g', 'b.grupo_id', '=', 'g.id')
+            ->join('tipos as t', 'b.tipo_id', '=', 't.id')
+            ->join('estados as e', 'b.estado_id', '=', 'e.id')
+            ->leftJoin('marcas as m', 'b.marca_id', '=', 'm.id')
+            ->leftJoin('modelos as mo', 'b.modelo_id', '=', 'mo.id')
+            ->whereNull('b.deleted_at')
+            ->when($user->esSuperusuario() && $institucionId === null, function ($q) {
+                // Vista global
+            }, function ($q) use ($idsPermitidos) {
+                $q->whereIn('s.programa_estudio_id', $idsPermitidos ?: [-1]);
+            })
+            ->select(
+                'b.id',
+                'b.cbi',
+                'b.descripcion',
+                'b.serie_medida',
+                'b.otras_especificaciones',
+                'b.sala_id',
+                's.nombre as sala_nombre',
+                's.programa_estudio_id',
+                'pe.nombre as programa_estudio_nombre',
+                'i.nombre as institucion_nombre',
+                'b.grupo_id',
+                'g.nombre as grupo_nombre',
+                'b.tipo_id',
+                't.nombre as tipo_nombre',
+                'b.marca_id',
+                'm.nombre as marca_nombre',
+                'b.modelo_id',
+                'mo.nombre as modelo_nombre',
+                'b.estado_id',
+                'e.nombre as estado_nombre',
+                'b.created_at',
+                'b.updated_at'
+            )
+            ->orderByDesc('b.id')
+            ->get();
 
-        // Listas para los modales (del programa activo)
-        $salas   = $programaId ? DB::select('CALL sp_listar_salas(?)', [$programaId]) : [];
-        $grupos  = $programaId ? DB::select('CALL sp_listar_grupos(?, 0)', [$programaId]) : [];
-        $tipos   = $programaId ? DB::select('CALL sp_listar_tipos(?)', [$programaId]) : [];
-        $marcas  = $programaId ? DB::select('CALL sp_listar_marcas(?)', [$programaId]) : [];
-        $modelos = $programaId ? DB::select('CALL sp_listar_modelos(?)', [$programaId]) : [];
+        $salas   = $this->catalogoPermitido('salas', $idsPermitidos);
+        $grupos  = $this->catalogoPermitido('grupos', $idsPermitidos);
+        $tipos   = $this->catalogoPermitido('tipos', $idsPermitidos);
+        $marcas  = $this->catalogoPermitido('marcas', $idsPermitidos);
+        $modelos = $this->catalogoPermitido('modelos', $idsPermitidos);
 
         $estados = collect(DB::select('CALL sp_listar_estados()'))
             ->where('id', '!=', self::ESTADO_INACTIVO);
 
-        // Listas para los filtros de la tabla
         $programasFiltro = DB::table('programas_estudio as pe')
             ->whereIn('pe.id', $idsPermitidos)
             ->whereNull('pe.deleted_at')
@@ -54,37 +85,35 @@ class BienController extends Controller
             ->whereNull('s.deleted_at')
             ->whereNull('pe.deleted_at')
             ->when($user->esSuperusuario() && $institucionId === null, function ($q) {
-                // Superusuario en vista global: todas las salas
-            }, function ($q) use ($verInstitucion, $idsPermitidos, $programaId) {
-                if ($verInstitucion) {
-                    $q->whereIn('s.programa_estudio_id', $idsPermitidos);
-                } elseif ($programaId !== null) {
-                    $q->where('s.programa_estudio_id', $programaId);
-                } else {
-                    $q->whereRaw('1 = 0');
-                }
+                // Superusuario global: todas las salas
+            }, function ($q) use ($idsPermitidos) {
+                $q->whereIn('s.programa_estudio_id', $idsPermitidos ?: [-1]);
             })
             ->orderBy('s.nombre')
             ->get(['s.id', 's.nombre', 's.programa_estudio_id', 'pe.institucion_id']);
 
-        $puedeRegistrar = $user->puede('bienes.registrar') && $programaId !== null;
+        $puedeRegistrar = $user->puede('bienes.registrar') && count($idsPermitidos) > 0;
         $puedeInactivar = $user->puede('bienes.inactivar');
 
         return view('almacen.bien.index', compact(
             'bienes', 'salas', 'grupos', 'tipos', 'marcas', 'modelos', 'estados',
             'programasFiltro', 'salasFiltro',
-            'programaId', 'verInstitucion', 'puedeRegistrar', 'puedeInactivar'
+            'verInstitucion', 'puedeRegistrar', 'puedeInactivar'
         ));
     }
 
     public function store(Request $request)
     {
-        $programaId = ContextoInstitucion::programaId();
+        /** @var Usuario $user */
+        $user          = Auth::user();
+        $idsPermitidos = $user->idsProgramasPermitidos();
 
-        if ($programaId === null) {
-            return redirect()->route('bienes.index')
-                ->with('aviso_error', 'No tiene un programa de estudio activo para registrar bienes.');
-        }
+        abort_if(empty($idsPermitidos), 403, 'No tiene programas de estudio asignados para registrar bienes.');
+
+        $sala       = Sala::find($request->input('sala_id'));
+        $programaId = (int) ($sala?->programa_estudio_id ?? 0);
+
+        abort_unless(in_array($programaId, $idsPermitidos, true), 403, 'La sala seleccionada no pertenece a sus programas permitidos.');
 
         $data = $request->validate($this->reglas($programaId), [
             'cbi.unique' => 'El código CBI ya se encuentra registrado en otro bien.',
@@ -109,8 +138,11 @@ class BienController extends Controller
 
     public function update(Request $request, $id)
     {
-        $programaId = ContextoInstitucion::programaId();
-        $bien       = $this->delProgramaActivo((int) $id, $programaId);
+        $bien       = $this->bienPermitido((int) $id);
+        $salaNueva  = Sala::find($request->input('sala_id'));
+        $programaId = (int) ($salaNueva?->programa_estudio_id ?? $bien->sala?->programa_estudio_id ?? 0);
+
+        abort_unless(Auth::user()->puedeUsarPrograma($programaId), 403, 'No tiene acceso a ese programa de estudio.');
 
         if ((int) $bien->estado_id === self::ESTADO_INACTIVO && ! Auth::user()->puede('bienes.inactivar')) {
             abort(403, 'Solo el coordinador o el director pueden reactivar un bien inactivo.');
@@ -140,7 +172,7 @@ class BienController extends Controller
 
     public function destroy($id)
     {
-        $bien = $this->delProgramaActivo((int) $id, ContextoInstitucion::programaId());
+        $bien = $this->bienPermitido((int) $id);
 
         DB::statement('CALL sp_desactivar_bien(?, ?)', [
             $bien->id,
@@ -150,67 +182,18 @@ class BienController extends Controller
         return redirect()->route('bienes.index')->with('success', 'El bien pasó a estado INACTIVO.');
     }
 
-    public function importarExcel(Request $request, BienExcelService $excelService)
+    private function catalogoPermitido(string $tabla, array $idsPermitidos)
     {
-        $programaId = ContextoInstitucion::programaId();
-
-        if ($programaId === null) {
-            return redirect()->route('bienes.index')
-                ->with('aviso_error', 'Seleccione un programa de estudio activo antes de importar.');
+        if (empty($idsPermitidos)) {
+            return collect();
         }
 
-        $request->validate([
-            'archivo' => [
-                'required',
-                'file',
-                'mimes:xlsx',
-                'mimetypes:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'max:10240',
-            ],
-        ], [
-            'archivo.required'  => 'Debe seleccionar un archivo Excel (.xlsx).',
-            'archivo.mimes'     => 'Solo se permite importar archivos en formato oficial .xlsx.',
-            'archivo.mimetypes' => 'El archivo seleccionado no es un documento Excel (.xlsx) válido.',
-            'archivo.max'       => 'El archivo no debe superar los 10 MB.',
-        ]);
-
-        try {
-            $resumen = $excelService->importar($request->file('archivo'), $programaId);
-        } catch (ValidationException $e) {
-            $detalle = collect($e->errors())->flatten()->implode(' | ');
-            return redirect()->route('bienes.index')->with('aviso_error', $detalle);
-        }
-
-        return redirect()->route('bienes.index')->with(
-            'success',
-            "Importación exitosa: {$resumen['creados']} nuevos y {$resumen['actualizados']} actualizados (Total: {$resumen['total']})."
-        );
-    }
-
-    public function plantillaExcel(BienExcelService $excelService)
-    {
-        return $excelService->descargarPlantilla();
-    }
-
-    public function exportarExcel(BienExcelService $excelService)
-    {
-        /** @var Usuario $user */
-        $user           = Auth::user();
-        $institucion    = $user->institucionActiva();
-        $institucionId  = $institucion?->id;
-        $programaId     = ContextoInstitucion::programaId();
-        $verInstitucion = $user->veTodaLaInstitucion();
-
-        $bienes = DB::select('CALL sp_listar_bienes(?, ?, ?)', [
-            $programaId,
-            $institucionId,
-            $verInstitucion ? 1 : 0,
-        ]);
-
-        return $excelService->exportar($bienes, [
-            'institucion' => $institucion?->nombre ?? 'TODAS LAS INSTITUCIONES',
-            'programa'    => $programaId ? DB::table('programas_estudio')->where('id', $programaId)->value('nombre') : 'TODOS LOS PROGRAMAS',
-        ]);
+        return DB::table("$tabla as t")
+            ->join('programas_estudio as pe', 'pe.id', '=', 't.programa_estudio_id')
+            ->whereIn('t.programa_estudio_id', $idsPermitidos)
+            ->whereNull('t.deleted_at')
+            ->orderBy('t.nombre')
+            ->get(['t.id', 't.nombre', 't.programa_estudio_id', 'pe.nombre as programa_nombre']);
     }
 
     private function reglas(int $programaId, ?int $ignorarId = null): array
@@ -233,13 +216,14 @@ class BienController extends Controller
         ];
     }
 
-    private function delProgramaActivo(int $id, ?int $programaId): Bien
+    private function bienPermitido(int $id): Bien
     {
-        abort_if($programaId === null, 403, 'No tiene un programa de estudio activo.');
-
         $bien = Bien::with('sala')->findOrFail($id);
 
-        abort_unless((int) $bien->sala?->programa_estudio_id === $programaId, 404);
+        abort_unless(
+            Auth::user()->puedeUsarPrograma((int) $bien->sala?->programa_estudio_id),
+            404
+        );
 
         return $bien;
     }

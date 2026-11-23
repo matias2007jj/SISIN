@@ -42,7 +42,6 @@ class CatalogoController extends Controller
         /** @var Usuario $user */
         $user           = Auth::user();
         $institucionId  = ContextoInstitucion::id();
-        $programaId     = ContextoInstitucion::programaId();
         $idsPermitidos  = $user->idsProgramasPermitidos();
         $puedeCrear     = $this->puede($catalogo, 'crear');
         $puedeEditar    = $this->puede($catalogo, 'editar');
@@ -103,10 +102,8 @@ class CatalogoController extends Controller
             if ($institucionId !== null) {
                 $query->where('pe.institucion_id', $institucionId);
             }
-        } elseif ($user->tipo_usuario === 'ADMIN_INSTITUCION') {
-            $query->whereIn('t.programa_estudio_id', $idsPermitidos);
-        } elseif ($programaId !== null) {
-            $query->where('t.programa_estudio_id', $programaId);
+        } else {
+            $query->whereIn('t.programa_estudio_id', $idsPermitidos ?: [-1]);
         }
 
         $registros = $query->get();
@@ -127,20 +124,20 @@ class CatalogoController extends Controller
             return redirect()->back()->with('success', 'Estado registrado correctamente');
         }
 
-        // Si viene por AJAX desde el modal de Bienes sin programa_estudio_id, usamos el programa activo
+        // Si viene por AJAX desde el modal de Bienes sin programa_estudio_id, usamos el primer programa permitido
         if ($request->expectsJson() && ! $request->filled('programa_estudio_id')) {
-            $programaActivo = ContextoInstitucion::programaId();
-            if ($programaActivo !== null) {
-                $request->merge(['programa_estudio_id' => $programaActivo]);
+            $primerPrograma = Auth::user()->idsProgramasPermitidos()[0] ?? null;
+            if ($primerPrograma !== null) {
+                $request->merge(['programa_estudio_id' => $primerPrograma]);
             }
         }
 
         $programaDestinoId = $this->resolverProgramaDestino($request);
         if ($programaDestinoId === null) {
             if ($request->expectsJson()) {
-                return response()->json(['message' => 'Debe seleccionar o tener un programa de estudio activo.'], 422);
+                return response()->json(['message' => 'No tiene un programa de estudio asignado.'], 422);
             }
-            return redirect()->back()->with('aviso_error', 'Debe seleccionar o tener un programa de estudio activo.');
+            return redirect()->back()->with('aviso_error', 'No tiene un programa de estudio asignado.');
         }
 
         $request->validate([
@@ -262,7 +259,15 @@ class CatalogoController extends Controller
             return (int) $request->programa_estudio_id;
         }
 
-        return $programaActual ?? ContextoInstitucion::programaId();
+        if ($request->filled('programa_estudio_id')) {
+            $request->validate([
+                'programa_estudio_id' => ['integer', $this->reglaProgramaPermitido()],
+            ]);
+
+            return (int) $request->programa_estudio_id;
+        }
+
+        return $programaActual ?? ($user->idsProgramasPermitidos()[0] ?? null);
     }
 
     private function puede(string $catalogo, string $accion): bool
