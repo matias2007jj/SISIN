@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
@@ -43,7 +44,16 @@ class BienExcelService
             }
             $registros = $decodificado;
         } else {
-            $registros = $this->parsearCsvNativo($archivo);
+            $extension = strtolower((string) $archivo->getClientOriginalExtension());
+            $registros = $extension === 'csv'
+                ? $this->parsearCsvNativo($archivo)
+                : $this->parsearExcelServidor($archivo);
+        }
+
+        if (empty($registros)) {
+            throw ValidationException::withMessages([
+                'archivo' => 'No se encontraron registros con CBI válido para importar.',
+            ]);
         }
 
         $creados      = 0;
@@ -191,10 +201,19 @@ class BienExcelService
     private function generarDesdePlantillaOficial($listaBienes, array $metadatos, string $nombreArchivo): StreamedResponse
     {
         $rutaPlantilla = storage_path('app/plantillas/formato_inventario.xlsx');
-        abort_unless(file_exists($rutaPlantilla), 500, 'No se encontró la plantilla oficial en storage/app/plantillas/formato_inventario.xlsx');
+        $spreadsheet   = null;
 
-        $spreadsheet = IOFactory::load($rutaPlantilla);
-        $sheet       = $spreadsheet->getActiveSheet();
+        if (is_file($rutaPlantilla)) {
+            try {
+                $spreadsheet = IOFactory::load($rutaPlantilla);
+            } catch (\Throwable $e) {
+                $spreadsheet = null;
+            }
+        }
+
+        // Si no existe (o no se puede leer) la plantilla oficial, se construye el mismo formato desde cero.
+        $spreadsheet ??= $this->crearFormatoBase();
+        $sheet         = $spreadsheet->getActiveSheet();
 
         // Vista Normal (quita las marcas de agua grises "Página 1 / Página 2" y líneas azules)
         $sheet->getSheetView()->setView(SheetView::SHEETVIEW_NORMAL);
@@ -528,6 +547,247 @@ class BienExcelService
         imagefilledellipse($img, $x2 - $radio, $y1 + $radio, $diametro, $diametro, $color);
         imagefilledellipse($img, $x1 + $radio, $y2 - $radio, $diametro, $diametro, $color);
         imagefilledellipse($img, $x2 - $radio, $y2 - $radio, $diametro, $diametro, $color);
+    }
+
+    /**
+     * Construye desde cero el formato oficial de inventario (mismas posiciones que la plantilla):
+     * cabecera institucional (filas 1-5), datos del responsable (filas 7-11),
+     * encabezados de tabla en la fila 13 y datos desde la fila 14.
+     * Es el formato que reconoce la importación (etiqueta "Docente responsable", "Sala" y 12 columnas).
+     */
+    private function crearFormatoBase(): Spreadsheet
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet       = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('INVENTARIO');
+
+        $anchos = ['A' => 6, 'B' => 10, 'C' => 10, 'D' => 10, 'E' => 16, 'F' => 13,
+                   'G' => 35, 'H' => 16, 'I' => 16, 'J' => 25, 'K' => 9, 'L' => 42];
+        foreach ($anchos as $col => $ancho) {
+            $sheet->getColumnDimension($col)->setWidth($ancho);
+        }
+        foreach (range(1, 5) as $f) {
+            $sheet->getRowDimension($f)->setRowHeight(20);
+        }
+
+        $etiqueta = [
+            'font'      => ['name' => 'Times New Roman', 'size' => 10, 'bold' => true],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER],
+        ];
+        $caja = [
+            'font'      => ['name' => 'Times New Roman', 'size' => 10],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+            'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '808080']]],
+        ];
+
+        // Fila 7: docente responsable / cargo
+        $sheet->mergeCells('A7:C7');
+        $sheet->setCellValue('A7', 'Docente responsable');
+        $sheet->mergeCells('D7:G7');
+        $sheet->setCellValue('D7', 'Mg. Miguel Mauro Culi Janampa');
+        $sheet->setCellValue('I7', 'Cargo');
+        $sheet->mergeCells('J7:L7');
+        $sheet->setCellValue('J7', 'Coordinador del Area Académica Computación e Informática');
+
+        // Fila 9: responsable de entrega / cargo
+        $sheet->mergeCells('A9:C9');
+        $sheet->setCellValue('A9', 'Responsable de entrega');
+        $sheet->mergeCells('D9:G9');
+        $sheet->setCellValue('D9', 'Segundo Teodulo Sanchez Rodriguez / Luis Alberto Gutierrez Chura');
+        $sheet->setCellValue('I9', 'Cargo');
+        $sheet->mergeCells('J9:L9');
+        $sheet->setCellValue('J9', 'Asistente del area de Computación e Informática - T1 - T2');
+
+        // Fila 11: fecha de entrega (G11) / sala (J11:L11)
+        $sheet->mergeCells('A11:F11');
+        $sheet->setCellValue('A11', 'Fecha de entrega');
+        $sheet->setCellValue('I11', 'Sala');
+        $sheet->mergeCells('J11:L11');
+
+        foreach (['A7', 'A9', 'A11', 'I7', 'I9', 'I11'] as $celda) {
+            $sheet->getStyle($celda)->applyFromArray($etiqueta);
+        }
+        foreach (['D7:G7', 'D9:G9', 'G11', 'J7:L7', 'J9:L9', 'J11:L11'] as $rango) {
+            $sheet->getStyle($rango)->applyFromArray($caja);
+        }
+        foreach ([7, 9, 11] as $f) {
+            $sheet->getRowDimension($f)->setRowHeight(24);
+        }
+
+        // Fila 13: encabezados oficiales (12 columnas)
+        $encabezados = [
+            'A' => ['N°', 'D9D9D9'],
+            'B' => ['INV 2025', 'D9D9D9'],
+            'C' => ['INV 2024', 'D9D9D9'],
+            'D' => ['INV 2023', 'D9D9D9'],
+            'E' => ['CODIGO PATRIMONIAL', 'D9D9D9'],
+            'F' => ['CBI', 'F8CBAD'],
+            'G' => ['DESCRIPCIÓN DEL BIEN', 'FFF2CC'],
+            'H' => ['MARCA', 'C6E0B4'],
+            'I' => ['MODELO', 'DDEBF7'],
+            'J' => ['SERIE/MEDIDA', '9DC3E6'],
+            'K' => ['ESTADO', 'FFFFFF'],
+            'L' => ['OTRAS ESPECIFICACIONES', 'E2EFDA'],
+        ];
+        foreach ($encabezados as $col => [$texto, $color]) {
+            $sheet->setCellValue("{$col}13", $texto);
+            $sheet->getStyle("{$col}13")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB($color);
+        }
+        $sheet->getStyle('A13:L13')->applyFromArray([
+            'font'      => ['name' => 'Times New Roman', 'size' => 10, 'bold' => true],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+            'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']]],
+        ]);
+        $sheet->getRowDimension(13)->setRowHeight(32);
+
+        // Fila 14: estilo base que se clona para cada bien
+        $sheet->getStyle('A14:L14')->applyFromArray([
+            'font'      => ['name' => 'Times New Roman', 'size' => 10],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+            'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']]],
+        ]);
+        $sheet->getStyle('G14')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+        $sheet->getStyle('L14')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+        $sheet->getRowDimension(14)->setRowHeight(20);
+
+        return $spreadsheet;
+    }
+
+    /**
+     * Lee el Excel en el servidor con las mismas reglas que la validación del navegador
+     * (se usa cuando el navegador no pudo leerlo, p. ej. sin acceso al CDN de SheetJS).
+     */
+    private function parsearExcelServidor(UploadedFile $archivo): array
+    {
+        try {
+            $ruta   = $archivo->getRealPath();
+            $reader = IOFactory::createReaderForFile($ruta);
+            $reader->setReadDataOnly(true);
+            $libro  = $reader->load($ruta);
+        } catch (\Throwable $e) {
+            throw ValidationException::withMessages([
+                'archivo' => 'No se pudo leer el archivo Excel seleccionado.',
+            ]);
+        }
+
+        $norm = fn ($v) => mb_strtoupper(trim((string) preg_replace('/\s+/u', ' ', $this->textoCelda($v))), 'UTF-8');
+
+        $colsValidas = [
+            0  => ['N°', 'Nº'],
+            1  => ['INV 2025', '2025'],
+            2  => ['INV 2024', '2024'],
+            3  => ['INV 2023', '2023'],
+            4  => ['CODIGO PATRIMONIAL', 'COD. PATRI.'],
+            5  => ['CBI'],
+            6  => ['DESCRIPCIÓN DEL BIEN', 'DESCRIPCION DEL BIEN'],
+            7  => ['MARCA'],
+            8  => ['MODELO'],
+            9  => ['SERIE/MEDIDA', 'SERIE / MEDIDA'],
+            10 => ['ESTADO'],
+            11 => ['OTRAS ESPECIFICACIONES'],
+        ];
+
+        $registros = [];
+        $errores   = [];
+
+        foreach ($libro->getWorksheetIterator() as $hoja) {
+            $nombreHoja = $hoja->getTitle();
+            $rows       = $hoja->toArray('', true, false, false);
+
+            $filaHeader = -1;
+            $limite     = min(16, count($rows) - 1);
+            for ($r = 6; $r <= $limite; $r++) {
+                $row = $rows[$r] ?? [];
+                $ok  = true;
+                for ($c = 0; $c <= 11; $c++) {
+                    if (! in_array($norm($row[$c] ?? ''), $colsValidas[$c], true)) {
+                        $ok = false;
+                        break;
+                    }
+                }
+                if ($ok) {
+                    $filaHeader = $r;
+                    break;
+                }
+            }
+
+            if ($filaHeader === -1) {
+                $errores[] = "Hoja \"{$nombreHoja}\": no coincide con las 12 columnas oficiales (N° a OTRAS ESPECIFICACIONES).";
+                continue;
+            }
+
+            $tieneDocente = false;
+            $salaNombre   = '';
+            for ($r = 0; $r < $filaHeader; $r++) {
+                $row = $rows[$r] ?? [];
+                for ($c = 0; $c <= 11; $c++) {
+                    $txt = $norm($row[$c] ?? '');
+                    if ($txt === 'DOCENTE RESPONSABLE') {
+                        $tieneDocente = true;
+                    }
+                    if ($txt === 'SALA') {
+                        for ($k = $c + 1; $k <= 11; $k++) {
+                            if ($norm($row[$k] ?? '') !== '') {
+                                $salaNombre = $this->textoCelda($row[$k]);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (! $tieneDocente) {
+                $errores[] = "Hoja \"{$nombreHoja}\": falta la etiqueta institucional \"DOCENTE RESPONSABLE\".";
+                continue;
+            }
+
+            if ($salaNombre === '') {
+                $salaNombre = trim($nombreHoja);
+            }
+
+            for ($r = $filaHeader + 1; $r < count($rows); $r++) {
+                $row  = $rows[$r] ?? [];
+                $colA = $norm($row[0] ?? '');
+                $cbi  = $norm($row[5] ?? '');
+                $desc = $this->textoCelda($row[6] ?? '');
+
+                if (str_starts_with($colA, 'ESTADO') || str_starts_with($colA, 'NOTA') || str_starts_with($norm($desc), 'ESTADO:')) {
+                    break;
+                }
+                if ($cbi === '' || in_array($cbi, ['S/N', 'S/C', '-'], true)) {
+                    continue;
+                }
+
+                $registros[] = [
+                    'hoja'        => $nombreHoja,
+                    'fila'        => $r + 1,
+                    'sala'        => $salaNombre,
+                    'cbi'         => $cbi,
+                    'descripcion' => $desc,
+                    'marca'       => $this->textoCelda($row[7] ?? ''),
+                    'modelo'      => $this->textoCelda($row[8] ?? ''),
+                    'serie'       => $this->textoCelda($row[9] ?? ''),
+                    'estado'      => $this->textoCelda($row[10] ?? ''),
+                    'otras'       => $this->textoCelda($row[11] ?? ''),
+                ];
+            }
+        }
+
+        if (! empty($errores)) {
+            throw ValidationException::withMessages(['archivo' => $errores]);
+        }
+
+        return $registros;
+    }
+
+    /** Convierte el valor de una celda a texto (los números enteros no llevan ".0"). */
+    private function textoCelda(mixed $valor): string
+    {
+        if (is_float($valor) && floor($valor) === $valor && abs($valor) < 1e15) {
+            return (string) (int) $valor;
+        }
+
+        return trim((string) ($valor ?? ''));
     }
 
     private function parsearCsvNativo(UploadedFile $archivo): array

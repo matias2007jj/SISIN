@@ -507,6 +507,9 @@
             const archivo = inputArchivo?.files?.[0];
             if (!archivo || archivo.name.toLowerCase().endsWith('.csv')) return;
 
+            // Si SheetJS no cargó (sin internet / CDN bloqueado), el servidor lee el Excel.
+            if (typeof XLSX === 'undefined') return;
+
             e.preventDefault();
 
             try {
